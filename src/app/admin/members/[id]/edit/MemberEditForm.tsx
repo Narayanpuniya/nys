@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { Loader2, Save } from "lucide-react";
 import { Field, inputClass, Card } from "@/components/ui/primitives";
-import { updateMember, type UpdateMemberState } from "../actions";
+import { updateMember, type UpdateMemberState } from "../../actions";
 
 type Plan = { id: string; name: string };
 type MemberEdit = {
