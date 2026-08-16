@@ -65,14 +65,32 @@ export function DonateForm({
           mobile, email, amount: finalAmount, purpose, campaignId, message, isAnonymous: anon,
         }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: {
+        error?: string;
+        donationId?: string;
+        orderId?: string;
+        mock?: boolean;
+        razorpayKey?: string | null;
+      } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        setError("सर्वर उत्तर अमान्य है। Redeploy / DATABASE_URL जाँचें।");
+        setLoading(false);
+        return;
+      }
       if (!res.ok) {
-        setError(data.error || "कुछ समस्या हुई है।");
+        setError(data.error || `दान विफल (${res.status})।`);
+        setLoading(false);
+        return;
+      }
+      if (!data.donationId || !data.orderId) {
+        setError("दान शुरू नहीं हो सका। दोबारा प्रयास करें।");
         setLoading(false);
         return;
       }
 
-      // Mock mode: सीधे verify (dev/testing)। Live mode: Razorpay checkout।
       if (data.mock) {
         await confirm(data.donationId, data.orderId, `mock_pay_${Date.now()}`, `mock_sig_${data.orderId}`);
         return;
@@ -94,28 +112,41 @@ export function DonateForm({
         prefill: { name: donorName, email, contact: mobile },
         theme: { color: "#ea6205" },
         handler: (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-          confirm(data.donationId, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature);
+          confirm(data.donationId!, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature);
         },
         modal: { ondismiss: () => setLoading(false) },
       });
       rzp.open();
     } catch {
-      setError("कुछ समस्या हुई है। कृपया दोबारा प्रयास करें।");
+      setError("नेटवर्क त्रुटि। कनेक्शन जाँचकर दोबारा प्रयास करें।");
       setLoading(false);
     }
   }
 
   async function confirm(donationId: string, orderId: string, paymentId: string, signature: string) {
-    const res = await fetch("/api/donations/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ donationId, orderId, paymentId, signature }),
-    });
-    const data = await res.json();
-    if (res.ok && data.receiptNumber) {
-      router.push(`/donate/success?receipt=${data.receiptNumber}`);
-    } else {
-      setError(data.error || "भुगतान सत्यापन विफल।");
+    try {
+      const res = await fetch("/api/donations/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ donationId, orderId, paymentId, signature }),
+      });
+      const text = await res.text();
+      let data: { error?: string; receiptNumber?: string } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        setError("सत्यापन उत्तर अमान्य।");
+        setLoading(false);
+        return;
+      }
+      if (res.ok && data.receiptNumber) {
+        router.push(`/donate/success?receipt=${data.receiptNumber}`);
+      } else {
+        setError(data.error || "भुगतान सत्यापन विफल।");
+        setLoading(false);
+      }
+    } catch {
+      setError("सत्यापन नेटवर्क त्रुटि।");
       setLoading(false);
     }
   }

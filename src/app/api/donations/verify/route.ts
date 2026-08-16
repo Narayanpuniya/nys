@@ -4,70 +4,78 @@ import { verifyPayment } from "@/lib/payments";
 import { generateTxnCode } from "@/lib/sequence";
 import { logAudit } from "@/lib/audit";
 
-// STEP 2: Server-side payment verification। कभी सिर्फ frontend पर भरोसा न करें।
+// STEP 2: Server-side payment verification।
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  const { donationId, orderId, paymentId, signature } = body ?? {};
-  if (!donationId || !orderId || !paymentId || !signature) {
-    return NextResponse.json({ error: "अधूरी जानकारी" }, { status: 400 });
-  }
+  try {
+    const body = await req.json().catch(() => null);
+    const { donationId, orderId, paymentId, signature } = body ?? {};
+    if (!donationId || !orderId || !paymentId || !signature) {
+      return NextResponse.json({ error: "अधूरी जानकारी" }, { status: 400 });
+    }
 
-  const donation = await prisma.donation.findUnique({ where: { id: donationId } });
-  if (!donation) return NextResponse.json({ error: "दान रिकॉर्ड नहीं मिला" }, { status: 404 });
+    const donation = await prisma.donation.findUnique({ where: { id: donationId } });
+    if (!donation) return NextResponse.json({ error: "दान रिकॉर्ड नहीं मिला" }, { status: 404 });
 
-  // duplicate confirmation से बचें
-  if (donation.status === "SUCCESS") {
-    return NextResponse.json({ ok: true, receiptNumber: donation.receiptNumber, already: true });
-  }
+    if (donation.status === "SUCCESS") {
+      return NextResponse.json({ ok: true, receiptNumber: donation.receiptNumber, already: true });
+    }
 
-  const valid = verifyPayment({ orderId, paymentId, signature });
-  if (!valid) {
-    await prisma.donation.update({ where: { id: donationId }, data: { status: "FAILED" } });
-    return NextResponse.json({ error: "भुगतान सत्यापन विफल" }, { status: 400 });
-  }
+    const valid = verifyPayment({ orderId, paymentId, signature });
+    if (!valid) {
+      await prisma.donation.update({ where: { id: donationId }, data: { status: "FAILED" } });
+      return NextResponse.json({ error: "भुगतान सत्यापन विफल" }, { status: 400 });
+    }
 
-  // सफल: donation update + income entry (financial linkage)
-  const updated = await prisma.$transaction(async (tx) => {
-    const don = await tx.donation.update({
+    const txnCode = await generateTxnCode("INC");
+    const isCampaign = !!donation.campaignId;
+
+    const updated = await prisma.donation.update({
       where: { id: donationId },
       data: { status: "SUCCESS", gatewayTxnId: paymentId, paidAt: new Date() },
       include: { campaign: true },
     });
 
-    const isCampaign = !!don.campaignId;
-    await tx.income.create({
+    await prisma.income.create({
       data: {
-        txnCode: await generateTxnCode("INC"),
+        txnCode,
         source: isCampaign ? "CROWDFUNDING" : "DONATION",
-        category: isCampaign ? `अभियान: ${don.campaign?.title ?? ""}` : "सामान्य दान",
-        amount: don.amount,
-        description: `दान — ${don.donorName} (${don.receiptNumber})`,
+        category: isCampaign ? `अभियान: ${updated.campaign?.title ?? ""}` : "सामान्य दान",
+        amount: updated.amount,
+        description: `दान — ${updated.donorName} (${updated.receiptNumber})`,
         mode: "ONLINE",
         refType: "Donation",
-        refId: don.id,
+        refId: updated.id,
       },
     });
 
-    // campaign target पूरा होने पर status update
-    if (don.campaignId && don.campaign) {
-      const agg = await tx.donation.aggregate({
-        where: { campaignId: don.campaignId, status: "SUCCESS" },
+    if (updated.campaignId && updated.campaign) {
+      const agg = await prisma.donation.aggregate({
+        where: { campaignId: updated.campaignId, status: "SUCCESS" },
         _sum: { amount: true },
       });
       const collected = agg._sum.amount ?? 0;
-      if (collected >= don.campaign.goalAmount && don.campaign.status === "ACTIVE") {
-        await tx.campaign.update({ where: { id: don.campaignId }, data: { status: "COMPLETED" } });
+      if (collected >= updated.campaign.goalAmount && updated.campaign.status === "ACTIVE") {
+        await prisma.campaign.update({
+          where: { id: updated.campaignId },
+          data: { status: "COMPLETED" },
+        });
       }
     }
-    return don;
-  });
 
-  await logAudit({
-    action: "CREATE",
-    entity: "Donation",
-    entityId: updated.id,
-    summary: `दान सफल: ${updated.donorName} — ₹${updated.amount}`,
-  });
+    await logAudit({
+      action: "CREATE",
+      entity: "Donation",
+      entityId: updated.id,
+      summary: `दान सफल: ${updated.donorName} — ₹${updated.amount}`,
+    });
 
-  return NextResponse.json({ ok: true, receiptNumber: updated.receiptNumber });
+    return NextResponse.json({ ok: true, receiptNumber: updated.receiptNumber });
+  } catch (err) {
+    console.error("[POST /api/donations/verify]", err);
+    const detail = err instanceof Error ? err.message : "unknown";
+    return NextResponse.json(
+      { error: `भुगतान सत्यापन त्रुटि। ${detail.slice(0, 160)}` },
+      { status: 500 },
+    );
+  }
 }

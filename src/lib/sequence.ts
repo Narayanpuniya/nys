@@ -92,8 +92,31 @@ export async function generateMemberCode(prefix = "NYS-M"): Promise<string> {
 
 export async function generateDonationReceipt(prefix = "DON"): Promise<string> {
   const y = YEAR();
-  const n = await nextSequence(`DON:${y}`);
-  return `${prefix}-${y}-${pad(n)}`;
+  const scope = `DON:${y}`;
+  const pattern = `${prefix}-${y}-`;
+  const rows = await prisma.donation.findMany({
+    where: { receiptNumber: { startsWith: pattern } },
+    select: { receiptNumber: true },
+  });
+  let max = 0;
+  for (const r of rows) {
+    const part = r.receiptNumber.slice(pattern.length);
+    const n = parseInt(part, 10);
+    if (!Number.isNaN(n) && n > max) max = n;
+  }
+  await ensureSequenceAtLeast(scope, max);
+
+  for (let i = 0; i < 20; i++) {
+    const n = await nextSequence(scope);
+    const code = `${prefix}-${y}-${pad(n)}`;
+    const exists = await prisma.donation.findUnique({
+      where: { receiptNumber: code },
+      select: { id: true },
+    });
+    if (!exists) return code;
+  }
+  const n = await nextSequence(scope);
+  return `${prefix}-${y}-${pad(n)}-${Date.now().toString(36).slice(-4)}`;
 }
 
 export async function generateMembershipReceipt(prefix = "MEM"): Promise<string> {
