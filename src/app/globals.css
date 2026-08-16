@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/*
+  NYS Design System — राजस्थानी cultural feel के साथ premium NGO look.
+  Palette: saffron/marigold primary, deep maroon accent, cream background.
+  Hindi-first typography (Noto Sans Devanagari via layout).
+*/
+
+@theme {
+  /* Brand */
+  --color-saffron-50: #fff8ed;
+  --color-saffron-100: #ffefd4;
+  --color-saffron-200: #ffdba8;
+  --color-saffron-300: #ffc06f;
+  --color-saffron-400: #ff9d37;
+  --color-saffron-500: #f97e0f;
+  --color-saffron-600: #ea6205;
+  --color-saffron-700: #c24807;
+  --color-saffron-800: #9a390e;
+  --color-saffron-900: #7c310f;
+
+  --color-maroon-50: #fdf3f3;
+  --color-maroon-100: #fbe5e5;
+  --color-maroon-200: #f7d0d0;
+  --color-maroon-300: #f0aeae;
+  --color-maroon-400: #e57e7e;
+  --color-maroon-500: #d65454;
+  --color-maroon-600: #c23838;
+  --color-maroon-700: #a32a2a;
+  --color-maroon-800: #7e2323;
+  --color-maroon-900: #6b2222;
+
+  --color-cream: #fffaf2;
+  --color-ink: #2a1a12;
+
+  --font-sans: var(--font-hind), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+:root {
+  --background: #fffaf2;
+  --foreground: #2a1a12;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, #fff3e0 0%, transparent 55%),
+    radial-gradient(1000px 500px at -10% 0%, #fdeede 0%, transparent 45%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utility: subtle Rajasthani top accent bar */
+.nys-accent-bar {
+  background: linear-gradient(90deg, #f97e0f 0%, #ea6205 30%, #a32a2a 65%, #7c310f 100%);
+}
+
+/* Inner-scroll containers (compact website rule) */
+.nys-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #ffc06f transparent;
+}
+.nys-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.nys-scroll::-webkit-scrollbar-thumb {
+  background: #ffc06f;
+  border-radius: 999px;
+}
+.nys-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Skeleton shimmer */
+@keyframes nys-shimmer {
+  100% { transform: translateX(100%); }
+}
+.nys-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #f1e7da;
+}
+.nys-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: nys-shimmer 1.5s infinite;
+}
+
+/* Print styles for ID cards / certificates / receipts */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; }
+  .print-page { box-shadow: none !important; margin: 0 !important; }
+}

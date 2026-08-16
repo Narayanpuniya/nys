@@ -1,0 +1,500 @@
+// NYS — नारायणपुरी यूथ सोसाइटी | Prisma Schema
+// Provider: PostgreSQL (local + production)।
+// statuses/roles String के रूप में रखे गए हैं व arrays JSON string में — इससे schema
+// portable रहता है और future में migration आसान होता है।
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  mobile        String?
+  passwordHash  String
+  role          String   @default("CONTENT_MANAGER")
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  auditLogs     AuditLog[]
+  createdPosts  Post[]        @relation("PostAuthor")
+  incomes       Income[]
+  expenses      Expense[]
+
+  @@index([role])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userName   String
+  action     String
+  entity     String
+  entityId   String?
+  summary    String
+  meta       String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model MembershipPlan {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  amount      Int
+  periodDays  Int
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  members     Member[]
+  payments    MembershipPayment[]
+}
+
+model Member {
+  id              String   @id @default(cuid())
+  memberCode      String   @unique
+  fullName        String
+  guardianName    String?
+  dob             DateTime?
+  gender          String?
+  mobile          String
+  whatsapp        String?
+  email           String?
+  address         String?
+  village         String?
+  district        String?
+  state           String?  @default("Rajasthan")
+  occupation      String?
+  bloodGroup      String?
+  photoUrl        String?
+  emergencyContact String?
+  joiningDate     DateTime @default(now())
+  validUntil      DateTime?
+  status          String   @default("PENDING")
+  showMobile      Boolean  @default(false)
+  consent         Boolean  @default(false)
+
+  planId          String?
+  plan            MembershipPlan? @relation(fields: [planId], references: [id])
+
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments        MembershipPayment[]
+  certificates    Certificate[]
+  suggestions     Suggestion[]
+  volunteers      Volunteer[]
+  eventRegs       EventRegistration[]
+
+  @@index([status])
+  @@index([mobile])
+  @@index([village])
+}
+
+model MembershipPayment {
+  id            String   @id @default(cuid())
+  receiptNumber String   @unique
+  memberId      String
+  planId        String?
+  amount        Int
+  paidAt        DateTime @default(now())
+  periodStart   DateTime
+  periodEnd     DateTime
+  mode          String   @default("ONLINE")
+  gatewayTxnId  String?
+  status        String   @default("SUCCESS")
+  notes         String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  member        Member          @relation(fields: [memberId], references: [id])
+  plan          MembershipPlan? @relation(fields: [planId], references: [id])
+
+  @@index([status])
+  @@index([paidAt])
+}
+
+model Certificate {
+  id           String   @id @default(cuid())
+  certNumber   String   @unique
+  memberId     String
+  type         String   @default("MEMBERSHIP")
+  issuedAt     DateTime @default(now())
+  pdfUrl       String?
+
+  member       Member   @relation(fields: [memberId], references: [id])
+}
+
+model Donor {
+  id         String   @id @default(cuid())
+  name       String
+  mobile     String?
+  email      String?
+  pan        String?
+  isAnonymous Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  donations  Donation[]
+
+  @@index([mobile])
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  receiptNumber String   @unique
+  donorId       String?
+  donorName     String
+  amount        Int
+  purpose       String   @default("GENERAL")
+  campaignId    String?
+  mode          String   @default("ONLINE")
+  gatewayTxnId  String?
+  gatewayOrderId String?
+  status        String   @default("PENDING")
+  message       String?
+  createdAt     DateTime @default(now())
+  paidAt        DateTime?
+
+  donor         Donor?    @relation(fields: [donorId], references: [id])
+  campaign      Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([campaignId])
+}
+
+model Campaign {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  goalAmount   Int
+  category     String   @default("GENERAL")
+  beneficiary  String?
+  location     String?
+  description  String
+  coverImage   String?
+  videoUrl     String?
+  contact      String?
+  startDate    DateTime @default(now())
+  endDate      DateTime?
+  status       String   @default("ACTIVE")
+  acceptAfterGoal Boolean @default(true)
+  featured     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  donations    Donation[]
+  updates      CampaignUpdate[]
+
+  @@index([status])
+}
+
+model CampaignUpdate {
+  id         String   @id @default(cuid())
+  campaignId String
+  title      String
+  body       String
+  imageUrl   String?
+  createdAt  DateTime @default(now())
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  txnCode     String   @unique
+  date        DateTime @default(now())
+  source      String
+  category    String
+  amount      Int
+  description String?
+  mode        String   @default("ONLINE")
+  refType     String?
+  refId       String?
+  attachment  String?
+  status      String   @default("ACTIVE")
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+
+  @@index([date])
+  @@index([source])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  txnCode     String   @unique
+  date        DateTime @default(now())
+  category    String
+  amount      Int
+  description String?
+  mode        String   @default("CASH")
+  campaignId  String?
+  attachment  String?
+  status      String   @default("ACTIVE")
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+
+  @@index([date])
+  @@index([category])
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  category      String   @default("GENERAL")
+  description   String
+  date          DateTime
+  time          String?
+  venue         String?
+  mapUrl        String?
+  posterImage   String?
+  images        String?
+  registrationRequired Boolean @default(false)
+  maxParticipants Int?
+  contactPerson String?
+  contactNumber String?
+  registrationLink String?
+  status        String   @default("UPCOMING")
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@index([status])
+  @@index([date])
+}
+
+model EventRegistration {
+  id            String   @id @default(cuid())
+  regNumber     String   @unique
+  eventId       String
+  name          String
+  mobile        String
+  email         String?
+  memberId      String?
+  participants  Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member        Member?  @relation(fields: [memberId], references: [id])
+
+  @@index([eventId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  icon      String?
+  color     String?
+  summary   String?
+  sortOrder Int      @default(0)
+
+  posts     Post[]
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  categoryId   String?
+  date         DateTime @default(now())
+  location     String?
+  excerpt      String?
+  content      String
+  mainImage    String?
+  images       String?
+  videoUrl     String?
+  youtubeUrl   String?
+  facebookUrl  String?
+  impactNumber Int?
+  impactLabel  String?
+  tags         String?
+  status       String   @default("DRAFT")
+  featured     Boolean  @default(false)
+  publishAt    DateTime?
+  authorId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category     Category? @relation(fields: [categoryId], references: [id])
+  author       User?     @relation("PostAuthor", fields: [authorId], references: [id])
+
+  @@index([status])
+  @@index([date])
+  @@index([categoryId])
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  title     String?
+  category  String   @default("General")
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
+
+model Video {
+  id         String   @id @default(cuid())
+  title      String
+  category   String   @default("General")
+  youtubeUrl String?
+  videoUrl   String?
+  thumbnail  String?
+  date       DateTime @default(now())
+}
+
+model TeamMember {
+  id           String   @id @default(cuid())
+  name         String
+  designation  String
+  designationKey String @default("MEMBER")
+  photoUrl     String?
+  mobile       String?
+  bio          String?
+  responsibility String?
+  showMobile   Boolean  @default(false)
+  isLeadership Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+}
+
+model Mentor {
+  id           String   @id @default(cuid())
+  name         String
+  designation  String?
+  profession   String?
+  photoUrl     String?
+  intro        String?
+  contribution String?
+  contact      String?
+  showContact  Boolean  @default(false)
+  featured     Boolean  @default(false)
+  sortOrder    Int      @default(0)
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  logoUrl     String?
+  about       String?
+  website     String?
+  socialLinks String?
+  contribution String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  programs    PartnerProgram[]
+}
+
+model PartnerProgram {
+  id          String   @id @default(cuid())
+  partnerId   String
+  title       String
+  impactLabel String?
+  impactValue Int?
+
+  partner     Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+}
+
+model Suggestion {
+  id         String   @id @default(cuid())
+  memberId   String?
+  name       String
+  subject    String
+  category   String   @default("SUGGESTION")
+  body       String
+  attachment String?
+  status     String   @default("NEW")
+  adminReply String?
+  createdAt  DateTime @default(now())
+
+  member     Member?  @relation(fields: [memberId], references: [id])
+
+  @@index([status])
+}
+
+model Volunteer {
+  id         String   @id @default(cuid())
+  memberId   String?
+  name       String
+  mobile     String?
+  areas      String
+  note       String?
+  status     String   @default("NEW")
+  createdAt  DateTime @default(now())
+
+  member     Member?  @relation(fields: [memberId], references: [id])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  mobile    String?
+  email     String?
+  message   String
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  body      String
+  audience  String   @default("ALL")
+  read      Boolean  @default(false)
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([read])
+}
+
+model AnnualReport {
+  id        String   @id @default(cuid())
+  year      Int
+  title     String
+  type      String   @default("ANNUAL")
+  pdfUrl    String?
+  summary   String?
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  category  String   @default("General")
+  fileUrl   String
+  isPrivate Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
