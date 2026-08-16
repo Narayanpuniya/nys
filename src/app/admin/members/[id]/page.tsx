@@ -99,19 +99,31 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
             </div>
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-stone-500">
-                <tr><th className="py-2">रसीद</th><th>राशि</th><th>मोड</th><th>स्थिति</th><th>दिनांक</th></tr>
+                <tr><th className="py-2">रसीद</th><th>राशि</th><th>मोड</th><th>स्थिति</th><th>प्रूफ</th><th>दिनांक</th></tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {member.payments.map((p) => (
                   <tr key={p.id}>
-                    <td className="py-2">{p.receiptNumber}</td>
+                    <td className="py-2">
+                      <div>{p.receiptNumber}</div>
+                      {p.notes && <div className="text-xs text-stone-400">{p.notes}</div>}
+                    </td>
                     <td>{formatINR(p.amount)}</td>
                     <td>{p.mode}</td>
                     <td><Badge tone={p.status === "SUCCESS" ? "green" : "amber"}>{p.status}</Badge></td>
+                    <td>
+                      {p.proofUrl ? (
+                        <a href={p.proofUrl} target="_blank" rel="noreferrer" className="text-saffron-700 underline">
+                          देखें
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="text-stone-500">{formatDateHi(p.paidAt)}</td>
                   </tr>
                 ))}
-                {member.payments.length === 0 && <tr><td colSpan={5} className="py-4 text-center text-stone-400">कोई भुगतान नहीं</td></tr>}
+                {member.payments.length === 0 && <tr><td colSpan={6} className="py-4 text-center text-stone-400">कोई भुगतान नहीं</td></tr>}
               </tbody>
             </table>
           </Card>

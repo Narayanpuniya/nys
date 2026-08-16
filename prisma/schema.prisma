@@ -115,9 +115,11 @@ model MembershipPayment {
   paidAt        DateTime @default(now())
   periodStart   DateTime
   periodEnd     DateTime
-  mode          String   @default("ONLINE")
+  mode          String   @default("ONLINE") // ONLINE | UPI | BANK_TRANSFER | CASH
   gatewayTxnId  String?
-  status        String   @default("SUCCESS")
+  status        String   @default("SUCCESS") // SUCCESS | PENDING | FAILED
+  /// UPI/बैंक ट्रांसफर की अपलोड की गई भुगतान रसीद / स्क्रीनशॉट
+  proofUrl      String?
   notes         String?
   createdBy     String?
   createdAt     DateTime @default(now())

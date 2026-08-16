@@ -3,12 +3,14 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomBytes } from "crypto";
 
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const RECEIPT_TYPES = new Set([...IMAGE_TYPES, "application/pdf"]);
 const EXT: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/gif": "gif",
+  "application/pdf": "pdf",
 };
 
 export type UploadCategory =
@@ -17,7 +19,8 @@ export type UploadCategory =
   | "seals"
   | "signatures"
   | "gallery"
-  | "docs";
+  | "docs"
+  | "receipts";
 
 /**
  * Save an uploaded image under public/uploads/{category}/ and return a public URL.
@@ -26,7 +29,7 @@ export type UploadCategory =
 export async function saveUploadedImage(
   file: File | null | undefined,
   category: UploadCategory,
-  opts: { maxBytes?: number } = {},
+  opts: { maxBytes?: number; allowPdf?: boolean } = {},
 ): Promise<string | null> {
   if (!file || typeof file === "string" || file.size === 0) return null;
 
@@ -34,8 +37,13 @@ export async function saveUploadedImage(
   if (file.size > maxBytes) {
     throw new Error(`फ़ाइल बहुत बड़ी है (अधिकतम ${Math.round(maxBytes / 1024 / 1024)} MB)।`);
   }
-  if (!ALLOWED.has(file.type)) {
-    throw new Error("केवल JPG, PNG, WEBP या GIF छवियाँ स्वीकार्य हैं।");
+  const allowed = opts.allowPdf ? RECEIPT_TYPES : IMAGE_TYPES;
+  if (!allowed.has(file.type)) {
+    throw new Error(
+      opts.allowPdf
+        ? "केवल JPG, PNG, WEBP, GIF या PDF स्वीकार्य हैं।"
+        : "केवल JPG, PNG, WEBP या GIF छवियाँ स्वीकार्य हैं।",
+    );
   }
 
   const ext = EXT[file.type] ?? "bin";

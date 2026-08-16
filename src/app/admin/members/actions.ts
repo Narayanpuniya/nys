@@ -5,14 +5,17 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/constants";
-import { generateCertNumber } from "@/lib/sequence";
+import { generateCertNumber, generateTxnCode } from "@/lib/sequence";
 import { getSettings } from "@/lib/settings";
 import { logAudit } from "@/lib/audit";
 import { saveUploadedImage } from "@/lib/upload";
 
 export async function approveMember(memberId: string) {
   const user = await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
-  const member = await prisma.member.findUnique({ where: { id: memberId }, include: { plan: true, certificates: true } });
+  const member = await prisma.member.findUnique({
+    where: { id: memberId },
+    include: { plan: true, certificates: true, payments: { orderBy: { paidAt: "desc" } } },
+  });
   if (!member) return;
 
   const settings = await getSettings();
@@ -20,6 +23,33 @@ export async function approveMember(memberId: string) {
   const validUntil = new Date(Date.now() + days * 86400000);
 
   await prisma.member.update({ where: { id: memberId }, data: { status: "ACTIVE", validUntil } });
+
+  // ऑफलाइन रसीद वाले PENDING भुगतान → SUCCESS + Income
+  const pendingPays = member.payments.filter((p) => p.status === "PENDING");
+  for (const pay of pendingPays) {
+    await prisma.membershipPayment.update({
+      where: { id: pay.id },
+      data: { status: "SUCCESS" },
+    });
+    const alreadyIncome = await prisma.income.findFirst({
+      where: { refType: "MembershipPayment", refId: memberId, amount: pay.amount },
+    });
+    if (!alreadyIncome) {
+      await prisma.income.create({
+        data: {
+          txnCode: await generateTxnCode("INC"),
+          source: "MEMBERSHIP",
+          category: member.plan?.name ?? "सदस्यता",
+          amount: pay.amount,
+          description: `सदस्यता (रसीद स्वीकृत) — ${member.fullName} (${member.memberCode})`,
+          mode: pay.mode === "ONLINE" ? "ONLINE" : "UPI",
+          refType: "MembershipPayment",
+          refId: pay.id,
+        },
+      });
+    }
+  }
+
   if (member.certificates.length === 0) {
     const certNumber = await generateCertNumber(settings.certPrefix);
     await prisma.certificate.create({ data: { certNumber, memberId, type: "MEMBERSHIP" } });

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Check, Upload } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatINR, cn } from "@/lib/utils";
@@ -15,18 +15,30 @@ declare global {
 
 type Plan = { id: string; name: string; amount: number; description?: string | null };
 
+type BankInfo = {
+  accountName?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifsc?: string;
+  branch?: string;
+  upiId?: string;
+};
+
 const empty = {
   fullName: "", guardianName: "", dob: "", gender: "", mobile: "", whatsapp: "",
   email: "", address: "", village: "", district: "", state: "Rajasthan",
   occupation: "", bloodGroup: "", emergencyContact: "", photoUrl: "",
 };
 
-export function JoinForm({ plans }: { plans: Plan[] }) {
+export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(empty);
   const [planId, setPlanId] = useState(plans[0]?.id ?? "");
   const [consent, setConsent] = useState(false);
+  const [payMethod, setPayMethod] = useState<"online" | "receipt">("receipt");
+  const [proof, setProof] = useState<File | null>(null);
+  const [txnNote, setTxnNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -52,58 +64,95 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
     });
   }
 
+  async function submitOnline() {
+    const res = await fetch("/api/members", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, planId, consent: true }),
+    });
+    const text = await res.text();
+    let data: {
+      error?: string;
+      memberId?: string;
+      orderId?: string;
+      planName?: string;
+      amount?: number;
+      mock?: boolean;
+      razorpayKey?: string | null;
+    } = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      setError("सर्वर उत्तर अमान्य है। Hostinger DATABASE_URL / Redeploy जाँचें।");
+      setLoading(false);
+      return;
+    }
+    if (!res.ok) {
+      setError(data.error || `पंजीकरण विफल (${res.status})।`);
+      setLoading(false);
+      return;
+    }
+    if (!data.memberId || !data.orderId) {
+      setError("पंजीकरण अधूरा रहा। दोबारा प्रयास करें।");
+      setLoading(false);
+      return;
+    }
+
+    if (data.mock) {
+      await confirm(data.memberId, data.orderId, `mock_pay_${Date.now()}`, `mock_sig_${data.orderId}`);
+      return;
+    }
+    const ok = await loadRazorpay();
+    if (!ok || !window.Razorpay) { setError("भुगतान गेटवे लोड नहीं हुआ।"); setLoading(false); return; }
+    const rzp = new window.Razorpay({
+      key: data.razorpayKey, amount: (data.amount ?? 0) * 100, currency: "INR",
+      name: "NYS सदस्यता", description: data.planName, order_id: data.orderId,
+      prefill: { name: form.fullName, email: form.email, contact: form.mobile },
+      theme: { color: "#ea6205" },
+      handler: (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
+        confirm(data.memberId!, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature),
+      modal: { ondismiss: () => setLoading(false) },
+    });
+    rzp.open();
+  }
+
+  async function submitReceipt() {
+    if (!proof) {
+      setError("कृपया भुगतान रसीद / स्क्रीनशॉट अपलोड करें।");
+      setLoading(false);
+      return;
+    }
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.set(k, v));
+    fd.set("planId", planId);
+    fd.set("consent", "true");
+    fd.set("mode", bank?.upiId ? "UPI" : "BANK_TRANSFER");
+    if (txnNote.trim()) fd.set("notes", txnNote.trim());
+    fd.set("proof", proof);
+
+    const res = await fetch("/api/members/offline", { method: "POST", body: fd });
+    const text = await res.text();
+    let data: { error?: string; memberCode?: string; status?: string } = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      setError("सर्वर उत्तर अमान्य है।");
+      setLoading(false);
+      return;
+    }
+    if (!res.ok || !data.memberCode) {
+      setError(data.error || "आवेदन विफल।");
+      setLoading(false);
+      return;
+    }
+    router.push(`/join/success?code=${data.memberCode}&status=${data.status || "PENDING"}&mode=receipt`);
+  }
+
   async function submit() {
     if (!consent) { setError("कृपया सहमति दें।"); return; }
     setError(""); setLoading(true);
     try {
-      const res = await fetch("/api/members", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, planId, consent: true }),
-      });
-      const text = await res.text();
-      let data: {
-        error?: string;
-        memberId?: string;
-        orderId?: string;
-        planName?: string;
-        amount?: number;
-        mock?: boolean;
-        razorpayKey?: string | null;
-      } = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        setError("सर्वर उत्तर अमान्य है। Hostinger DATABASE_URL / Redeploy जाँचें।");
-        setLoading(false);
-        return;
-      }
-      if (!res.ok) {
-        setError(data.error || `पंजीकरण विफल (${res.status})।`);
-        setLoading(false);
-        return;
-      }
-      if (!data.memberId || !data.orderId) {
-        setError("पंजीकरण अधूरा रहा। दोबारा प्रयास करें।");
-        setLoading(false);
-        return;
-      }
-
-      if (data.mock) {
-        await confirm(data.memberId, data.orderId, `mock_pay_${Date.now()}`, `mock_sig_${data.orderId}`);
-        return;
-      }
-      const ok = await loadRazorpay();
-      if (!ok || !window.Razorpay) { setError("भुगतान गेटवे लोड नहीं हुआ।"); setLoading(false); return; }
-      const rzp = new window.Razorpay({
-        key: data.razorpayKey, amount: (data.amount ?? 0) * 100, currency: "INR",
-        name: "NYS सदस्यता", description: data.planName, order_id: data.orderId,
-        prefill: { name: form.fullName, email: form.email, contact: form.mobile },
-        theme: { color: "#ea6205" },
-        handler: (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
-          confirm(data.memberId!, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature),
-        modal: { ondismiss: () => setLoading(false) },
-      });
-      rzp.open();
+      if (payMethod === "receipt") await submitReceipt();
+      else await submitOnline();
     } catch {
       setError("नेटवर्क/सर्वर त्रुटि। कनेक्शन जाँचकर दोबारा प्रयास करें।");
       setLoading(false);
@@ -124,10 +173,10 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
   }
 
   const selectedPlan = plans.find((p) => p.id === planId);
+  const hasBank = !!(bank?.upiId || bank?.accountNumber);
 
   return (
     <div>
-      {/* Stepper */}
       <div className="mb-6 flex items-center justify-center gap-2">
         {[1, 2, 3].map((n) => (
           <div key={n} className="flex items-center gap-2">
@@ -192,6 +241,78 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
               <div className="flex justify-between"><span>राशि</span><span className="font-bold text-saffron-800">{formatINR(selectedPlan?.amount ?? 0)}</span></div>
             </div>
           </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink">भुगतान का तरीका</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setPayMethod("receipt")}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left text-sm transition",
+                  payMethod === "receipt" ? "border-saffron-500 bg-saffron-50" : "border-stone-200 bg-white",
+                )}
+              >
+                <div className="font-semibold text-ink">UPI / बैंक + रसीद अपलोड</div>
+                <div className="mt-0.5 text-xs text-stone-500">भुगतान करके स्क्रीनशॉट भेजें — एडमिन जाँच करेगा</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayMethod("online")}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left text-sm transition",
+                  payMethod === "online" ? "border-saffron-500 bg-saffron-50" : "border-stone-200 bg-white",
+                )}
+              >
+                <div className="font-semibold text-ink">ऑनलाइन भुगतान</div>
+                <div className="mt-0.5 text-xs text-stone-500">Razorpay / कार्ड / UPI गेटवे</div>
+              </button>
+            </div>
+          </div>
+
+          {payMethod === "receipt" && (
+            <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
+              {hasBank ? (
+                <div className="rounded-lg bg-stone-50 p-3 text-sm text-stone-700">
+                  <p className="font-semibold text-ink">भुगतान यहाँ करें</p>
+                  {bank?.upiId && <p className="mt-1">UPI: <span className="font-mono font-medium">{bank.upiId}</span></p>}
+                  {bank?.accountName && <p>खाता नाम: {bank.accountName}</p>}
+                  {bank?.bankName && <p>बैंक: {bank.bankName}{bank.branch ? ` (${bank.branch})` : ""}</p>}
+                  {bank?.accountNumber && <p>खाता नं.: <span className="font-mono">{bank.accountNumber}</span></p>}
+                  {bank?.ifsc && <p>IFSC: <span className="font-mono">{bank.ifsc}</span></p>}
+                  <p className="mt-2 text-xs text-stone-500">
+                    राशि {formatINR(selectedPlan?.amount ?? 0)} ट्रांसफर करें, फिर नीचे रसीद अपलोड करें।
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-800 bg-amber-50 rounded-lg p-3">
+                  बैंक/UPI विवरण Admin → Settings में जोड़ें। फिर भी आप रसीद अपलोड कर आवेदन भेज सकते हैं।
+                </p>
+              )}
+
+              <Field label="भुगतान रसीद / स्क्रीनशॉट" required>
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-sm text-stone-600 hover:border-saffron-400">
+                  <Upload className="h-6 w-6 text-saffron-600" />
+                  <span>{proof ? proof.name : "JPG / PNG / PDF चुनें (अधिकतम 4 MB)"}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+                    className="hidden"
+                    onChange={(e) => setProof(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+              </Field>
+              <Field label="UPI / लेनदेन नोट (वैकल्पिक)">
+                <input
+                  className={inputClass}
+                  value={txnNote}
+                  onChange={(e) => setTxnNote(e.target.value)}
+                  placeholder="जैसे UTR नंबर या नोट"
+                />
+              </Field>
+            </div>
+          )}
+
           <label className="flex items-start gap-2 text-sm text-stone-600">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
             मैं अपनी जानकारी NYS को स्वेच्छा से प्रदान कर रहा/रही हूँ और सदस्यता नियमों से सहमत हूँ।
@@ -199,7 +320,6 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
         </div>
       )}
 
-      {/* Nav */}
       <div className="mt-6 flex justify-between">
         {step > 1 ? (
           <Button variant="outline" onClick={() => setStep((s) => s - 1)}><ArrowLeft className="h-4 w-4" /> पीछे</Button>
@@ -210,7 +330,8 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
           </Button>
         ) : (
           <Button onClick={submit} disabled={loading}>
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />} भुगतान करें व सदस्य बनें
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {payMethod === "receipt" ? "रसीद भेजकर आवेदन करें" : "भुगतान करें व सदस्य बनें"}
           </Button>
         )}
       </div>

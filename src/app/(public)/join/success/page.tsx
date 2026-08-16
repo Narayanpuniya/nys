@@ -8,11 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function JoinSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string; status?: string }>;
+  searchParams: Promise<{ code?: string; status?: string; mode?: string }>;
 }) {
-  const { code, status } = await searchParams;
+  const { code, status, mode } = await searchParams;
   const member = code ? await prisma.member.findUnique({ where: { memberCode: code } }) : null;
   const approved = status === "ACTIVE";
+  const viaReceipt = mode === "receipt";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center">
@@ -25,7 +26,9 @@ export default async function JoinSuccessPage({
       <p className="mt-2 text-stone-600">
         {approved
           ? "आपका भुगतान सफल रहा और सदस्यता सक्रिय हो गई है।"
-          : "आपका भुगतान सफल रहा। आपकी सदस्यता एडमिन द्वारा स्वीकृति की प्रतीक्षा में है। स्वीकृति के बाद ID कार्ड व प्रमाणपत्र उपलब्ध होंगे।"}
+          : viaReceipt
+            ? "आपकी भुगतान रसीद मिल गई है। एडमिन जाँच कर सदस्यता सक्रिय करेगा — उसके बाद ID कार्ड व प्रमाणपत्र उपलब्ध होंगे।"
+            : "आपका भुगतान सफल रहा। आपकी सदस्यता एडमिन द्वारा स्वीकृति की प्रतीक्षा में है। स्वीकृति के बाद ID कार्ड व प्रमाणपत्र उपलब्ध होंगे।"}
       </p>
 
       {member && (
