@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function PostDetail({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug: raw } = await params;
+  const slug = decodeURIComponent(raw);
   const post = await prisma.post.findUnique({ where: { slug }, include: { category: true } });
   if (!post || post.status !== "PUBLISHED") notFound();
 

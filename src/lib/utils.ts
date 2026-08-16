@@ -56,14 +56,17 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
   }
 }
 
-/** Create a URL-safe slug from arbitrary text (keeps Devanagari letters). */
+/** URL-safe ASCII slug (Devanagari मात्राएँ hyphen बना देती थीं → 404)। */
 export function slugify(text: string): string {
-  return text
+  const ascii = text
     .toString()
-    .trim()
+    .normalize("NFKD")
+    .replace(/[^\x00-\x7F]/g, "")
     .toLowerCase()
+    .trim()
     .replace(/[\s_]+/g, "-")
-    .replace(/[^\p{L}\p{N}-]+/gu, "")
+    .replace(/[^a-z0-9-]+/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+  return ascii || `item-${Date.now().toString(36)}`;
 }

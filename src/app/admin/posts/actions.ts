@@ -34,7 +34,8 @@ export async function savePost(formData: FormData) {
     await prisma.post.update({ where: { id }, data });
     await logAudit({ user, action: "UPDATE", entity: "Post", entityId: id, summary: `पोस्ट अपडेट: ${title}` });
   } else {
-    const slug = slugify(title) + "-" + Math.random().toString(36).slice(2, 6);
+    const base = slugify(title) || "post";
+    const slug = `${base}-${Math.random().toString(36).slice(2, 6)}`;
     const created = await prisma.post.create({ data: { ...data, slug, authorId: user.id } });
     await logAudit({ user, action: "CREATE", entity: "Post", entityId: created.id, summary: `नई पोस्ट: ${title}` });
   }

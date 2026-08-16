@@ -6,7 +6,14 @@ import { DEFAULT_SETTINGS } from "../src/lib/settings";
 const prisma = new PrismaClient();
 
 function slugify(s: string) {
-  return s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "") || Math.random().toString(36).slice(2, 8);
+  const ascii = s
+    .normalize("NFKD")
+    .replace(/[^\x00-\x7F]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return ascii || Math.random().toString(36).slice(2, 8);
 }
 const pad = (n: number, w = 5) => String(n).padStart(w, "0");
 const daysFromNow = (d: number) => new Date(Date.now() + d * 86400000);
@@ -247,7 +254,7 @@ async function main() {
   for (let i = 1; i <= 40; i++) {
     const tpl = postTemplates[i % postTemplates.length];
     const title = `${tpl.title} — भाग ${Math.ceil(i / postTemplates.length)}`;
-    const slug = slugify(`${tpl.cat}-${title}-${i}`);
+    const slug = `${tpl.cat}-${i}`;
     const exists = await prisma.post.findUnique({ where: { slug } });
     if (exists) continue;
     await prisma.post.create({
