@@ -1,24 +1,30 @@
 import { prisma } from "./db";
 
-// Atomic-ish sequence generator। Setting table में counter रखते हैं और
-// transaction में increment करते हैं ताकि duplicate identifiers न बनें।
-// Format उदाहरण: NYS-M-2026-00001, DON-2026-00001
+// Sequence generator — interactive $transaction से बचते हैं (Neon pooler / PgBouncer
+// पर interactive transactions अक्सर fail होते हैं)। Optimistic lock से atomic increment।
 
-export async function nextSequence(scope: string, pad = 5): Promise<number> {
+export async function nextSequence(scope: string, padWidth = 5): Promise<number> {
   const key = `seq:${scope}`;
-  const seq = await prisma.$transaction(async (tx) => {
-    const existing = await tx.setting.findUnique({ where: { key } });
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const existing = await prisma.setting.findUnique({ where: { key } });
     const current = existing ? parseInt(existing.value, 10) || 0 : 0;
     const next = current + 1;
-    await tx.setting.upsert({
-      where: { key },
-      update: { value: String(next) },
-      create: { key, value: String(next) },
+    if (!existing) {
+      try {
+        await prisma.setting.create({ data: { key, value: String(next) } });
+        return next;
+      } catch {
+        continue; // race — retry
+      }
+    }
+    const result = await prisma.setting.updateMany({
+      where: { key, value: existing.value },
+      data: { value: String(next) },
     });
-    return next;
-  });
-  void pad;
-  return seq;
+    if (result.count === 1) return next;
+  }
+  void padWidth;
+  throw new Error(`sequence unavailable: ${scope}`);
 }
 
 function pad(n: number, width = 5): string {

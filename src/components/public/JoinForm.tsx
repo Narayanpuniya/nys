@@ -60,8 +60,33 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, planId, consent: true }),
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "पंजीकरण विफल।"); setLoading(false); return; }
+      const text = await res.text();
+      let data: {
+        error?: string;
+        memberId?: string;
+        orderId?: string;
+        planName?: string;
+        amount?: number;
+        mock?: boolean;
+        razorpayKey?: string | null;
+      } = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        setError("सर्वर उत्तर अमान्य है। Hostinger DATABASE_URL / Redeploy जाँचें।");
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setError(data.error || `पंजीकरण विफल (${res.status})।`);
+        setLoading(false);
+        return;
+      }
+      if (!data.memberId || !data.orderId) {
+        setError("पंजीकरण अधूरा रहा। दोबारा प्रयास करें।");
+        setLoading(false);
+        return;
+      }
 
       if (data.mock) {
         await confirm(data.memberId, data.orderId, `mock_pay_${Date.now()}`, `mock_sig_${data.orderId}`);
@@ -70,17 +95,18 @@ export function JoinForm({ plans }: { plans: Plan[] }) {
       const ok = await loadRazorpay();
       if (!ok || !window.Razorpay) { setError("भुगतान गेटवे लोड नहीं हुआ।"); setLoading(false); return; }
       const rzp = new window.Razorpay({
-        key: data.razorpayKey, amount: data.amount * 100, currency: "INR",
+        key: data.razorpayKey, amount: (data.amount ?? 0) * 100, currency: "INR",
         name: "NYS सदस्यता", description: data.planName, order_id: data.orderId,
         prefill: { name: form.fullName, email: form.email, contact: form.mobile },
         theme: { color: "#ea6205" },
         handler: (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
-          confirm(data.memberId, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature),
+          confirm(data.memberId!, r.razorpay_order_id, r.razorpay_payment_id, r.razorpay_signature),
         modal: { ondismiss: () => setLoading(false) },
       });
       rzp.open();
     } catch {
-      setError("कुछ समस्या हुई है।"); setLoading(false);
+      setError("नेटवर्क/सर्वर त्रुटि। कनेक्शन जाँचकर दोबारा प्रयास करें।");
+      setLoading(false);
     }
   }
 
