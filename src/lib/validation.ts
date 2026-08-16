@@ -30,8 +30,20 @@ export type MemberInput = z.infer<typeof memberSchema>;
 
 export const donationSchema = z.object({
   donorName: z.string().trim().min(2, "नाम आवश्यक है"),
-  mobile: mobile.optional().or(z.literal("")),
-  email: z.string().trim().email().optional().or(z.literal("")),
+  mobile: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => v || "")
+    .refine((v) => v === "" || /^(\+91[- ]?)?[6-9]\d{9}$/.test(v), "मान्य मोबाइल नंबर दर्ज करें"),
+  email: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => v || "")
+    .refine((v) => v === "" || z.string().email().safeParse(v).success, "मान्य ईमेल दर्ज करें"),
   amount: z.coerce.number().int().min(10, "न्यूनतम ₹10"),
   purpose: z.string().default("GENERAL"),
   campaignId: z.string().optional().or(z.literal("")),
