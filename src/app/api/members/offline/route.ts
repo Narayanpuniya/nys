@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { memberSchema } from "@/lib/validation";
 import { generateMemberCode, generateMembershipReceipt } from "@/lib/sequence";
 import { getSettings } from "@/lib/settings";
-import { saveUploadedImage } from "@/lib/upload";
+import { saveReceiptProof } from "@/lib/upload";
 import { logAudit } from "@/lib/audit";
 
 /**
@@ -13,7 +13,7 @@ import { logAudit } from "@/lib/audit";
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
-    const proof = form.get("proof") as File | null;
+    const proof = form.get("proof");
 
     const raw = {
       fullName: String(form.get("fullName") ?? ""),
@@ -43,18 +43,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!proof || proof.size === 0) {
+    if (!(proof instanceof File) || proof.size === 0) {
       return NextResponse.json({ error: "कृपया भुगतान रसीद / स्क्रीनशॉट अपलोड करें।" }, { status: 400 });
     }
 
     let proofUrl: string;
     try {
-      const saved = await saveUploadedImage(proof, "receipts", {
-        maxBytes: 4 * 1024 * 1024,
-        allowPdf: true,
-      });
-      if (!saved) return NextResponse.json({ error: "रसीद अपलोड विफल।" }, { status: 400 });
-      proofUrl = saved;
+      proofUrl = await saveReceiptProof(proof, { maxBytes: 2 * 1024 * 1024 });
     } catch (e) {
       return NextResponse.json(
         { error: e instanceof Error ? e.message : "रसीद अपलोड विफल।" },
@@ -134,8 +129,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("[POST /api/members/offline]", err);
+    const detail = err instanceof Error ? err.message : "unknown";
     return NextResponse.json(
-      { error: "आवेदन सहेजा नहीं जा सका। Database / अपलोड जाँचें।" },
+      {
+        error: `आवेदन सहेजा नहीं जा सका। ${detail.includes("connect") || detail.includes("P1001") || detail.includes("P1017") ? "Hostinger DATABASE_URL (Neon Direct) जाँचें।" : detail.slice(0, 180)}`,
+      },
       { status: 500 },
     );
   }

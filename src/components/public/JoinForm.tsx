@@ -293,7 +293,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
               <Field label="भुगतान रसीद / स्क्रीनशॉट" required>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-6 text-sm text-stone-600 hover:border-saffron-400">
                   <Upload className="h-6 w-6 text-saffron-600" />
-                  <span>{proof ? proof.name : "JPG / PNG / PDF चुनें (अधिकतम 4 MB)"}</span>
+                  <span>{proof ? proof.name : "JPG / PNG / PDF चुनें (अधिकतम 2 MB)"}</span>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
