@@ -7,21 +7,26 @@ const secret = () =>
   new TextEncoder().encode(process.env.AUTH_SECRET || "dev-only-insecure-secret-change-me");
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  try {
+    const { pathname } = req.nextUrl;
 
-  if (pathname === "/admin/login") return NextResponse.next();
+    if (pathname === "/admin/login") return NextResponse.next();
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
-    const token = req.cookies.get("nys_session")?.value;
-    if (!token) return redirectLogin(req);
-    try {
-      await jwtVerify(token, secret());
-      return NextResponse.next();
-    } catch {
-      return redirectLogin(req);
+    if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+      const token = req.cookies.get("nys_session")?.value;
+      if (!token) return redirectLogin(req);
+      try {
+        await jwtVerify(token, secret());
+        return NextResponse.next();
+      } catch {
+        return redirectLogin(req);
+      }
     }
+    return NextResponse.next();
+  } catch {
+    // Hostinger edge quirks — कभी middleware crash न हो
+    return NextResponse.next();
   }
-  return NextResponse.next();
 }
 
 function redirectLogin(req: NextRequest) {

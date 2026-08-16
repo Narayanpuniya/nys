@@ -14,11 +14,23 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   });
   if (!parsed.success) return { error: "कृपया मान्य ईमेल व पासवर्ड दर्ज करें।" };
 
-  const user = await login(parsed.data.email, parsed.data.password);
-  if (!user) return { error: "ईमेल या पासवर्ड गलत है।" };
+  try {
+    const user = await login(parsed.data.email, parsed.data.password);
+    if (!user) return { error: "ईमेल या पासवर्ड गलत है।" };
 
-  await logAudit({ user, action: "LOGIN", entity: "User", entityId: user.id, summary: `${user.name} ने लॉगिन किया` });
+    await logAudit({
+      user,
+      action: "LOGIN",
+      entity: "User",
+      entityId: user.id,
+      summary: `${user.name} ने लॉगिन किया`,
+    });
 
-  const next = (formData.get("next") as string) || "/admin";
-  redirect(next.startsWith("/admin") ? next : "/admin");
+    const next = (formData.get("next") as string) || "/admin";
+    redirect(next.startsWith("/admin") ? next : "/admin");
+  } catch (err) {
+    if (err && typeof err === "object" && "digest" in err) throw err; // Next.js redirect
+    console.error("[loginAction]", err);
+    return { error: "सर्वर/डेटाबेस तैयार नहीं है। Neon schema push + seed करें।" };
+  }
 }
