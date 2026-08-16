@@ -90,18 +90,23 @@ export const DEFAULT_SETTINGS: OrgSettings = {
 };
 
 export async function getSettings(): Promise<OrgSettings> {
-  const row = await prisma.setting.findUnique({ where: { key: "org" } });
-  if (!row) return DEFAULT_SETTINGS;
-  const parsed = safeJsonParse<Partial<OrgSettings>>(row.value, {});
-  return {
-    ...DEFAULT_SETTINGS,
-    ...parsed,
-    branding: { ...DEFAULT_SETTINGS.branding, ...(parsed.branding ?? {}) },
-    bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank ?? {}) },
-    social: { ...DEFAULT_SETTINGS.social, ...(parsed.social ?? {}) },
-    legal: { ...DEFAULT_SETTINGS.legal, ...(parsed.legal ?? {}) },
-    privacy: { ...DEFAULT_SETTINGS.privacy, ...(parsed.privacy ?? {}) },
-  };
+  try {
+    const row = await prisma.setting.findUnique({ where: { key: "org" } });
+    if (!row) return DEFAULT_SETTINGS;
+    const parsed = safeJsonParse<Partial<OrgSettings>>(row.value, {});
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      branding: { ...DEFAULT_SETTINGS.branding, ...(parsed.branding ?? {}) },
+      bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank ?? {}) },
+      social: { ...DEFAULT_SETTINGS.social, ...(parsed.social ?? {}) },
+      legal: { ...DEFAULT_SETTINGS.legal, ...(parsed.legal ?? {}) },
+      privacy: { ...DEFAULT_SETTINGS.privacy, ...(parsed.privacy ?? {}) },
+    };
+  } catch (err) {
+    console.error("[getSettings] database unavailable, using defaults:", err);
+    return DEFAULT_SETTINGS;
+  }
 }
 
 export async function saveSettings(next: OrgSettings): Promise<void> {

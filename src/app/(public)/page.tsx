@@ -17,51 +17,56 @@ import { ButtonLink } from "@/components/ui/Button";
 export const revalidate = 60;
 
 async function getFeaturedCampaign() {
-  const c =
-    (await prisma.campaign.findFirst({ where: { status: "ACTIVE", featured: true } })) ??
-    (await prisma.campaign.findFirst({ where: { status: "ACTIVE" }, orderBy: { createdAt: "desc" } }));
-  if (!c) return null;
-  const agg = await prisma.donation.aggregate({
-    where: { campaignId: c.id, status: "SUCCESS" },
-    _sum: { amount: true },
-    _count: true,
-  });
-  const collected = agg._sum.amount ?? 0;
-  return {
-    slug: c.slug,
-    title: c.title,
-    coverImage: c.coverImage,
-    goal: c.goalAmount,
-    collected,
-    remaining: Math.max(0, c.goalAmount - collected),
-    percent: clampPercent(collected, c.goalAmount),
-    donors: agg._count,
-    status: c.status,
-  };
+  try {
+    const c =
+      (await prisma.campaign.findFirst({ where: { status: "ACTIVE", featured: true } })) ??
+      (await prisma.campaign.findFirst({ where: { status: "ACTIVE" }, orderBy: { createdAt: "desc" } }));
+    if (!c) return null;
+    const agg = await prisma.donation.aggregate({
+      where: { campaignId: c.id, status: "SUCCESS" },
+      _sum: { amount: true },
+      _count: true,
+    });
+    const collected = agg._sum.amount ?? 0;
+    return {
+      slug: c.slug,
+      title: c.title,
+      coverImage: c.coverImage,
+      goal: c.goalAmount,
+      collected,
+      remaining: Math.max(0, c.goalAmount - collected),
+      percent: clampPercent(collected, c.goalAmount),
+      donors: agg._count,
+      status: c.status,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export default async function HomePage() {
-  const [
-    settings,
-    counters,
-    categories,
-    featured,
-    events,
-    leadership,
-    mentors,
-    partners,
-    { dict },
-  ] = await Promise.all([
-    getSettings(),
-    getImpactCounters(),
-    prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
-    getFeaturedCampaign(),
-    prisma.event.findMany({ where: { status: "UPCOMING" }, orderBy: { date: "asc" }, take: 3 }),
-    prisma.teamMember.findMany({ where: { isLeadership: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.mentor.findMany({ where: { featured: true }, orderBy: { sortOrder: "asc" }, take: 4 }),
-    prisma.partner.findMany({ where: { featured: true }, orderBy: { createdAt: "desc" }, take: 6 }),
-    getI18n(),
-  ]);
+  const { dict } = await getI18n();
+  const settings = await getSettings();
+  const counters = await getImpactCounters();
+  let categories: Awaited<ReturnType<typeof prisma.category.findMany>> = [];
+  let featured: Awaited<ReturnType<typeof getFeaturedCampaign>> = null;
+  let events: Awaited<ReturnType<typeof prisma.event.findMany>> = [];
+  let leadership: Awaited<ReturnType<typeof prisma.teamMember.findMany>> = [];
+  let mentors: Awaited<ReturnType<typeof prisma.mentor.findMany>> = [];
+  let partners: Awaited<ReturnType<typeof prisma.partner.findMany>> = [];
+
+  try {
+    [categories, featured, events, leadership, mentors, partners] = await Promise.all([
+      prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
+      getFeaturedCampaign(),
+      prisma.event.findMany({ where: { status: "UPCOMING" }, orderBy: { date: "asc" }, take: 3 }),
+      prisma.teamMember.findMany({ where: { isLeadership: true }, orderBy: { sortOrder: "asc" } }),
+      prisma.mentor.findMany({ where: { featured: true }, orderBy: { sortOrder: "asc" }, take: 4 }),
+      prisma.partner.findMany({ where: { featured: true }, orderBy: { createdAt: "desc" }, take: 6 }),
+    ]);
+  } catch (err) {
+    console.error("[HomePage] database unavailable:", err);
+  }
 
   const campaignCard: CampaignCardData | null = featured;
 
