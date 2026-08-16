@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { can, ROLE_LABELS, type Role } from "@/lib/constants";
 import { ADMIN_NAV } from "@/config/nav";
@@ -7,7 +8,7 @@ import { getI18n } from "@/lib/i18n";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
   if (!user) {
-    return <>{children}</>;
+    return <div className="min-h-screen w-full overflow-x-hidden">{children}</div>;
   }
 
   const { locale, dict } = await getI18n();
@@ -16,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .map((it) => ({ href: it.href, icon: it.icon, label: dict[it.labelKey] }));
 
   return (
-    <div className="flex min-h-screen bg-stone-50">
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-stone-50 lg:flex-row">
       <AdminSidebar
         items={items}
         user={{ name: user.name, role: ROLE_LABELS[user.role as Role] ?? user.role }}
@@ -24,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         logoutLabel={dict.admin_logout}
       />
       <div className="min-w-0 flex-1">
-        <div className="mx-auto max-w-7xl p-4 lg:p-8">{children}</div>
+        <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 lg:p-8">{children}</div>
       </div>
     </div>
   );

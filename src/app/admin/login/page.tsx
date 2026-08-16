@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth";
 import { AdminLoginForm } from "./AdminLoginForm";
 
 export const dynamic = "force-dynamic";
@@ -8,8 +10,10 @@ export default async function AdminLoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
+  const user = await getSessionUser();
   const sp = await searchParams;
   const next = sp.next?.startsWith("/admin") ? sp.next : "/admin";
+  if (user) redirect(next);
 
   return (
     <Suspense

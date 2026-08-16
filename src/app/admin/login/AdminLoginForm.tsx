@@ -10,8 +10,8 @@ export function AdminLoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginAction, {});
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-saffron-50 via-cream to-maroon-50 p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-saffron-100 bg-white p-8 shadow-xl">
+    <div className="flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-gradient-to-br from-saffron-50 via-cream to-maroon-50 p-4">
+      <div className="w-full max-w-sm rounded-2xl border border-saffron-100 bg-white p-6 shadow-xl sm:p-8">
         <div className="mb-6 flex flex-col items-center text-center">
           <LogoMark className="h-14 w-14" />
           <h1 className="mt-3 text-xl font-extrabold text-ink">NYS एडमिन पैनल</h1>
