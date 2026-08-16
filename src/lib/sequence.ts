@@ -163,6 +163,33 @@ export async function generateCertNumber(prefix = "NYS-CERT"): Promise<string> {
 
 export async function generateTxnCode(kind: "INC" | "EXP"): Promise<string> {
   const y = YEAR();
-  const n = await nextSequence(`${kind}:${y}`);
-  return `${kind}-${y}-${pad(n, 6)}`;
+  const scope = `${kind}:${y}`;
+  const pattern = `${kind}-${y}-`;
+
+  const rows =
+    kind === "INC"
+      ? await prisma.income.findMany({ where: { txnCode: { startsWith: pattern } }, select: { txnCode: true } })
+      : await prisma.expense.findMany({ where: { txnCode: { startsWith: pattern } }, select: { txnCode: true } });
+
+  let max = 0;
+  for (const r of rows) {
+    const part = r.txnCode.slice(pattern.length);
+    const n = parseInt(part, 10);
+    if (!Number.isNaN(n) && n > max) max = n;
+  }
+  await ensureSequenceAtLeast(scope, max);
+
+  for (let i = 0; i < 30; i++) {
+    const n = await nextSequence(scope);
+    const code = `${kind}-${y}-${pad(n, 6)}`;
+    if (kind === "INC") {
+      const exists = await prisma.income.findUnique({ where: { txnCode: code }, select: { id: true } });
+      if (!exists) return code;
+    } else {
+      const exists = await prisma.expense.findUnique({ where: { txnCode: code }, select: { id: true } });
+      if (!exists) return code;
+    }
+  }
+  const n = await nextSequence(scope);
+  return `${kind}-${y}-${pad(n, 6)}-${Date.now().toString(36).slice(-4)}`;
 }
