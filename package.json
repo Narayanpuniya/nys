@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
@@ -22,7 +22,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@babel/core": "^7.29.7",
     "@hookform/resolvers": "^5.9.0",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
@@ -53,5 +52,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "tailwindcss": "^4"
+  },
+  "optionalDependencies": {
+    "@next/swc-wasm-nodejs": "^16.3.1"
   }
 }
