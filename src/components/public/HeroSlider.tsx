@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogoMark } from "@/components/ui/Logo";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -36,6 +36,9 @@ type Dict = {
   hero_welcome_body: string;
 };
 
+const DURATION = 5000;
+const TICK = 50;
+
 export function HeroSlider({
   tagline,
   slides,
@@ -51,26 +54,21 @@ export function HeroSlider({
   logoUrl?: string | null;
   orgName: string;
 }) {
+  const total = slides.length;
   const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+  const pausedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const total = slides.length;
-  const DURATION = 5000; // ms per slide
-  const TICK = 50; // ms
+  const stopTimers = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (progressRef.current) clearInterval(progressRef.current);
+  }, []);
 
-  function goTo(idx: number) {
-    setCurrent((idx + total) % total);
-    setProgress(0);
-  }
-
-  function startTimers() {
-    clearInterval(timerRef.current!);
-    clearInterval(progressRef.current!);
-    setProgress(0);
-    if (total <= 1) return;
+  const startTimers = useCallback(() => {
+    stopTimers();
+    if (total <= 1 || pausedRef.current) return;
     timerRef.current = setInterval(() => {
       setCurrent((c) => (c + 1) % total);
       setProgress(0);
@@ -78,34 +76,44 @@ export function HeroSlider({
     progressRef.current = setInterval(() => {
       setProgress((p) => Math.min(p + (TICK / DURATION) * 100, 100));
     }, TICK);
-  }
+  }, [total, stopTimers]);
 
+  // Start timers on mount and when total changes
   useEffect(() => {
-    if (!paused) startTimers();
-    else {
-      clearInterval(timerRef.current!);
-      clearInterval(progressRef.current!);
+    startTimers();
+    return stopTimers;
+  }, [startTimers, stopTimers]);
+
+  const goTo = useCallback((idx: number) => {
+    setCurrent((idx + total) % total);
+    setProgress(0);
+    // Restart timers after manual navigation
+    stopTimers();
+    if (!pausedRef.current) {
+      setTimeout(() => {
+        startTimers();
+      }, 0);
     }
-    return () => {
-      clearInterval(timerRef.current!);
-      clearInterval(progressRef.current!);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paused, total]);
+  }, [total, startTimers, stopTimers]);
 
-  // Restart timer when slide changes externally
-  useEffect(() => {
-    if (!paused) startTimers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current]);
+  const handleMouseEnter = useCallback(() => {
+    pausedRef.current = true;
+    stopTimers();
+  }, [stopTimers]);
+
+  const handleMouseLeave = useCallback(() => {
+    pausedRef.current = false;
+    setProgress(0);
+    startTimers();
+  }, [startTimers]);
 
   const slide = slides[current];
 
   return (
     <section
       className="relative h-[92vh] min-h-[520px] max-h-[800px] overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* ── Slide backgrounds ── */}
       {slides.map((s, i) => (
@@ -114,6 +122,7 @@ export function HeroSlider({
           className="absolute inset-0 transition-opacity duration-1000"
           style={{ opacity: i === current ? 1 : 0 }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={s.imageUrl}
             alt={s.title ?? "NYS"}
@@ -121,29 +130,44 @@ export function HeroSlider({
             draggable={false}
           />
           {/* Dark gradient overlay */}
-          <div className="absolute inset-0" style={{
-            background: "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%)"
-          }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%)",
+            }}
+          />
           {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-32"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)" }} />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-32"
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)" }}
+          />
           {/* Saffron-maroon top stripe */}
-          <div className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }} />
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }}
+          />
         </div>
       ))}
 
       {/* ── Gradient fallback when no slides ── */}
       {slides.length === 0 && (
-        <div className="absolute inset-0"
-          style={{ background: "linear-gradient(135deg, #7f1d1d 0%, #d97706 50%, #92400e 100%)" }}>
-          <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Ccircle cx='30' cy='30' r='1.5' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E\")" }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, #7f1d1d 0%, #d97706 50%, #92400e 100%)" }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E\")",
+            }}
+          />
         </div>
       )}
 
       {/* ── Main content ── */}
       <div className="relative z-10 mx-auto grid h-full max-w-7xl items-center gap-8 px-6 lg:grid-cols-5 lg:px-8">
-
         {/* Left: Text */}
         <div className="lg:col-span-3">
           {/* Badge */}
@@ -158,15 +182,15 @@ export function HeroSlider({
           </div>
 
           {/* Tagline */}
-          <h1 className="text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl xl:text-6xl"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+          <h1
+            className="text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl xl:text-6xl"
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+          >
             {tagline}
           </h1>
 
           {/* Intro */}
-          <p className="mt-4 max-w-xl text-base text-white/80 drop-shadow-sm">
-            {dict.hero_intro}
-          </p>
+          <p className="mt-4 max-w-xl text-base text-white/80 drop-shadow-sm">{dict.hero_intro}</p>
 
           {/* Slide caption */}
           {slide?.category && (
@@ -178,17 +202,23 @@ export function HeroSlider({
 
           {/* CTA Buttons */}
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/join"
+            <Link
+              href="/join"
               className="rounded-xl px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105 active:scale-95"
-              style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}>
+              style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+            >
               {dict.hero_join}
             </Link>
-            <Link href="/donate"
-              className="rounded-xl border-2 border-white/60 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+            <Link
+              href="/donate"
+              className="rounded-xl border-2 border-white/60 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+            >
               {dict.hero_donate}
             </Link>
-            <Link href="/activities"
-              className="rounded-xl border border-white/30 bg-transparent px-6 py-3 text-sm font-medium text-white/80 transition hover:text-white">
+            <Link
+              href="/activities"
+              className="rounded-xl border border-white/30 bg-transparent px-6 py-3 text-sm font-medium text-white/80 transition hover:text-white"
+            >
               {dict.hero_activities} →
             </Link>
           </div>
@@ -198,12 +228,8 @@ export function HeroSlider({
         <div className="hidden lg:col-span-2 lg:block">
           {campaign ? (
             <div className="rounded-2xl border border-white/20 bg-white/95 p-6 shadow-2xl backdrop-blur-md">
-              <p className="text-xs font-bold uppercase tracking-widest text-saffron-700">
-                {dict.hero_campaign}
-              </p>
-              {campaign.slug && (
-                <h2 className="mt-1 text-lg font-bold text-gray-900 leading-snug">{campaign.title}</h2>
-              )}
+              <p className="text-xs font-bold uppercase tracking-widest text-saffron-700">{dict.hero_campaign}</p>
+              <h2 className="mt-1 text-lg font-bold leading-snug text-gray-900">{campaign.title}</h2>
               <div className="mt-4">
                 <ProgressBar percent={campaign.percent} />
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
@@ -221,9 +247,11 @@ export function HeroSlider({
                   </div>
                 </div>
               </div>
-              <Link href={`/campaigns/${campaign.slug}`}
+              <Link
+                href={`/campaigns/${campaign.slug}`}
                 className="mt-4 block w-full rounded-xl py-3 text-center text-sm font-bold text-white transition hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}>
+                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+              >
                 {dict.hero_view_campaign}
               </Link>
             </div>
@@ -232,9 +260,11 @@ export function HeroSlider({
               <div className="text-5xl">🪔</div>
               <p className="mt-3 font-semibold text-white">{dict.hero_welcome_title}</p>
               <p className="mt-1 text-sm text-white/70">{dict.hero_welcome_body}</p>
-              <Link href="/join"
+              <Link
+                href="/join"
                 className="mt-4 inline-block rounded-xl px-6 py-2.5 text-sm font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}>
+                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+              >
                 {dict.hero_join}
               </Link>
             </div>
@@ -245,7 +275,7 @@ export function HeroSlider({
       {/* ── Slider controls ── */}
       {total > 1 && (
         <>
-          {/* Prev / Next arrows */}
+          {/* Prev arrow */}
           <button
             onClick={() => goTo(current - 1)}
             className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/30 p-2.5 text-white backdrop-blur-sm transition hover:bg-black/50"
@@ -255,6 +285,8 @@ export function HeroSlider({
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
+
+          {/* Next arrow */}
           <button
             onClick={() => goTo(current + 1)}
             className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/30 p-2.5 text-white backdrop-blur-sm transition hover:bg-black/50"
@@ -281,9 +313,7 @@ export function HeroSlider({
                   key={i}
                   onClick={() => goTo(i)}
                   className={`rounded-full transition-all duration-300 ${
-                    i === current
-                      ? "w-6 h-2 bg-saffron-400"
-                      : "w-2 h-2 bg-white/40 hover:bg-white/70"
+                    i === current ? "h-2 w-6 bg-saffron-400" : "h-2 w-2 bg-white/40 hover:bg-white/70"
                   }`}
                   aria-label={`Slide ${i + 1}`}
                 />
@@ -292,15 +322,15 @@ export function HeroSlider({
           </div>
 
           {/* Slide counter */}
-          <div className="absolute right-4 bottom-6 z-20 rounded-full bg-black/30 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+          <div className="absolute bottom-6 right-4 z-20 rounded-full bg-black/30 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
             {current + 1} / {total}
           </div>
         </>
       )}
 
-      {/* Org name watermark bottom-left */}
+      {/* Org name watermark */}
       <div className="absolute bottom-6 left-6 z-20 hidden lg:block">
-        <div className="text-xs font-medium text-white/40 tracking-wide">{orgName}</div>
+        <div className="text-xs font-medium tracking-wide text-white/40">{orgName}</div>
       </div>
     </section>
   );

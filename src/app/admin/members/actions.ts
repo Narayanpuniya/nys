@@ -152,11 +152,11 @@ export async function deleteMember(memberId: string) {
   });
 
   await logAudit({
-    userId: user.id,
+    user,
     action: "DELETE",
     entity: "Member",
     entityId: memberId,
-    detail: `सदस्य डिलीट: ${member.fullName} (${member.memberCode})`,
+    summary: `सदस्य डिलीट: ${member.fullName} (${member.memberCode})`,
   });
 
   revalidatePath("/admin/members");
