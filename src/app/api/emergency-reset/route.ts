@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { createOtp, verifyOtp, otpRemainingMinutes } from "@/lib/otp-store";
+import { createOtp, verifyOtp, otpRemainingMinutes, ADMIN_OTP_KEY } from "@/lib/otp-store";
 import { sendOtpEmail } from "@/lib/mailer";
 
 // ── Emergency Super Admin Password Reset ──────────────────────────────────────
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const otp = createOtp();
+    const otp = createOtp(ADMIN_OTP_KEY);
     try {
       await sendOtpEmail(otp);
     } catch (err) {
@@ -74,13 +74,13 @@ export async function POST(req: NextRequest) {
     const pwErr = validatePassword(newPassword, confirmPassword);
     if (pwErr) return NextResponse.json({ error: pwErr }, { status: 400 });
 
-    const otpResult = verifyOtp(otp?.toString().trim() ?? "");
+    const otpResult = verifyOtp(ADMIN_OTP_KEY, otp?.toString().trim() ?? "");
     if (otpResult === "expired")
       return NextResponse.json({ error: "❌ OTP expire हो गया। नया OTP मँगाएं।" }, { status: 400 });
     if (otpResult === "too_many")
       return NextResponse.json({ error: "❌ बहुत बार गलत OTP। नया OTP मँगाएं।" }, { status: 400 });
     if (otpResult === "wrong") {
-      const rem = otpRemainingMinutes();
+      const rem = otpRemainingMinutes(ADMIN_OTP_KEY);
       return NextResponse.json({ error: `❌ OTP गलत है। ${rem} मिनट बाकी हैं।` }, { status: 400 });
     }
 

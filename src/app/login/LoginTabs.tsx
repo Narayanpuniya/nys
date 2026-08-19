@@ -142,12 +142,13 @@ function MemberForm() {
         </button>
       </form>
 
-      <div className="mt-5 rounded-xl bg-saffron-50 p-4">
-        <p className="text-xs font-semibold text-saffron-800">💡 पासवर्ड भूल गए?</p>
-        <ul className="mt-1.5 space-y-0.5 text-xs text-stone-600">
-          <li>• Admin से संपर्क करें — वे पासवर्ड रीसेट कर सकते हैं</li>
-          <li>• पुराने सदस्य: Admin से नया पासवर्ड सेट करवाएँ</li>
-        </ul>
+      <div className="mt-4 text-center">
+        <Link
+          href="/member-reset"
+          className="text-xs text-stone-400 hover:text-saffron-700 hover:underline transition-colors"
+        >
+          पासवर्ड भूल गए?
+        </Link>
       </div>
     </div>
   );
