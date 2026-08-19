@@ -6,6 +6,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { Toolbar } from "@/components/admin/Toolbar";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { AddDonationModal } from "./AddDonationModal";
+import { DonationVerifyActions } from "./DonationActions";
 
 export const dynamic = "force-dynamic";
 const PAGE = 20;
@@ -51,8 +52,9 @@ export default async function DonationsPage({
         exportType="donations"
         statusOptions={[
           { value: "SUCCESS", label: "सफल" },
+          { value: "PAID", label: "भुगतान प्राप्त (सत्यापन लंबित)" },
           { value: "PENDING", label: "लंबित" },
-          { value: "FAILED", label: "विफल" },
+          { value: "FAILED", label: "विफल/अस्वीकृत" },
           { value: "VOID", label: "निरस्त" },
         ]}
       />
@@ -64,7 +66,8 @@ export default async function DonationsPage({
               <tr>
                 <th className="px-4 py-3">रसीद</th><th className="px-4 py-3">दानदाता</th>
                 <th className="px-4 py-3">राशि</th><th className="px-4 py-3">उद्देश्य</th>
-                <th className="px-4 py-3">स्थिति</th><th className="px-4 py-3">दिनांक</th><th className="px-4 py-3"></th>
+                <th className="px-4 py-3">स्थिति</th><th className="px-4 py-3">दिनांक</th>
+                <th className="px-4 py-3">कार्रवाई</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -74,12 +77,31 @@ export default async function DonationsPage({
                   <td className="px-4 py-3">{d.donorName}</td>
                   <td className="px-4 py-3 font-semibold text-saffron-800">{formatINR(d.amount)}</td>
                   <td className="px-4 py-3">{d.campaign?.title ?? d.purpose}</td>
-                  <td className="px-4 py-3"><Badge tone={d.status === "SUCCESS" ? "green" : d.status === "PENDING" ? "amber" : "red"}>{d.status}</Badge></td>
+                  <td className="px-4 py-3">
+                    <Badge tone={
+                      d.status === "SUCCESS" ? "green" :
+                      d.status === "PAID"    ? "blue"  :
+                      d.status === "PENDING" ? "amber" : "red"
+                    }>
+                      {d.status === "SUCCESS" ? "सफल" :
+                       d.status === "PAID"    ? "सत्यापन लंबित" :
+                       d.status === "PENDING" ? "प्रतीक्षित" :
+                       d.status === "FAILED"  ? "अस्वीकृत" : d.status}
+                    </Badge>
+                  </td>
                   <td className="px-4 py-3 text-stone-500">{formatDateHi(d.paidAt ?? d.createdAt)}</td>
                   <td className="px-4 py-3">
-                    {d.status === "SUCCESS" && (
-                      <Link href={`/receipt/${d.receiptNumber}`} target="_blank" className="text-saffron-700">रसीद</Link>
-                    )}
+                    <div className="flex flex-col gap-1.5">
+                      {d.status === "SUCCESS" && (
+                        <Link href={`/receipt/${d.receiptNumber}`} target="_blank" className="text-xs font-medium text-saffron-700 hover:underline">रसीद ↗</Link>
+                      )}
+                      {/* Proof image link */}
+                      {(d as { paymentProofUrl?: string | null }).paymentProofUrl && (
+                        <Link href={(d as { paymentProofUrl: string }).paymentProofUrl} target="_blank" className="text-xs text-blue-600 hover:underline">प्रमाण देखें ↗</Link>
+                      )}
+                      {/* Approve / Reject for PAID or PENDING */}
+                      <DonationVerifyActions donationId={d.id} status={d.status} />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -116,38 +116,48 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
           {/* ─── BACK CARD ─── */}
           <div
             className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-xl"
-            style={{ background: "linear-gradient(135deg, #1c1917 0%, #44403c 100%)" }}
+            style={{ background: "linear-gradient(155deg, #7f1d1d 0%, #991b1b 45%, #92400e 100%)" }}
           >
-            {/* Watermark logo */}
-            {s.logoUrl && (
+            {/* Watermark logo — center */}
+            {s.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={s.logoUrl}
                 alt=""
                 aria-hidden="true"
                 className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none object-contain"
-                style={{ width: 180, height: 180, opacity: 0.08 }}
+                style={{ width: 180, height: 180, opacity: 0.10 }}
               />
-            )}
+            ) : null}
 
-            {/* Top stripe */}
-            <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }} />
+            {/* Decorative ring */}
+            <div
+              className="pointer-events-none absolute -right-10 -top-10 rounded-full"
+              style={{ width: 160, height: 160, border: "2px solid rgba(251,191,36,0.15)" }}
+            />
+            <div
+              className="pointer-events-none absolute -right-6 -top-6 rounded-full"
+              style={{ width: 100, height: 100, border: "1.5px solid rgba(251,191,36,0.12)" }}
+            />
 
-            <div className="relative z-10 flex h-full flex-col justify-between p-5 pb-4">
+            {/* Gold top stripe */}
+            <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706, #b45309)" }} />
+
+            <div className="relative z-10 flex h-full flex-col justify-between px-5 py-3 pb-3">
               {/* Org info */}
               <div>
-                <div className="text-sm font-extrabold text-orange-300">{s.name}</div>
-                <div className="mt-0.5 text-[11px] text-stone-400">{s.address}</div>
-                <div className="text-[11px] text-stone-400">{s.mobile} · {s.email}</div>
+                <div className="text-[13px] font-extrabold leading-snug text-white">{s.name}</div>
+                <div className="mt-0.5 text-[10px] text-orange-200/80">{s.address}</div>
+                <div className="text-[10px] text-orange-200/80">{s.mobile} · {s.email}</div>
                 {s.legal?.registrationNo && (
-                  <div className="mt-1 text-[10px] text-stone-500">
-                    Reg: <span className="text-orange-300/80">{s.legal.registrationNo}</span>
+                  <div className="mt-1 text-[9px] text-amber-300/70">
+                    Reg: {s.legal.registrationNo}
                   </div>
                 )}
               </div>
 
               {/* Instructions */}
-              <ul className="space-y-1 text-[10px] text-stone-400">
+              <ul className="space-y-0.5 text-[9.5px] text-orange-100/75">
                 <li>• यह कार्ड केवल NYS सदस्यता की पहचान हेतु है।</li>
                 <li>• खो जाने पर संस्था को तुरंत सूचित करें।</li>
                 <li>• QR स्कैन कर सदस्यता सत्यापित करें।</li>
@@ -158,20 +168,23 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
               <div className="flex items-end justify-between">
                 <div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qr} alt="QR verify" className="h-14 w-14 rounded-lg" />
-                  <div className="mt-0.5 text-[8px] text-stone-500">सत्यापन हेतु</div>
+                  <img src={qr} alt="QR verify" className="h-14 w-14 rounded-lg bg-white p-0.5" />
+                  <div className="mt-0.5 text-[8px] text-orange-200/60">सत्यापन हेतु</div>
                 </div>
                 <div className="text-center">
                   {s.branding.presidentSignUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={s.branding.presidentSignUrl} alt="हस्ताक्षर" className="mx-auto mb-1 h-8 object-contain brightness-150" />
                   ) : (
-                    <div className="mb-1 h-8 w-28 border-b border-stone-500" />
+                    <div className="mb-1 h-8 w-28 border-b border-amber-400/50" />
                   )}
-                  <div className="text-[10px] text-stone-400">अधिकृत हस्ताक्षर</div>
+                  <div className="text-[9px] font-semibold tracking-wide text-amber-300/80">अधिकृत हस्ताक्षर</div>
                 </div>
               </div>
             </div>
+
+            {/* Gold bottom stripe */}
+            <div className="absolute bottom-0 left-0 h-1 w-full" style={{ background: "linear-gradient(90deg, #b45309, #d97706, #f59e0b)" }} />
           </div>
 
         </div>

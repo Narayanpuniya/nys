@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyPayment } from "@/lib/payments";
-import { generateTxnCode } from "@/lib/sequence";
 import { logAudit } from "@/lib/audit";
 
 // STEP 2: Server-side payment verification।
@@ -26,47 +25,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "भुगतान सत्यापन विफल" }, { status: 400 });
     }
 
-    const txnCode = await generateTxnCode("INC");
-    const isCampaign = !!donation.campaignId;
-
+    // Payment gateway verified — set PAID (awaiting admin approval, not SUCCESS yet)
     const updated = await prisma.donation.update({
       where: { id: donationId },
-      data: { status: "SUCCESS", gatewayTxnId: paymentId, paidAt: new Date() },
-      include: { campaign: true },
+      data: { status: "PAID", gatewayTxnId: paymentId, paidAt: new Date() },
     });
-
-    await prisma.income.create({
-      data: {
-        txnCode,
-        source: isCampaign ? "CROWDFUNDING" : "DONATION",
-        category: isCampaign ? `अभियान: ${updated.campaign?.title ?? ""}` : "सामान्य दान",
-        amount: updated.amount,
-        description: `दान — ${updated.donorName} (${updated.receiptNumber})`,
-        mode: "ONLINE",
-        refType: "Donation",
-        refId: updated.id,
-      },
-    });
-
-    if (updated.campaignId && updated.campaign) {
-      const agg = await prisma.donation.aggregate({
-        where: { campaignId: updated.campaignId, status: "SUCCESS" },
-        _sum: { amount: true },
-      });
-      const collected = agg._sum.amount ?? 0;
-      if (collected >= updated.campaign.goalAmount && updated.campaign.status === "ACTIVE") {
-        await prisma.campaign.update({
-          where: { id: updated.campaignId },
-          data: { status: "COMPLETED" },
-        });
-      }
-    }
 
     await logAudit({
       action: "CREATE",
       entity: "Donation",
       entityId: updated.id,
-      summary: `दान सफल: ${updated.donorName} — ₹${updated.amount}`,
+      summary: `भुगतान प्राप्त (सत्यापन लंबित): ${updated.donorName} — ₹${updated.amount}`,
     });
 
     return NextResponse.json({ ok: true, receiptNumber: updated.receiptNumber });

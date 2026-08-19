@@ -293,22 +293,20 @@ export function HeroSlider({
             style={{background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.55),transparent)"}}/>
         </div>
 
-        {/* ── BOTTOM: Two-column — left content | right icon ── */}
-        <div className="flex flex-1 items-center justify-center gap-0 px-6 lg:gap-8 lg:px-12 xl:px-20">
+        {/* ── BOTTOM: Single centered column ── */}
+        <div className="flex flex-1 items-center justify-center px-4 sm:px-8">
+          <div className="flex w-full max-w-2xl flex-col items-center text-center">
 
-          {def ? (
-            <>
-              {/* ── LEFT: slide-specific content ── */}
-              <div className={`flex flex-1 flex-col ${def.isIntro ? "items-center text-center" : "items-start text-left"} max-w-xl`}>
-
-                {/* Slide 1: intro content */}
+            {def ? (
+              <>
+                {/* Slide 1: intro */}
                 {def.isIntro && (
                   <>
                     <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-4 py-1 text-xs font-bold tracking-widest text-amber-300">
                       <span className="h-1.5 w-1.5 rounded-full bg-amber-400"/>
                       ESTD. 2023 · JODHPUR, RAJASTHAN
                     </div>
-                    <p className="max-w-xl text-sm font-medium text-orange-100 sm:text-base lg:text-lg"
+                    <p className="text-sm font-medium text-orange-100 sm:text-base lg:text-lg"
                       style={{textShadow:"0 1px 8px rgba(0,0,0,0.4)"}}>
                       {tagline}
                     </p>
@@ -349,7 +347,7 @@ export function HeroSlider({
                   </>
                 )}
 
-                {/* Slides 2-5: vision content */}
+                {/* Slides 2-5: vision — all centered */}
                 {!def.isIntro && (
                   <>
                     {def.label && (
@@ -358,22 +356,22 @@ export function HeroSlider({
                       </p>
                     )}
                     {def.sectionTitle && (
-                      <h2 className="text-4xl font-black text-white sm:text-5xl lg:text-6xl"
-                        style={{textShadow:"0 2px 20px rgba(0,0,0,0.5)"}}>
+                      <h2 className="text-5xl font-black text-white sm:text-6xl lg:text-7xl"
+                        style={{textShadow:"0 2px 24px rgba(0,0,0,0.6)"}}>
                         {def.sectionTitle}
                       </h2>
                     )}
                     {def.sectionSubtitle && (
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center justify-center gap-3">
+                        <div className="h-px w-12" style={{background:"rgba(251,191,36,0.5)"}}/>
                         <span className="text-xs font-bold tracking-widest text-amber-400 uppercase sm:text-sm">
                           {def.sectionSubtitle}
                         </span>
-                        <div className="h-px flex-1 max-w-24"
-                          style={{background:"linear-gradient(90deg,rgba(251,191,36,0.6),transparent)"}}/>
+                        <div className="h-px w-12" style={{background:"rgba(251,191,36,0.5)"}}/>
                       </div>
                     )}
                     {def.bullets && (
-                      <ul className="mt-4 space-y-2 sm:mt-5 sm:space-y-2.5">
+                      <ul className="mt-4 inline-flex flex-col items-start gap-2 text-left sm:mt-5 sm:gap-2.5">
                         {def.bullets.map((b,i) => (
                           <li key={i} className="flex items-start gap-3">
                             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-400"/>
@@ -384,37 +382,30 @@ export function HeroSlider({
                     )}
                   </>
                 )}
-              </div>
+              </>
+            ) : (
+              /* Fallback */
+              <>
+                <p className="text-sm font-medium text-orange-100 sm:text-base lg:text-lg"
+                  style={{textShadow:"0 1px 8px rgba(0,0,0,0.4)"}}>
+                  {tagline}
+                </p>
+                {orgAddress && <p className="mt-1 text-xs text-orange-200/70 sm:text-sm">{orgAddress}</p>}
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link href="/join"
+                    className="rounded-full px-7 py-2.5 text-sm font-bold text-white shadow-xl transition hover:scale-105"
+                    style={{background:"linear-gradient(135deg,#d97706,#b45309)"}}>
+                    {dict.hero_join}
+                  </Link>
+                  <Link href="/activities"
+                    className="rounded-full border-2 border-white/40 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+                    {dict.hero_activities}
+                  </Link>
+                </div>
+              </>
+            )}
 
-              {/* ── RIGHT: Icon — hidden on mobile ── */}
-              <div className="hidden shrink-0 lg:flex lg:w-[220px] xl:w-[260px] items-center justify-center">
-                {def.isIntro
-                  ? <NysCircleIcon logoUrl={logoUrl}/>
-                  : (ICON_MAP[slideId] ?? <NysCircleIcon logoUrl={logoUrl}/>)
-                }
-              </div>
-            </>
-          ) : (
-            /* ── Fallback for custom slides ── */
-            <div className="flex flex-1 flex-col items-center text-center max-w-2xl">
-              <p className="text-sm font-medium text-orange-100 sm:text-base lg:text-lg"
-                style={{textShadow:"0 1px 8px rgba(0,0,0,0.4)"}}>
-                {tagline}
-              </p>
-              {orgAddress && <p className="mt-1 text-xs text-orange-200/70 sm:text-sm">{orgAddress}</p>}
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href="/join"
-                  className="rounded-full px-7 py-2.5 text-sm font-bold text-white shadow-xl transition hover:scale-105"
-                  style={{background:"linear-gradient(135deg,#d97706,#b45309)"}}>
-                  {dict.hero_join}
-                </Link>
-                <Link href="/activities"
-                  className="rounded-full border-2 border-white/40 bg-white/10 px-6 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
-                  {dict.hero_activities}
-                </Link>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 

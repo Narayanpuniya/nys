@@ -158,23 +158,33 @@ model Donor {
 }
 
 model Donation {
-  id            String   @id @default(cuid())
-  receiptNumber String   @unique
-  donorId       String?
-  donorName     String
-  amount        Int
-  purpose       String   @default("GENERAL")
-  campaignId    String?
-  mode          String   @default("ONLINE")
-  gatewayTxnId  String?
+  id             String    @id @default(cuid())
+  receiptNumber  String    @unique
+  donorId        String?
+  donorName      String
+  amount         Int
+  purpose        String    @default("GENERAL")
+  campaignId     String?
+  mode           String    @default("ONLINE")
+  gatewayTxnId   String?
   gatewayOrderId String?
-  status        String   @default("PENDING")
-  message       String?
-  createdAt     DateTime @default(now())
-  paidAt        DateTime?
+  // PENDING → payment not yet done
+  // PAID    → payment captured, awaiting admin verification
+  // SUCCESS → admin verified & approved
+  // FAILED  → payment failed or admin rejected
+  // VOID    → cancelled
+  status         String    @default("PENDING")
+  message        String?
+  createdAt      DateTime  @default(now())
+  paidAt         DateTime?
+  // Admin verification
+  paymentProofUrl String?   // donor-uploaded payment screenshot / receipt
+  verifiedAt     DateTime?  // when admin approved
+  verifiedBy     String?    // admin name who approved
+  adminNote      String?    // admin note on approval / rejection
 
-  donor         Donor?    @relation(fields: [donorId], references: [id])
-  campaign      Campaign? @relation(fields: [campaignId], references: [id])
+  donor          Donor?    @relation(fields: [donorId], references: [id])
+  campaign       Campaign? @relation(fields: [campaignId], references: [id])
 
   @@index([status])
   @@index([createdAt])
