@@ -16,9 +16,18 @@ export function LoginTabs({ defaultTab }: { defaultTab?: Tab }) {
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-saffron-50 via-cream to-maroon-50 px-4 py-10">
       <div className="w-full max-w-md">
 
+        {/* Home link */}
+        <div className="mb-4 text-center">
+          <Link href="/" className="inline-flex items-center gap-1 text-xs text-stone-400 hover:text-saffron-700 transition-colors">
+            ← होम पर जाएं
+          </Link>
+        </div>
+
         {/* Logo + Brand */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <LogoMark className="h-16 w-16" />
+          <Link href="/">
+            <LogoMark className="h-16 w-16 hover:opacity-80 transition-opacity" />
+          </Link>
           <h1 className="mt-3 text-2xl font-extrabold text-ink">नारायणपुरी यूथ सोसाइटी</h1>
           <p className="text-sm text-stone-500">गुदियाल नगर · NYS पोर्टल</p>
         </div>
