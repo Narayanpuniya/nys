@@ -203,9 +203,35 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="पूरा नाम" required><input className={inputClass} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} /></Field>
           <Field label="पिता/पति का नाम"><input className={inputClass} value={form.guardianName} onChange={(e) => set("guardianName", e.target.value)} /></Field>
-          <Field label="मोबाइल" required><input className={inputClass} value={form.mobile} onChange={(e) => set("mobile", e.target.value)} inputMode="tel" /></Field>
+          <div className="flex flex-col gap-1">
+            <Field label="मोबाइल" required>
+              <input
+                className={inputClass}
+                value={form.mobile}
+                onChange={(e) => set("mobile", e.target.value)}
+                inputMode="tel"
+                type="tel"
+                autoComplete="tel"
+                placeholder="9876543210"
+              />
+            </Field>
+            <p className="text-xs text-stone-400">📱 लॉगिन के लिए मुख्य नंबर</p>
+          </div>
           <Field label="WhatsApp"><input className={inputClass} value={form.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" /></Field>
-          <Field label="ईमेल"><input className={inputClass} value={form.email} onChange={(e) => set("email", e.target.value)} inputMode="email" /></Field>
+          <div className="flex flex-col gap-1">
+            <Field label="ईमेल (लॉगिन के लिए)">
+              <input
+                className={inputClass}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="abc@gmail.com"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+              />
+            </Field>
+            <p className="text-xs text-saffron-700">📧 मोबाइल या ईमेल — दोनों से लॉगिन कर सकते हैं</p>
+          </div>
           <Field label="जन्म तिथि"><input className={inputClass} type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} /></Field>
           <Field label="लिंग">
             <select className={inputClass} value={form.gender} onChange={(e) => set("gender", e.target.value)}>
