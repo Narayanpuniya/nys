@@ -117,13 +117,24 @@ export type HeroSlide = {
   sortOrder: number;
 };
 
+// Default slides shown when admin has not added any (served from public/slides/)
+const DEFAULT_HERO_SLIDES: HeroSlide[] = [
+  { id: "default-1", imageUrl: "/slides/nys-slide-1.png", title: "NYS परिचय",    sortOrder: 1 },
+  { id: "default-2", imageUrl: "/slides/nys-slide-2.png", title: "शिक्षा",         sortOrder: 2 },
+  { id: "default-3", imageUrl: "/slides/nys-slide-3.png", title: "खेल",            sortOrder: 3 },
+  { id: "default-4", imageUrl: "/slides/nys-slide-4.png", title: "पर्यावरण",       sortOrder: 4 },
+  { id: "default-5", imageUrl: "/slides/nys-slide-5.png", title: "NYS से जुड़ें", sortOrder: 5 },
+];
+
 export async function getHeroSlides(): Promise<HeroSlide[]> {
   try {
     const row = await prisma.setting.findUnique({ where: { key: "hero_slides" } });
-    if (!row) return [];
-    return safeJsonParse<HeroSlide[]>(row.value, []);
+    if (!row) return DEFAULT_HERO_SLIDES;
+    const slides = safeJsonParse<HeroSlide[]>(row.value, []);
+    // Admin ने slides हटा दी हों तो भी default दिखाएँ
+    return slides.length > 0 ? slides : DEFAULT_HERO_SLIDES;
   } catch {
-    return [];
+    return DEFAULT_HERO_SLIDES;
   }
 }
 
