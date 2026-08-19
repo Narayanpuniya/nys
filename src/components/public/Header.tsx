@@ -60,10 +60,10 @@ export function Header({
             {dict.nav_donate}
           </ButtonLink>
           <Link
-            href="/admin/login"
-            className="ml-1 inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50"
+            href="/login"
+            className="ml-1 inline-flex items-center gap-1 rounded-lg border border-saffron-200 bg-saffron-50 px-2.5 py-2 text-xs font-medium text-saffron-700 hover:bg-saffron-100"
           >
-            <ShieldCheck className="h-4 w-4" /> {dict.nav_admin}
+            <ShieldCheck className="h-4 w-4" /> {dict.nav_login}
           </Link>
         </div>
 
@@ -99,8 +99,8 @@ export function Header({
                 {dict[c.labelKey]}
               </ButtonLink>
             ))}
-            <ButtonLink href="/admin/login" size="sm" variant="ghost" onClick={() => setOpen(false)}>
-              {dict.nav_admin}
+            <ButtonLink href="/login" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              {dict.nav_login}
             </ButtonLink>
           </div>
         </div>

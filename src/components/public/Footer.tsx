@@ -34,6 +34,7 @@ export async function Footer() {
             <li><Link href="/donate" className="hover:text-saffron-700">{dict.nav_donate}</Link></li>
             <li><Link href="/contact" className="hover:text-saffron-700">{dict.nav_contact}</Link></li>
             <li><Link href="/verify" className="hover:text-saffron-700">{dict.footer_verify}</Link></li>
+            <li><Link href="/login" className="hover:text-saffron-700">{dict.footer_member_login}</Link></li>
           </ul>
         </div>
 
