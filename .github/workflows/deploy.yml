@@ -1,94 +1,55 @@
-name: 🚀 Deploy to Hostinger (nys.org.in)
+name: ✅ Quality Check (TypeScript + Build)
+
+# Hostinger का अपना Auto-deployment GitHub से connected है —
+# यह workflow सिर्फ code quality gate है।
+# TypeScript या build fail हो तो deploy रुक जाए।
 
 on:
   push:
-    branches: [master]           # master push होते ही deploy
-  workflow_dispatch:             # Manually भी trigger कर सकते हैं
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 concurrency:
-  group: production-deploy
-  cancel-in-progress: true       # एक साथ दो deploys न चलें
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # ─────────────────────────────────────────────
-  # Step 1: Type-check (fast gate, ~30 sec)
-  # ─────────────────────────────────────────────
-  typecheck:
-    name: 🔍 TypeScript Check
+  quality:
+    name: 🔍 TypeScript & Build Check
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
+      - name: 🗄️ Generate Prisma client
         run: npx prisma generate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
-      - name: TypeScript check
+      - name: 🔍 TypeScript check
         run: npx tsc --noEmit
 
-  # ─────────────────────────────────────────────
-  # Step 2: SSH → Hostinger पर deploy
-  # ─────────────────────────────────────────────
-  deploy:
-    name: 🌐 Deploy to Hostinger
-    runs-on: ubuntu-latest
-    needs: typecheck               # TypeScript pass हो तभी deploy हो
-    environment: production        # GitHub → Environments → production
+      - name: 🏗️ Build check
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+          AUTH_SECRET: "github-actions-build-secret-only"
+          NEXT_PUBLIC_SITE_URL: "https://nys.org.in"
 
-    steps:
-      - name: 🔗 SSH Deploy to Hostinger
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host:     ${{ secrets.HOSTINGER_HOST }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          key:      ${{ secrets.HOSTINGER_SSH_KEY }}
-          port:     ${{ secrets.HOSTINGER_PORT || 65002 }}
-          timeout:  "10m"
-          script_stop: true        # किसी step में error आए तो रुक जाए
-
-          script: |
-            set -e
-            echo "📁 Project directory में जाएँ..."
-            cd ${{ secrets.PROJECT_PATH }}
-
-            echo "⬇️  Latest code pull करें..."
-            git fetch origin
-            git reset --hard origin/master
-
-            echo "📦 Dependencies install करें..."
-            npm ci --prefer-offline
-
-            echo "🔨 Production build करें..."
-            npm run build
-
-            echo "♻️  App restart करें..."
-            # Hostinger Node.js Web App restart (नीचे से एक काम करेगा):
-            touch tmp/restart.txt 2>/dev/null || \
-            touch restart.txt     2>/dev/null || \
-            pm2 restart nys       2>/dev/null || \
-            pm2 restart all       2>/dev/null || \
-            echo "⚠️  Manual restart ज़रूरी हो सकता है"
-
-            echo "✅ Deploy complete! https://nys.org.in"
-
-      # Deploy success होने पर GitHub में summary
-      - name: 📝 Deployment Summary
+      - name: ✅ Summary
         if: success()
         run: |
-          echo "## ✅ Deploy Successful" >> $GITHUB_STEP_SUMMARY
-          echo "| | |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🌐 **Site** | https://nys.org.in |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🌿 **Branch** | master |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📦 **Commit** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🕐 **Time** | $(date -u '+%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Quality Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "TypeScript और Build दोनों ✓" >> $GITHUB_STEP_SUMMARY
+          echo "Hostinger auto-deploy शुरू हो गया होगा 🚀" >> $GITHUB_STEP_SUMMARY
