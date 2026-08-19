@@ -95,10 +95,6 @@ export default async function DonationsPage({
                       {d.status === "SUCCESS" && (
                         <Link href={`/receipt/${d.receiptNumber}`} target="_blank" className="text-xs font-medium text-saffron-700 hover:underline">रसीद ↗</Link>
                       )}
-                      {/* Proof image link */}
-                      {(d as { paymentProofUrl?: string | null }).paymentProofUrl && (
-                        <Link href={(d as { paymentProofUrl: string }).paymentProofUrl} target="_blank" className="text-xs text-blue-600 hover:underline">प्रमाण देखें ↗</Link>
-                      )}
                       {/* Approve / Reject for PAID or PENDING */}
                       <DonationVerifyActions donationId={d.id} status={d.status} />
                     </div>

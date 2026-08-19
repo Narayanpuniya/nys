@@ -28,9 +28,7 @@ export async function POST(req: NextRequest) {
       where: { id },
       data: {
         status: "FAILED",
-        adminNote: note || "Admin द्वारा अस्वीकृत",
-        verifiedAt: new Date(),
-        verifiedBy: user.name,
+        message: note ? `[Admin] ${note}` : undefined,
       },
     });
     await logAudit({
@@ -51,9 +49,6 @@ export async function POST(req: NextRequest) {
     data: {
       status: "SUCCESS",
       paidAt: donation.paidAt ?? new Date(),
-      adminNote: note || null,
-      verifiedAt: new Date(),
-      verifiedBy: user.name,
     },
   });
 
