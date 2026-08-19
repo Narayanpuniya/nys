@@ -1,29 +1,14 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { getSessionUser } from "@/lib/auth";
-import { AdminLoginForm } from "./AdminLoginForm";
 
+// /admin/login → unified /login?tab=admin पर permanent redirect
 export const dynamic = "force-dynamic";
 
-export default async function AdminLoginPage({
+export default async function AdminLoginRedirectPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
-  const user = await getSessionUser();
   const sp = await searchParams;
-  const next = sp.next?.startsWith("/admin") ? sp.next : "/admin";
-  if (user) redirect(next);
-
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center text-stone-500">
-          लोड हो रहा है…
-        </div>
-      }
-    >
-      <AdminLoginForm next={next} />
-    </Suspense>
-  );
+  const next = sp.next ? `&next=${encodeURIComponent(sp.next)}` : "";
+  redirect(`/login?tab=admin${next}`);
 }

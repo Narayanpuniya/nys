@@ -11,7 +11,16 @@ export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     // ── Admin routes ─────────────────────────────────────────────────────────
-    if (pathname === "/admin/login") return NextResponse.next();
+    // /admin/login को /login पर redirect (unified login page)
+    if (pathname === "/admin/login") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("tab", "admin");
+      // next param preserve करें ताकि login के बाद वापस जा सके
+      const next = req.nextUrl.searchParams.get("next");
+      if (next) url.searchParams.set("next", next);
+      return NextResponse.redirect(url);
+    }
 
     if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
       const token = req.cookies.get("nys_session")?.value;
@@ -45,7 +54,8 @@ export async function middleware(req: NextRequest) {
 
 function redirectAdminLogin(req: NextRequest) {
   const url = req.nextUrl.clone();
-  url.pathname = "/admin/login";
+  url.pathname = "/login";
+  url.searchParams.set("tab", "admin");
   url.searchParams.set("next", req.nextUrl.pathname);
   return NextResponse.redirect(url);
 }
