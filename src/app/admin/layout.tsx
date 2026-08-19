@@ -4,6 +4,7 @@ import { can, ROLE_LABELS, type Role } from "@/lib/constants";
 import { ADMIN_NAV } from "@/config/nav";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { getI18n } from "@/lib/i18n";
+import { InactivityWatcher } from "@/components/ui/InactivityWatcher";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
@@ -27,6 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="min-w-0 flex-1">
         <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 lg:p-8">{children}</div>
       </div>
+      <InactivityWatcher logoutUrl="/admin/logout" />
     </div>
   );
 }
