@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Check, Upload } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Check, Upload, Eye, EyeOff } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatINR, cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ const empty = {
   fullName: "", guardianName: "", dob: "", gender: "", mobile: "", whatsapp: "",
   email: "", address: "", village: "", district: "", state: "Rajasthan",
   occupation: "", bloodGroup: "", emergencyContact: "", photoUrl: "",
+  password: "", confirmPassword: "",
 };
 
 export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
@@ -41,6 +42,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const [txnNote, setTxnNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -49,6 +52,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   function validateStep1(): boolean {
     if (form.fullName.trim().length < 2) { setError("कृपया पूरा नाम दर्ज करें।"); return false; }
     if (!/^(\+91[- ]?)?[6-9]\d{9}$/.test(form.mobile.trim())) { setError("मान्य मोबाइल नंबर दर्ज करें।"); return false; }
+    if (form.password.length < 6) { setError("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।"); return false; }
+    if (form.password !== form.confirmPassword) { setError("दोनों पासवर्ड मेल नहीं खाते।"); return false; }
     setError("");
     return true;
   }
@@ -65,9 +70,10 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   }
 
   async function submitOnline() {
+    const { confirmPassword: _cp, ...formData } = form; // confirmPassword exclude करें
     const res = await fetch("/api/members", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, planId, consent: true }),
+      body: JSON.stringify({ ...formData, planId, consent: true }),
     });
     const text = await res.text();
     let data: {
@@ -122,7 +128,9 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
       return;
     }
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.set(k, v));
+    Object.entries(form).forEach(([k, v]) => {
+      if (k !== "confirmPassword") fd.set(k, v); // confirmPassword server पर नहीं चाहिए
+    });
     fd.set("planId", planId);
     fd.set("consent", "true");
     fd.set("mode", bank?.upiId ? "UPI" : "BANK_TRANSFER");
@@ -209,6 +217,60 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
           <Field label="जिला"><input className={inputClass} value={form.district} onChange={(e) => set("district", e.target.value)} /></Field>
           <div className="sm:col-span-2">
             <Field label="पता"><textarea className={inputClass} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></Field>
+          </div>
+
+          {/* ── पासवर्ड सेट करें ── */}
+          <div className="sm:col-span-2">
+            <div className="rounded-xl border border-saffron-200 bg-saffron-50 p-4">
+              <p className="mb-3 text-sm font-semibold text-saffron-800">🔐 लॉगिन पासवर्ड सेट करें</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="पासवर्ड" required>
+                  <div className="relative">
+                    <input
+                      className={inputClass + " pr-10"}
+                      type={showPass ? "text" : "password"}
+                      placeholder="कम से कम 6 अक्षर"
+                      value={form.password}
+                      onChange={(e) => set("password", e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                      tabIndex={-1}
+                    >
+                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </Field>
+                <Field label="पासवर्ड दोबारा लिखें" required>
+                  <div className="relative">
+                    <input
+                      className={inputClass + " pr-10"}
+                      type={showConfirm ? "text" : "password"}
+                      placeholder="पासवर्ड फिर से दर्ज करें"
+                      value={form.confirmPassword}
+                      onChange={(e) => set("confirmPassword", e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                      tabIndex={-1}
+                    >
+                      {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </Field>
+              </div>
+              <p className="mt-2 text-xs text-stone-500">
+                यह पासवर्ड बाद में{" "}
+                <span className="font-medium text-saffron-700">nys.org.in/login</span>{" "}
+                पर मोबाइल नंबर के साथ काम करेगा।
+              </p>
+            </div>
           </div>
         </div>
       )}

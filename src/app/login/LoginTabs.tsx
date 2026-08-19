@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from "react";
 import Link from "next/link";
-import { Loader2, LogIn, Shield, UserCheck, Phone, Hash, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, LogIn, Shield, UserCheck, Phone, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { adminLoginAction, memberLoginAction, type LoginState, type MemberLoginState } from "./actions";
 import { LogoMark } from "@/components/ui/Logo";
 
@@ -67,6 +67,7 @@ export function LoginTabs({ defaultTab }: { defaultTab?: Tab }) {
 // ── Member Form ───────────────────────────────────────────────────────────────
 function MemberForm() {
   const [state, action, pending] = useActionState<MemberLoginState, FormData>(memberLoginAction, {});
+  const [showPass, setShowPass] = useState(false);
 
   return (
     <div className="rounded-2xl border border-saffron-100 bg-white p-6 shadow-xl sm:p-8">
@@ -76,52 +77,56 @@ function MemberForm() {
         </span>
         <div>
           <h2 className="font-bold text-ink">सदस्य लॉगिन</h2>
-          <p className="text-xs text-stone-500">अपना मोबाइल व सदस्य कोड दर्ज करें</p>
+          <p className="text-xs text-stone-500">मोबाइल नंबर या ईमेल और पासवर्ड दर्ज करें</p>
         </div>
       </div>
 
       <form action={action} className="space-y-4">
-        {/* Mobile */}
+        {/* Mobile or Email */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-ink">
-            मोबाइल नंबर <span className="text-red-500">*</span>
+            मोबाइल नंबर या ईमेल <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
             <input
-              name="mobile"
-              type="tel"
+              name="identifier"
+              type="text"
               required
-              inputMode="numeric"
-              placeholder="9876543210"
+              autoComplete="username"
+              placeholder="9876543210 या abc@email.com"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-4 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100"
             />
           </div>
-          <p className="mt-1 text-xs text-stone-400">वही नंबर जो सदस्यता के समय दिया था</p>
+          <p className="mt-1 text-xs text-stone-400">सदस्यता फॉर्म में दिया मोबाइल नंबर या ईमेल</p>
         </div>
 
-        {/* Member Code */}
+        {/* Password */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-ink">
-            सदस्य कोड <span className="text-red-500">*</span>
+            पासवर्ड <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Hash className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
             <input
-              name="memberCode"
-              type="text"
+              name="password"
+              type={showPass ? "text" : "password"}
               required
-              autoCapitalize="characters"
-              placeholder="NYS-2024-0001"
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-4 text-sm uppercase text-ink placeholder-stone-400 outline-none transition focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-10 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100"
             />
+            <button
+              type="button"
+              onClick={() => setShowPass((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+              tabIndex={-1}
+              aria-label="पासवर्ड दिखाएँ/छिपाएँ"
+            >
+              {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
-          <p className="mt-1 text-xs text-stone-400">
-            आपके ID Card या अनुमोदन संदेश पर लिखा कोड।{" "}
-            <Link href="/verify" className="text-saffron-600 hover:underline">
-              सदस्य सत्यापित करें →
-            </Link>
-          </p>
+          <p className="mt-1 text-xs text-stone-400">सदस्यता फॉर्म भरते समय सेट किया पासवर्ड</p>
         </div>
 
         {state.error && (
@@ -140,11 +145,15 @@ function MemberForm() {
       </form>
 
       <div className="mt-5 rounded-xl bg-saffron-50 p-4">
-        <p className="text-xs font-semibold text-saffron-800">💡 सदस्य कोड कहाँ मिलेगा?</p>
+        <p className="text-xs font-semibold text-saffron-800">💡 पासवर्ड कहाँ मिलेगा?</p>
         <ul className="mt-1.5 space-y-0.5 text-xs text-stone-600">
-          <li>• सदस्यता स्वीकृति संदेश में</li>
-          <li>• डिजिटल ID Card पर (NYS-XXXX-XXXX)</li>
-          <li>• <Link href="/verify" className="text-saffron-600 hover:underline">/verify</Link> पर अपना नंबर डालकर देखें</li>
+          <li>• सदस्यता फॉर्म भरते समय आपने खुद सेट किया था</li>
+          <li>• भूल गए? NYS Admin से संपर्क करके रीसेट करवाएँ</li>
+          <li>• नए सदस्य:{" "}
+            <Link href="/join" className="text-saffron-600 hover:underline">
+              यहाँ से जुड़ें →
+            </Link>
+          </li>
         </ul>
       </div>
     </div>
