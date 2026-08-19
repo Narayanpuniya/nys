@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Trash2, Upload, GripVertical, ImagePlus, CheckCircle2 } from "lucide-react";
+import { Trash2, Upload, GripVertical, ImagePlus, CheckCircle2, RotateCcw } from "lucide-react";
 import type { HeroSlide } from "@/lib/settings";
 
 export function HeroSlidesManager({ initialSlides }: { initialSlides: HeroSlide[] }) {
   const [slides, setSlides] = useState<HeroSlide[]>(initialSlides);
   const [uploading, setUploading] = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -46,6 +47,23 @@ export function HeroSlidesManager({ initialSlides }: { initialSlides: HeroSlide[
     if (!confirm("इस स्लाइड को हटाएं?")) return;
     const res = await fetch(`/api/admin/hero-slides?id=${id}`, { method: "DELETE" });
     if (res.ok) setSlides((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function handleLoadDefaults() {
+    if (!confirm("NYS की 5 default slides load करें? मौजूदा slides हट जाएंगी।")) return;
+    setLoadingDefaults(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/hero-slides", { method: "PUT" });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
+      const data = await res.json() as { slides: HeroSlide[] };
+      setSlides(data.slides);
+      setMessage({ type: "ok", text: "5 NYS default slides load हो गई ✓" });
+    } catch (err) {
+      setMessage({ type: "err", text: err instanceof Error ? err.message : "Error" });
+    } finally {
+      setLoadingDefaults(false);
+    }
   }
 
   return (
@@ -131,8 +149,16 @@ export function HeroSlidesManager({ initialSlides }: { initialSlides: HeroSlide[
 
         {slides.length === 0 ? (
           <div className="py-12 text-center text-stone-400">
-            <ImagePlus className="mx-auto mb-2 h-10 w-10 opacity-30" />
-            <p>कोई स्लाइड नहीं। ऊपर से जोड़ें।</p>
+            <ImagePlus className="mx-auto mb-3 h-10 w-10 opacity-30" />
+            <p className="mb-4">कोई स्लाइड नहीं। ऊपर से जोड़ें या NYS default slides load करें।</p>
+            <button
+              onClick={handleLoadDefaults}
+              disabled={loadingDefaults}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-saffron-300 bg-saffron-50 px-5 py-2.5 text-sm font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {loadingDefaults ? "लोड हो रहा है…" : "NYS Default Slides लोड करें"}
+            </button>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/constants";
-import { getHeroSlides, saveHeroSlides, type HeroSlide } from "@/lib/settings";
+import { getHeroSlides, saveHeroSlides, DEFAULT_HERO_SLIDES, type HeroSlide } from "@/lib/settings";
 import { saveUploadedImage } from "@/lib/upload";
 import { randomBytes } from "crypto";
 
@@ -46,6 +46,13 @@ export async function DELETE(req: NextRequest) {
   const updated = slides.filter((s) => s.id !== id).map((s, i) => ({ ...s, sortOrder: i }));
   await saveHeroSlides(updated);
   return NextResponse.json({ ok: true });
+}
+
+// PUT — NYS default slides load करें (सभी पुरानी slides replace)
+export async function PUT() {
+  await requirePermission(PERMISSIONS.SETTINGS_MANAGE);
+  await saveHeroSlides(DEFAULT_HERO_SLIDES);
+  return NextResponse.json({ slides: DEFAULT_HERO_SLIDES });
 }
 
 // PATCH — reorder (body: [{id, sortOrder}...])
