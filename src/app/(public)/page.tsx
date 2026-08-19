@@ -4,7 +4,7 @@ import { getSettings } from "@/lib/settings";
 import { getImpactCounters } from "@/lib/stats";
 import { clampPercent } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
-import { Hero } from "@/components/public/Hero";
+import { HeroSlider } from "@/components/public/HeroSlider";
 import { ImpactCounters } from "@/components/public/ImpactCounters";
 import { ActivityCategories } from "@/components/public/ActivityCategories";
 import { ActivitiesFeed } from "@/components/public/ActivitiesFeed";
@@ -54,16 +54,32 @@ export default async function HomePage() {
   let leadership: Awaited<ReturnType<typeof prisma.teamMember.findMany>> = [];
   let mentors: Awaited<ReturnType<typeof prisma.mentor.findMany>> = [];
   let partners: Awaited<ReturnType<typeof prisma.partner.findMany>> = [];
+  let galleryItems: { imageUrl: string; title?: string | null; category?: string | null }[] = [];
 
   try {
-    [categories, featured, events, leadership, mentors, partners] = await Promise.all([
+    const [cats, feat, evts, leads, mnts, parts, gallery, eventsWithPosters] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
       getFeaturedCampaign(),
       prisma.event.findMany({ where: { status: "UPCOMING" }, orderBy: { date: "asc" }, take: 3 }),
       prisma.teamMember.findMany({ where: { isLeadership: true }, orderBy: { sortOrder: "asc" } }),
       prisma.mentor.findMany({ where: { featured: true }, orderBy: { sortOrder: "asc" }, take: 4 }),
       prisma.partner.findMany({ where: { featured: true }, orderBy: { createdAt: "desc" }, take: 6 }),
+      prisma.galleryItem.findMany({ orderBy: { date: "desc" }, take: 8 }),
+      prisma.event.findMany({ where: { posterImage: { not: null } }, orderBy: { date: "desc" }, take: 4 }),
     ]);
+    categories = cats; featured = feat; events = evts;
+    leadership = leads; mentors = mnts; partners = parts;
+
+    // Merge gallery + event posters into slider slides
+    const seen = new Set<string>();
+    const slides: typeof galleryItems = [];
+    for (const g of gallery) {
+      if (!seen.has(g.imageUrl)) { seen.add(g.imageUrl); slides.push({ imageUrl: g.imageUrl, title: g.title, category: g.category }); }
+    }
+    for (const e of eventsWithPosters) {
+      if (e.posterImage && !seen.has(e.posterImage)) { seen.add(e.posterImage); slides.push({ imageUrl: e.posterImage, title: e.title, category: e.category }); }
+    }
+    galleryItems = slides;
   } catch (err) {
     console.error("[HomePage] database unavailable:", err);
   }
@@ -72,7 +88,14 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero tagline={settings.tagline} campaign={featured} dict={dict} />
+      <HeroSlider
+        tagline={settings.tagline}
+        slides={galleryItems}
+        campaign={featured}
+        dict={dict}
+        logoUrl={settings.logoUrl}
+        orgName={settings.name}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-12">
         <SectionHeading title={dict.home_impact} subtitle={dict.home_impact_sub} viewAllLabel={dict.viewAll} />

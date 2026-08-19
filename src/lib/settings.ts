@@ -82,7 +82,7 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   social: {},
   legal: {
     registrationNo: "COOP/2023/JODHPUR/203833",
-    showLegalOnSite: false,
+    showLegalOnSite: true,
   },
   privacy: { donorInfoPublic: false, showMemberMobileDefault: false },
   membershipAutoApprove: false,

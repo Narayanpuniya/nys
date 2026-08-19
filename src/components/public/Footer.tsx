@@ -15,6 +15,13 @@ export async function Footer() {
           <LogoFull imageUrl={s.logoUrl} name={dict.orgName} place={dict.orgPlace} />
           <p className="mt-3 max-w-xs text-sm text-stone-600">{s.tagline}</p>
           <p className="mt-3 text-sm text-stone-500">{s.address}</p>
+          {s.legal.registrationNo && (
+            <div className="mt-3 rounded-lg border border-saffron-100 bg-saffron-50 px-3 py-2">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-stone-400">पंजीकरण संख्या</p>
+              <p className="text-xs font-semibold text-saffron-800">{s.legal.registrationNo}</p>
+              {s.legal.pan && <p className="text-[10px] text-stone-500">PAN: {s.legal.pan}</p>}
+            </div>
+          )}
         </div>
 
         <div>
@@ -61,7 +68,14 @@ export async function Footer() {
 
       <div className="border-t border-saffron-100">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-stone-500">
-          <span>© {year} {dict.orgName}. {dict.footer_rights}.</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span>© {year} {dict.orgName}. {dict.footer_rights}.</span>
+            {s.legal.registrationNo && (
+              <span className="rounded bg-saffron-50 px-2 py-0.5 font-medium text-saffron-700">
+                Reg: {s.legal.registrationNo}
+              </span>
+            )}
+          </div>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-saffron-700">{dict.footer_privacy}</Link>
             <Link href="/terms" className="hover:text-saffron-700">{dict.footer_terms}</Link>

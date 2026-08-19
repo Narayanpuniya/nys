@@ -131,6 +131,11 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 <div className="text-sm font-extrabold text-orange-300">{s.name}</div>
                 <div className="mt-0.5 text-[11px] text-stone-400">{s.address}</div>
                 <div className="text-[11px] text-stone-400">{s.mobile} · {s.email}</div>
+                {s.legal?.registrationNo && (
+                  <div className="mt-1 text-[10px] text-stone-500">
+                    Reg: <span className="text-orange-300/80">{s.legal.registrationNo}</span>
+                  </div>
+                )}
               </div>
 
               {/* Instructions */}
