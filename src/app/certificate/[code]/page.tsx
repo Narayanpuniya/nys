@@ -38,8 +38,8 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
     );
   }
 
-  const memberCert = member.certificates[0];
-  const certNumber = memberCert?.certNumber ?? `${s.certPrefix}-${new Date().getFullYear()}-PENDING`;
+  // सदस्य ID ही certificate number के रूप में दिखाएं — एक ही ID सब जगह
+  const certNumber = member.memberCode;
   const qr = await qrDataUrl(siteUrl(`/verify?code=${member.memberCode}`));
 
   return (
@@ -69,10 +69,9 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
               के रूप में विधिवत पंजीकृत सदस्य हैं।
             </p>
 
-            <div className="mt-8 grid grid-cols-3 gap-4 text-xs text-stone-600">
-              <div><div className="font-semibold text-ink">{member.memberCode}</div>सदस्य ID</div>
+            <div className="mt-8 grid grid-cols-2 gap-4 text-xs text-stone-600 max-w-xs mx-auto">
+              <div><div className="font-semibold text-ink">{member.memberCode}</div>सदस्य ID / प्रमाणपत्र सं.</div>
               <div><div className="font-semibold text-ink">{formatDateHi(member.joiningDate)}</div>सदस्यता तिथि</div>
-              <div><div className="font-semibold text-ink">{certNumber}</div>प्रमाणपत्र सं.</div>
             </div>
 
             <div className="mt-10 flex items-end justify-between gap-4">

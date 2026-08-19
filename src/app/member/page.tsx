@@ -208,7 +208,7 @@ export default async function MemberPortal() {
             {/* Certificate */}
             {certCount > 0 && (
               <Link
-                href={`/certificate/${member.certificates[0].certNumber}`}
+                href={`/certificate/${member.memberCode}`}
                 className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 p-5 text-white shadow hover:shadow-lg transition-shadow"
               >
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
@@ -342,7 +342,7 @@ export default async function MemberPortal() {
                     {member.certificates.map((c) => (
                       <Link
                         key={c.id}
-                        href={`/certificate/${c.certNumber}`}
+                        href={`/certificate/${member.memberCode}`}
                         className="flex items-center justify-between rounded-xl border border-stone-100 px-4 py-3 text-sm hover:bg-saffron-50 transition"
                       >
                         <div>
