@@ -228,9 +228,15 @@ function AdminForm() {
         </button>
       </form>
 
-      <p className="mt-4 text-center text-xs text-stone-400">
-        केवल अधिकृत NYS प्रशासन सदस्यों के लिए
-      </p>
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-xs text-stone-400">केवल अधिकृत NYS प्रशासन सदस्यों के लिए</p>
+        <Link
+          href="/emergency-reset"
+          className="text-xs text-stone-400 hover:text-red-600 hover:underline transition-colors"
+        >
+          पासवर्ड भूल गए?
+        </Link>
+      </div>
     </div>
   );
 }
