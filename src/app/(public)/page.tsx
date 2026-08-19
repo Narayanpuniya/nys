@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { getSettings } from "@/lib/settings";
+import { getSettings, getHeroSlides } from "@/lib/settings";
 import { getImpactCounters } from "@/lib/stats";
 import { clampPercent } from "@/lib/utils";
 import { getI18n } from "@/lib/i18n";
@@ -54,32 +54,24 @@ export default async function HomePage() {
   let leadership: Awaited<ReturnType<typeof prisma.teamMember.findMany>> = [];
   let mentors: Awaited<ReturnType<typeof prisma.mentor.findMany>> = [];
   let partners: Awaited<ReturnType<typeof prisma.partner.findMany>> = [];
-  let galleryItems: { imageUrl: string; title?: string | null; category?: string | null }[] = [];
+  let heroSlides: { imageUrl: string; title?: string | null; category?: string | null }[] = [];
 
   try {
-    const [cats, feat, evts, leads, mnts, parts, gallery, eventsWithPosters] = await Promise.all([
+    const [cats, feat, evts, leads, mnts, parts, rawSlides] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
       getFeaturedCampaign(),
       prisma.event.findMany({ where: { status: "UPCOMING" }, orderBy: { date: "asc" }, take: 3 }),
       prisma.teamMember.findMany({ where: { isLeadership: true }, orderBy: { sortOrder: "asc" } }),
       prisma.mentor.findMany({ where: { featured: true }, orderBy: { sortOrder: "asc" }, take: 4 }),
       prisma.partner.findMany({ where: { featured: true }, orderBy: { createdAt: "desc" }, take: 6 }),
-      prisma.galleryItem.findMany({ orderBy: { date: "desc" }, take: 8 }),
-      prisma.event.findMany({ where: { posterImage: { not: null } }, orderBy: { date: "desc" }, take: 4 }),
+      getHeroSlides(),
     ]);
     categories = cats; featured = feat; events = evts;
     leadership = leads; mentors = mnts; partners = parts;
-
-    // Merge gallery + event posters into slider slides
-    const seen = new Set<string>();
-    const slides: typeof galleryItems = [];
-    for (const g of gallery) {
-      if (!seen.has(g.imageUrl)) { seen.add(g.imageUrl); slides.push({ imageUrl: g.imageUrl, title: g.title, category: g.category }); }
-    }
-    for (const e of eventsWithPosters) {
-      if (e.posterImage && !seen.has(e.posterImage)) { seen.add(e.posterImage); slides.push({ imageUrl: e.posterImage, title: e.title, category: e.category }); }
-    }
-    galleryItems = slides;
+    // Admin द्वारा जोड़ी गई slides, sortOrder के अनुसार
+    heroSlides = rawSlides
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((s) => ({ imageUrl: s.imageUrl, title: s.title }));
   } catch (err) {
     console.error("[HomePage] database unavailable:", err);
   }
@@ -90,7 +82,7 @@ export default async function HomePage() {
     <>
       <HeroSlider
         tagline={settings.tagline}
-        slides={galleryItems}
+        slides={heroSlides}
         campaign={featured}
         dict={dict}
         logoUrl={settings.logoUrl}

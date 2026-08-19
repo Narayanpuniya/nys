@@ -44,5 +44,6 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/reports", labelKey: "admin_reports", icon: "FileBarChart", perm: PERMISSIONS.REPORTS_VIEW },
   { href: "/admin/audit", labelKey: "admin_audit", icon: "ScrollText", perm: PERMISSIONS.AUDIT_VIEW },
   { href: "/admin/users", labelKey: "admin_users", icon: "ShieldCheck", perm: PERMISSIONS.USERS_MANAGE },
+  { href: "/admin/hero-slides", labelKey: "admin_hero_slides", icon: "SlidersHorizontal", perm: PERMISSIONS.SETTINGS_MANAGE },
   { href: "/admin/settings", labelKey: "admin_settings", icon: "Settings", perm: PERMISSIONS.SETTINGS_MANAGE },
 ];

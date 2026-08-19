@@ -19,6 +19,7 @@ export type UploadCategory =
   | "seals"
   | "signatures"
   | "gallery"
+  | "slider"
   | "docs"
   | "receipts";
 

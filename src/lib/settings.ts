@@ -109,6 +109,32 @@ export async function getSettings(): Promise<OrgSettings> {
   }
 }
 
+// ── Hero Slider Slides ────────────────────────────────────────────────────────
+export type HeroSlide = {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  sortOrder: number;
+};
+
+export async function getHeroSlides(): Promise<HeroSlide[]> {
+  try {
+    const row = await prisma.setting.findUnique({ where: { key: "hero_slides" } });
+    if (!row) return [];
+    return safeJsonParse<HeroSlide[]>(row.value, []);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveHeroSlides(slides: HeroSlide[]): Promise<void> {
+  await prisma.setting.upsert({
+    where: { key: "hero_slides" },
+    update: { value: JSON.stringify(slides) },
+    create: { key: "hero_slides", value: JSON.stringify(slides) },
+  });
+}
+
 export async function saveSettings(next: OrgSettings): Promise<void> {
   await prisma.setting.upsert({
     where: { key: "org" },
