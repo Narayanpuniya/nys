@@ -88,6 +88,7 @@ export default async function HomePage() {
         logoUrl={settings.logoUrl}
         orgName={settings.name}
         orgAddress={settings.address}
+        regNo={settings.legal?.registrationNo}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12">
