@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogoMark } from "@/components/ui/Logo";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatINR } from "@/lib/utils";
 
@@ -46,6 +45,7 @@ export function HeroSlider({
   dict,
   logoUrl,
   orgName,
+  orgAddress,
 }: {
   tagline: string;
   slides: Slide[];
@@ -53,6 +53,7 @@ export function HeroSlider({
   dict: Dict;
   logoUrl?: string | null;
   orgName: string;
+  orgAddress?: string;
 }) {
   const total = slides.length;
   const [current, setCurrent] = useState(0);
@@ -78,23 +79,20 @@ export function HeroSlider({
     }, TICK);
   }, [total, stopTimers]);
 
-  // Start timers on mount and when total changes
   useEffect(() => {
     startTimers();
     return stopTimers;
   }, [startTimers, stopTimers]);
 
-  const goTo = useCallback((idx: number) => {
-    setCurrent((idx + total) % total);
-    setProgress(0);
-    // Restart timers after manual navigation
-    stopTimers();
-    if (!pausedRef.current) {
-      setTimeout(() => {
-        startTimers();
-      }, 0);
-    }
-  }, [total, startTimers, stopTimers]);
+  const goTo = useCallback(
+    (idx: number) => {
+      setCurrent((idx + total) % total);
+      setProgress(0);
+      stopTimers();
+      if (!pausedRef.current) setTimeout(() => startTimers(), 0);
+    },
+    [total, startTimers, stopTimers],
+  );
 
   const handleMouseEnter = useCallback(() => {
     pausedRef.current = true;
@@ -111,7 +109,8 @@ export function HeroSlider({
 
   return (
     <section
-      className="relative h-[92vh] min-h-[520px] max-h-[800px] overflow-hidden"
+      className="relative min-h-[480px] overflow-hidden lg:min-h-[580px]"
+      style={{ height: "calc(100vh - 120px)" }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -129,23 +128,10 @@ export function HeroSlider({
             className="h-full w-full object-cover"
             draggable={false}
           />
-          {/* Dark gradient overlay */}
+          {/* Dark overlay */}
           <div
             className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%)",
-            }}
-          />
-          {/* Bottom fade */}
-          <div
-            className="absolute bottom-0 left-0 right-0 h-32"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)" }}
-          />
-          {/* Saffron-maroon top stripe */}
-          <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }}
+            style={{ background: "rgba(80,10,10,0.72)" }}
           />
         </div>
       ))}
@@ -154,128 +140,107 @@ export function HeroSlider({
       {slides.length === 0 && (
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(135deg, #7f1d1d 0%, #d97706 50%, #92400e 100%)" }}
-        >
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='1.5' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E\")",
-            }}
-          />
-        </div>
+          style={{ background: "linear-gradient(160deg, #7f1d1d 0%, #991b1b 40%, #b45309 100%)" }}
+        />
       )}
 
-      {/* ── Main content ── */}
-      <div className="relative z-10 mx-auto grid h-full max-w-7xl items-center gap-8 px-6 lg:grid-cols-5 lg:px-8">
-        {/* Left: Text */}
-        <div className="lg:col-span-3">
-          {/* Badge */}
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="NYS" className="h-5 w-5 rounded-full" />
-            ) : (
-              <LogoMark className="h-5 w-5" />
-            )}
-            <span className="text-xs font-semibold tracking-wider text-white/90">{dict.hero_badge}</span>
+      {/* ── Bottom gradient fade ── */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-24"
+        style={{ background: "linear-gradient(to top, rgba(127,29,29,0.4), transparent)" }}
+      />
+
+      {/* ── Main centered content ── */}
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+
+        {/* Logo */}
+        {logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={orgName}
+            className="mb-5 h-20 w-20 rounded-full border-4 border-orange-300/40 object-contain shadow-2xl"
+          />
+        )}
+
+        {/* Org Name — big bold */}
+        <h1
+          className="max-w-4xl text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl xl:text-6xl"
+          style={{ textShadow: "0 2px 20px rgba(0,0,0,0.5)" }}
+        >
+          {orgName}
+        </h1>
+
+        {/* Tagline / उद्देश्य */}
+        <p
+          className="mt-4 max-w-2xl text-base font-medium text-orange-100 sm:text-lg lg:text-xl"
+          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+        >
+          {tagline}
+        </p>
+
+        {/* Address */}
+        {orgAddress && (
+          <p className="mt-2 text-sm text-orange-200/70">{orgAddress}</p>
+        )}
+
+        {/* Slide category label */}
+        {slide?.category && (
+          <div className="mt-3 inline-block rounded-full bg-white/10 px-4 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+            📍 {slide.category}{slide.title ? ` · ${slide.title}` : ""}
           </div>
+        )}
 
-          {/* Tagline */}
-          <h1
-            className="text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl xl:text-6xl"
-            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+        {/* CTA Buttons */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/join"
+            className="rounded-full px-8 py-3 text-sm font-bold text-white shadow-xl transition hover:scale-105 active:scale-95"
+            style={{ background: "linear-gradient(135deg, #d97706, #b45309)", boxShadow: "0 4px 20px rgba(217,119,6,0.4)" }}
           >
-            {tagline}
-          </h1>
+            {dict.hero_join}
+          </Link>
+          <Link
+            href="/activities"
+            className="rounded-full border-2 border-white/50 bg-white/10 px-8 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
+          >
+            {dict.hero_activities}
+          </Link>
+          <Link
+            href="/donate"
+            className="rounded-full border border-orange-300/50 bg-transparent px-6 py-3 text-sm font-medium text-orange-200 transition hover:text-white"
+          >
+            {dict.hero_donate} →
+          </Link>
+        </div>
 
-          {/* Intro */}
-          <p className="mt-4 max-w-xl text-base text-white/80 drop-shadow-sm">{dict.hero_intro}</p>
-
-          {/* Slide caption */}
-          {slide?.category && (
-            <div className="mt-3 inline-block rounded-full bg-saffron-600/80 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-              📍 {slide.category}
-              {slide.title ? ` · ${slide.title}` : ""}
+        {/* Campaign widget (compact, below CTAs) */}
+        {campaign && (
+          <div className="mt-8 w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-4 text-left backdrop-blur-md">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-orange-300">{dict.hero_campaign}</p>
+            <p className="mt-0.5 text-sm font-bold text-white leading-snug">{campaign.title}</p>
+            <div className="mt-2">
+              <ProgressBar percent={campaign.percent} />
+              <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[10px]">
+                <div><div className="font-bold text-orange-300">{formatINR(campaign.collected)}</div><div className="text-white/50">{dict.hero_collected}</div></div>
+                <div><div className="font-bold text-white">{campaign.percent}%</div><div className="text-white/50">{dict.hero_complete}</div></div>
+                <div><div className="font-bold text-orange-300">{formatINR(campaign.goal)}</div><div className="text-white/50">{dict.hero_goal}</div></div>
+              </div>
             </div>
-          )}
-
-          {/* CTA Buttons */}
-          <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/join"
-              className="rounded-xl px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-105 active:scale-95"
+              href={`/campaigns/${campaign.slug}`}
+              className="mt-3 block w-full rounded-xl py-2 text-center text-xs font-bold text-white"
               style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
             >
-              {dict.hero_join}
-            </Link>
-            <Link
-              href="/donate"
-              className="rounded-xl border-2 border-white/60 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
-            >
-              {dict.hero_donate}
-            </Link>
-            <Link
-              href="/activities"
-              className="rounded-xl border border-white/30 bg-transparent px-6 py-3 text-sm font-medium text-white/80 transition hover:text-white"
-            >
-              {dict.hero_activities} →
+              {dict.hero_view_campaign}
             </Link>
           </div>
-        </div>
-
-        {/* Right: Campaign card */}
-        <div className="hidden lg:col-span-2 lg:block">
-          {campaign ? (
-            <div className="rounded-2xl border border-white/20 bg-white/95 p-6 shadow-2xl backdrop-blur-md">
-              <p className="text-xs font-bold uppercase tracking-widest text-saffron-700">{dict.hero_campaign}</p>
-              <h2 className="mt-1 text-lg font-bold leading-snug text-gray-900">{campaign.title}</h2>
-              <div className="mt-4">
-                <ProgressBar percent={campaign.percent} />
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <div className="text-base font-extrabold text-saffron-800">{formatINR(campaign.collected)}</div>
-                    <div className="text-[10px] text-stone-500">{dict.hero_collected}</div>
-                  </div>
-                  <div>
-                    <div className="text-base font-extrabold text-gray-900">{campaign.percent}%</div>
-                    <div className="text-[10px] text-stone-500">{dict.hero_complete}</div>
-                  </div>
-                  <div>
-                    <div className="text-base font-extrabold text-red-700">{formatINR(campaign.goal)}</div>
-                    <div className="text-[10px] text-stone-500">{dict.hero_goal}</div>
-                  </div>
-                </div>
-              </div>
-              <Link
-                href={`/campaigns/${campaign.slug}`}
-                className="mt-4 block w-full rounded-xl py-3 text-center text-sm font-bold text-white transition hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
-              >
-                {dict.hero_view_campaign}
-              </Link>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-8 text-center backdrop-blur-md">
-              <div className="text-5xl">🪔</div>
-              <p className="mt-3 font-semibold text-white">{dict.hero_welcome_title}</p>
-              <p className="mt-1 text-sm text-white/70">{dict.hero_welcome_body}</p>
-              <Link
-                href="/join"
-                className="mt-4 inline-block rounded-xl px-6 py-2.5 text-sm font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
-              >
-                {dict.hero_join}
-              </Link>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* ── Slider controls ── */}
       {total > 1 && (
         <>
-          {/* Prev arrow */}
           <button
             onClick={() => goTo(current - 1)}
             className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/30 p-2.5 text-white backdrop-blur-sm transition hover:bg-black/50"
@@ -285,8 +250,6 @@ export function HeroSlider({
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-
-          {/* Next arrow */}
           <button
             onClick={() => goTo(current + 1)}
             className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/20 bg-black/30 p-2.5 text-white backdrop-blur-sm transition hover:bg-black/50"
@@ -297,23 +260,18 @@ export function HeroSlider({
             </svg>
           </button>
 
-          {/* Dots + progress bar */}
+          {/* Progress + dots */}
           <div className="absolute bottom-6 left-0 right-0 z-20 flex flex-col items-center gap-2">
-            {/* Progress bar for current slide */}
-            <div className="h-0.5 w-32 overflow-hidden rounded-full bg-white/20">
-              <div
-                className="h-full bg-saffron-400 transition-none"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="h-0.5 w-24 overflow-hidden rounded-full bg-white/20">
+              <div className="h-full bg-orange-400 transition-none" style={{ width: `${progress}%` }} />
             </div>
-            {/* Dots */}
             <div className="flex gap-2">
               {slides.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => goTo(i)}
                   className={`rounded-full transition-all duration-300 ${
-                    i === current ? "h-2 w-6 bg-saffron-400" : "h-2 w-2 bg-white/40 hover:bg-white/70"
+                    i === current ? "h-2 w-6 bg-orange-400" : "h-2 w-2 bg-white/40 hover:bg-white/70"
                   }`}
                   aria-label={`Slide ${i + 1}`}
                 />
@@ -321,17 +279,11 @@ export function HeroSlider({
             </div>
           </div>
 
-          {/* Slide counter */}
-          <div className="absolute bottom-6 right-4 z-20 rounded-full bg-black/30 px-2.5 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
+          <div className="absolute bottom-6 right-4 z-20 rounded-full bg-black/30 px-2.5 py-1 text-xs font-medium text-white/70 backdrop-blur-sm">
             {current + 1} / {total}
           </div>
         </>
       )}
-
-      {/* Org name watermark */}
-      <div className="absolute bottom-6 left-6 z-20 hidden lg:block">
-        <div className="text-xs font-medium tracking-wide text-white/40">{orgName}</div>
-      </div>
     </section>
   );
 }

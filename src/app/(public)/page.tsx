@@ -95,6 +95,7 @@ export default async function HomePage() {
         dict={dict}
         logoUrl={settings.logoUrl}
         orgName={settings.name}
+        orgAddress={settings.address}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12">
