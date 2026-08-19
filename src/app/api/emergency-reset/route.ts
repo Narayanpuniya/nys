@@ -5,44 +5,43 @@ import { createOtp, verifyOtp, otpRemainingMinutes } from "@/lib/otp-store";
 import { sendOtpEmail } from "@/lib/mailer";
 
 // ── Emergency Super Admin Password Reset ──────────────────────────────────────
-// दो steps:
-//   action: "send-otp"     → Secret Key verify → OTP email भेजें
-//   action: "verify-reset" → OTP verify → नया पासवर्ड set करें
+// तीन actions — दोनों में से कोई भी एक काफी है:
+//
+//   "send-otp"         → Gmail पर OTP भेजो (कोई secret key नहीं चाहिए)
+//   "reset-with-otp"   → OTP verify करो + नया password set करो
+//   "reset-with-secret"→ Secret Key से directly password reset करो
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getResetSecret(): string | null {
-  const s = process.env.RESET_SECRET?.trim();
-  return s && s.length >= 6 ? s : null;
+async function getSuperAdmin() {
+  return prisma.user.findFirst({
+    where: { role: "SUPER_ADMIN" },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+async function setNewPassword(id: string, password: string) {
+  const passwordHash = await bcrypt.hash(password, 10);
+  return prisma.user.update({
+    where: { id },
+    data: { passwordHash, isActive: true },
+  });
+}
+
+function validatePassword(newPassword: string, confirmPassword: string) {
+  if (!newPassword || newPassword.length < 6)
+    return "❌ पासवर्ड कम से कम 6 अक्षर का होना चाहिए।";
+  if (newPassword !== confirmPassword)
+    return "❌ दोनों पासवर्ड एक जैसे नहीं हैं।";
+  return null;
 }
 
 export async function POST(req: NextRequest) {
-  const RESET_SECRET = getResetSecret();
-
-  // RESET_SECRET set नहीं है — endpoint बंद
-  if (!RESET_SECRET) {
-    return NextResponse.json(
-      { error: "Emergency reset is disabled. RESET_SECRET not configured in Hostinger." },
-      { status: 403 }
-    );
-  }
-
   const body = await req.json().catch(() => null);
-  if (!body?.action) {
+  if (!body?.action)
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
-  }
 
-  // ── STEP 1: Secret key verify करो, OTP भेजो ──────────────────────────────
+  // ── Method A: OTP भेजो ──────────────────────────────────────────────────
   if (body.action === "send-otp") {
-    const { secretKey } = body;
-
-    if (!secretKey || secretKey !== RESET_SECRET) {
-      return NextResponse.json(
-        { error: "❌ Secret Key गलत है। Hostinger → Environment Variables → RESET_SECRET देखें।" },
-        { status: 401 }
-      );
-    }
-
-    // Gmail config check
     if (!process.env.GMAIL_APP_PASSWORD || !process.env.GMAIL_USER) {
       return NextResponse.json(
         { error: "❌ Email config नहीं है। Hostinger में GMAIL_USER और GMAIL_APP_PASSWORD set करें।" },
@@ -51,7 +50,6 @@ export async function POST(req: NextRequest) {
     }
 
     const otp = createOtp();
-
     try {
       await sendOtpEmail(otp);
     } catch (err) {
@@ -65,83 +63,61 @@ export async function POST(req: NextRequest) {
     const maskedEmail = process.env.GMAIL_USER.replace(/(.{2}).+(@.+)/, "$1****$2");
     return NextResponse.json({
       ok: true,
-      message: `✅ OTP भेज दिया गया: ${maskedEmail} पर। 10 मिनट में enter करें।`,
+      message: `✅ OTP ${maskedEmail} पर भेज दिया। 10 मिनट में enter करें।`,
     });
   }
 
-  // ── STEP 2: OTP + नया पासवर्ड verify करो ────────────────────────────────
-  if (body.action === "verify-reset") {
-    const { secretKey, otp, newPassword, confirmPassword } = body;
+  // ── Method A: OTP verify करो + Password reset ────────────────────────────
+  if (body.action === "reset-with-otp") {
+    const { otp, newPassword, confirmPassword } = body;
 
-    // Secret key दोबारा check
-    if (!secretKey || secretKey !== RESET_SECRET) {
-      return NextResponse.json(
-        { error: "❌ Secret Key गलत है।" },
-        { status: 401 }
-      );
-    }
+    const pwErr = validatePassword(newPassword, confirmPassword);
+    if (pwErr) return NextResponse.json({ error: pwErr }, { status: 400 });
 
-    // Password validation
-    if (!newPassword || newPassword.length < 6) {
-      return NextResponse.json(
-        { error: "❌ पासवर्ड कम से कम 6 अक्षर का होना चाहिए।" },
-        { status: 400 }
-      );
-    }
-    if (newPassword !== confirmPassword) {
-      return NextResponse.json(
-        { error: "❌ दोनों पासवर्ड एक जैसे नहीं हैं।" },
-        { status: 400 }
-      );
-    }
-
-    // OTP verify
-    const otpResult = verifyOtp(otp?.toString().trim());
-    if (otpResult === "expired") {
-      return NextResponse.json(
-        { error: "❌ OTP expire हो गया। वापस जाएं और नया OTP मँगाएं।" },
-        { status: 400 }
-      );
-    }
-    if (otpResult === "too_many") {
-      return NextResponse.json(
-        { error: "❌ बहुत बार गलत OTP। वापस जाएं और नया OTP मँगाएं।" },
-        { status: 400 }
-      );
-    }
+    const otpResult = verifyOtp(otp?.toString().trim() ?? "");
+    if (otpResult === "expired")
+      return NextResponse.json({ error: "❌ OTP expire हो गया। नया OTP मँगाएं।" }, { status: 400 });
+    if (otpResult === "too_many")
+      return NextResponse.json({ error: "❌ बहुत बार गलत OTP। नया OTP मँगाएं।" }, { status: 400 });
     if (otpResult === "wrong") {
       const rem = otpRemainingMinutes();
+      return NextResponse.json({ error: `❌ OTP गलत है। ${rem} मिनट बाकी हैं।` }, { status: 400 });
+    }
+
+    const admin = await getSuperAdmin();
+    if (!admin) return NextResponse.json({ error: "❌ Super Admin नहीं मिला।" }, { status: 404 });
+
+    await setNewPassword(admin.id, newPassword);
+    return NextResponse.json({ ok: true, name: admin.name, email: admin.email });
+  }
+
+  // ── Method B: Secret Key से directly reset ───────────────────────────────
+  if (body.action === "reset-with-secret") {
+    const RESET_SECRET = process.env.RESET_SECRET?.trim();
+
+    if (!RESET_SECRET || RESET_SECRET.length < 6) {
       return NextResponse.json(
-        { error: `❌ OTP गलत है। ${rem} मिनट बाकी हैं।` },
-        { status: 400 }
+        { error: "❌ RESET_SECRET Hostinger में set नहीं है।" },
+        { status: 403 }
       );
     }
 
-    // OTP सही — SUPER_ADMIN ढूँढो और पासवर्ड update करो
-    const superAdmin = await prisma.user.findFirst({
-      where: { role: "SUPER_ADMIN" },
-      orderBy: { createdAt: "asc" },
-    });
+    const { secretKey, newPassword, confirmPassword } = body;
 
-    if (!superAdmin) {
+    if (!secretKey || secretKey !== RESET_SECRET)
       return NextResponse.json(
-        { error: "❌ कोई Super Admin नहीं मिला।" },
-        { status: 404 }
+        { error: "❌ Secret Key गलत है। Hostinger → Environment Variables → RESET_SECRET देखें।" },
+        { status: 401 }
       );
-    }
 
-    const passwordHash = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({
-      where: { id: superAdmin.id },
-      data: { passwordHash, isActive: true },
-    });
+    const pwErr = validatePassword(newPassword, confirmPassword);
+    if (pwErr) return NextResponse.json({ error: pwErr }, { status: 400 });
 
-    return NextResponse.json({
-      ok: true,
-      message: `✅ पासवर्ड reset हो गया!`,
-      name: superAdmin.name,
-      email: superAdmin.email,
-    });
+    const admin = await getSuperAdmin();
+    if (!admin) return NextResponse.json({ error: "❌ Super Admin नहीं मिला।" }, { status: 404 });
+
+    await setNewPassword(admin.id, newPassword);
+    return NextResponse.json({ ok: true, name: admin.name, email: admin.email });
   }
 
   return NextResponse.json({ error: "Invalid action." }, { status: 400 });
