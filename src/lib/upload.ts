@@ -102,7 +102,8 @@ export async function saveUploadedImage(
 }
 
 /**
- * भुगतान रसीद: पहले डिस्क, fail होने पर DB में data-URL (Hostinger-friendly)।
+ * भुगतान रसीद: Hostinger disk पर save करें।
+ * Neon/database में base64 store नहीं होगी — सब Hostinger पर।
  */
 export async function saveReceiptProof(
   file: File,
@@ -116,9 +117,6 @@ export async function saveReceiptProof(
   const diskUrl = await tryWritePublicFile(buf, "receipts", ext);
   if (diskUrl) return diskUrl;
 
-  // Hostinger / standalone: फाइल सिस्टम लिखने योग्य न हो तो Neon में data URL
-  if (buf.length > maxBytes) {
-    throw new Error(`फ़ाइल बहुत बड़ी है (अधिकतम ${Math.round(maxBytes / 1024 / 1024)} MB)।`);
-  }
-  return `data:${mime};base64,${buf.toString("base64")}`;
+  // Disk write fail → error (Neon में base64 नहीं जाएगा)
+  throw new Error("रसीद save नहीं हो सकी। Hostinger का uploads folder जाँचें।");
 }

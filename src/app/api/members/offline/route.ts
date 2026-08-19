@@ -5,6 +5,7 @@ import { generateMemberCode, generateMembershipReceipt } from "@/lib/sequence";
 import { getSettings } from "@/lib/settings";
 import { saveReceiptProof } from "@/lib/upload";
 import { logAudit } from "@/lib/audit";
+import { hashMemberPassword } from "@/lib/member-auth";
 
 /**
  * ऑफलाइन सदस्यता: UPI/बैंक भुगतान की रसीद अपलोड → PENDING सदस्य + PENDING भुगतान।
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       planId: String(form.get("planId") ?? ""),
       consent: form.get("consent") === "true" || form.get("consent") === "on",
     };
+    const rawPassword = String(form.get("password") ?? "").trim();
 
     const parsed = memberSchema.safeParse(raw);
     if (!parsed.success) {
@@ -66,6 +68,10 @@ export async function POST(req: NextRequest) {
     const settings = await getSettings();
     const memberCode = await generateMemberCode(settings.memberIdPrefix);
     const receiptNumber = await generateMembershipReceipt(settings.membershipReceiptPrefix);
+
+    const passwordHash = rawPassword.length >= 6
+      ? await hashMemberPassword(rawPassword)
+      : null;
     const now = new Date();
     const periodEnd = new Date(now.getTime() + plan.periodDays * 86400000);
     const modeRaw = String(form.get("mode") ?? "UPI").toUpperCase();
@@ -95,6 +101,7 @@ export async function POST(req: NextRequest) {
         consent: true,
         showMobile: settings.privacy.showMemberMobileDefault,
         validUntil: periodEnd,
+        ...(passwordHash ? { passwordHash } : {}),
       },
     });
 

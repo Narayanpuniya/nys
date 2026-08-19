@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Check, Upload } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Check, Upload, Eye, EyeOff } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatINR, cn } from "@/lib/utils";
@@ -39,6 +39,10 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const [payMethod, setPayMethod] = useState<"online" | "receipt">("receipt");
   const [proof, setProof] = useState<File | null>(null);
   const [txnNote, setTxnNote] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -49,6 +53,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   function validateStep1(): boolean {
     if (form.fullName.trim().length < 2) { setError("कृपया पूरा नाम दर्ज करें।"); return false; }
     if (!/^(\+91[- ]?)?[6-9]\d{9}$/.test(form.mobile.trim())) { setError("मान्य मोबाइल नंबर दर्ज करें।"); return false; }
+    if (password.length < 6) { setError("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।"); return false; }
+    if (password !== confirmPassword) { setError("पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाते।"); return false; }
     setError("");
     return true;
   }
@@ -67,7 +73,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   async function submitOnline() {
     const res = await fetch("/api/members", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, planId, consent: true }),
+      body: JSON.stringify({ ...form, planId, consent: true, password }),
     });
     const text = await res.text();
     let data: {
@@ -125,6 +131,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
     Object.entries(form).forEach(([k, v]) => fd.set(k, v));
     fd.set("planId", planId);
     fd.set("consent", "true");
+    fd.set("password", password);
     fd.set("mode", bank?.upiId ? "UPI" : "BANK_TRANSFER");
     if (txnNote.trim()) fd.set("notes", txnNote.trim());
     fd.set("proof", proof);
@@ -195,9 +202,19 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="पूरा नाम" required><input className={inputClass} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} /></Field>
           <Field label="पिता/पति का नाम"><input className={inputClass} value={form.guardianName} onChange={(e) => set("guardianName", e.target.value)} /></Field>
-          <Field label="मोबाइल" required><input className={inputClass} value={form.mobile} onChange={(e) => set("mobile", e.target.value)} inputMode="tel" /></Field>
+          <div>
+            <Field label="मोबाइल" required>
+              <input className={inputClass} value={form.mobile} onChange={(e) => set("mobile", e.target.value)} inputMode="tel" />
+            </Field>
+            <p className="mt-1 text-xs text-saffron-700 font-medium">📱 यही नंबर लॉगिन में काम आएगा</p>
+          </div>
           <Field label="WhatsApp"><input className={inputClass} value={form.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} inputMode="tel" /></Field>
-          <Field label="ईमेल"><input className={inputClass} value={form.email} onChange={(e) => set("email", e.target.value)} inputMode="email" /></Field>
+          <div>
+            <Field label="ईमेल">
+              <input className={inputClass} value={form.email} onChange={(e) => set("email", e.target.value)} inputMode="email" type="email" placeholder="name@example.com" />
+            </Field>
+            <p className="mt-1 text-xs text-saffron-700 font-medium">📧 ईमेल से भी लॉगिन कर सकते हैं (वैकल्पिक)</p>
+          </div>
           <Field label="जन्म तिथि"><input className={inputClass} type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} /></Field>
           <Field label="लिंग">
             <select className={inputClass} value={form.gender} onChange={(e) => set("gender", e.target.value)}>
@@ -209,6 +226,47 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
           <Field label="जिला"><input className={inputClass} value={form.district} onChange={(e) => set("district", e.target.value)} /></Field>
           <div className="sm:col-span-2">
             <Field label="पता"><textarea className={inputClass} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></Field>
+          </div>
+
+          {/* पासवर्ड — login credentials */}
+          <div className="sm:col-span-2 rounded-xl border border-saffron-200 bg-saffron-50 p-4 space-y-3">
+            <p className="text-xs font-semibold text-saffron-800">🔑 लॉगिन पासवर्ड बनाएँ</p>
+            <p className="text-xs text-stone-600">यह पासवर्ड आप मोबाइल या ईमेल के साथ NYS पोर्टल में लॉगिन करने के लिए उपयोग करेंगे।</p>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink">पासवर्ड <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="कम से कम 6 अक्षर"
+                  className={cn(inputClass, "pr-10")}
+                />
+                <button type="button" onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600" tabIndex={-1}>
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-ink">पासवर्ड दोबारा डालें <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <input
+                  type={showConfirmPass ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="पासवर्ड पुनः दर्ज करें"
+                  className={cn(inputClass, "pr-10", confirmPassword && password !== confirmPassword ? "border-red-400" : "")}
+                />
+                <button type="button" onClick={() => setShowConfirmPass((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600" tabIndex={-1}>
+                  {showConfirmPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {confirmPassword && password !== confirmPassword && (
+                <p className="mt-1 text-xs text-red-600">पासवर्ड मेल नहीं खाते</p>
+              )}
+            </div>
           </div>
         </div>
       )}

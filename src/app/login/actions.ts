@@ -42,11 +42,17 @@ export async function adminLoginAction(
 
 // ── Member Login ─────────────────────────────────────────────────────────────
 const memberLoginSchema = z.object({
-  mobile: z
+  identifier: z
     .string()
     .trim()
-    .regex(/^(\+91[- ]?)?[6-9]\d{9}$/, "मान्य मोबाइल नंबर दर्ज करें (10 अंक)"),
-  memberCode: z.string().trim().min(3, "सदस्य कोड आवश्यक है"),
+    .min(1, "मोबाइल नंबर या ईमेल दर्ज करें")
+    .refine(
+      (v) =>
+        /^(\+91[- ]?)?[6-9]\d{9}$/.test(v) ||
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+      "मान्य मोबाइल नंबर या ईमेल दर्ज करें"
+    ),
+  password: z.string().min(1, "पासवर्ड दर्ज करें"),
 });
 
 export type MemberLoginState = { error?: string };
@@ -56,8 +62,8 @@ export async function memberLoginAction(
   formData: FormData
 ): Promise<MemberLoginState> {
   const parsed = memberLoginSchema.safeParse({
-    mobile: formData.get("mobile"),
-    memberCode: formData.get("memberCode"),
+    identifier: formData.get("identifier"),
+    password: formData.get("password"),
   });
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message;
@@ -65,9 +71,14 @@ export async function memberLoginAction(
   }
 
   try {
-    const result = await loginMember(parsed.data.mobile, parsed.data.memberCode);
-    if (!result) {
-      return { error: "मोबाइल नंबर या सदस्य कोड गलत है। कृपया जाँचें।" };
+    const result = await loginMember(parsed.data.identifier, parsed.data.password);
+
+    if (!result.ok) {
+      if (result.reason === "not_found")
+        return { error: "यह मोबाइल/ईमेल पंजीकृत नहीं है।" };
+      if (result.reason === "no_password")
+        return { error: "आपका पासवर्ड सेट नहीं है। Admin से संपर्क करें।" };
+      return { error: "पासवर्ड गलत है। कृपया जाँचें।" };
     }
 
     redirect("/member");

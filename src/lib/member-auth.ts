@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "./db";
+import bcrypt from "bcryptjs";
 
 const COOKIE = "nys_member_session";
 const secret = () =>
@@ -55,20 +56,44 @@ export async function getMemberSession(): Promise<MemberSession | null> {
   }
 }
 
-// सदस्य login: mobile + memberCode से authenticate करें
+/** पासवर्ड hash करें — member registration पर use करें */
+export async function hashMemberPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 10);
+}
+
+export type LoginResult =
+  | { ok: true; session: MemberSession }
+  | { ok: false; reason: "not_found" | "no_password" | "wrong_password" };
+
+/**
+ * सदस्य login: mobile या email + password से authenticate करें।
+ * identifier = मोबाइल नंबर (10 अंक) या ईमेल पता।
+ */
 export async function loginMember(
-  mobile: string,
-  memberCode: string
-): Promise<{ session: MemberSession; member: Awaited<ReturnType<typeof prisma.member.findUnique>> } | null> {
+  identifier: string,
+  password: string,
+): Promise<LoginResult> {
+  const clean = identifier.trim();
+  const isMobile = /^(\+91[- ]?)?[6-9]\d{9}$/.test(clean);
+
+  const normalizedMobile = isMobile
+    ? clean.replace(/^\+91[- ]?/, "").replace(/[- ]/, "")
+    : null;
+
   const member = await prisma.member.findFirst({
     where: {
-      mobile: mobile.trim(),
-      memberCode: memberCode.trim().toUpperCase(),
       deletedAt: null,
+      ...(isMobile
+        ? { mobile: normalizedMobile! }
+        : { email: clean.toLowerCase() }),
     },
   });
 
-  if (!member) return null;
+  if (!member) return { ok: false, reason: "not_found" };
+  if (!member.passwordHash) return { ok: false, reason: "no_password" };
+
+  const match = await bcrypt.compare(password, member.passwordHash);
+  if (!match) return { ok: false, reason: "wrong_password" };
 
   const session: MemberSession = {
     id: member.id,
@@ -78,5 +103,5 @@ export async function loginMember(
     status: member.status,
   };
   await createMemberSession(session);
-  return { session, member };
+  return { ok: true, session };
 }
