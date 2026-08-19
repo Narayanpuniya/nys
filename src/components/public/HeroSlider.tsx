@@ -128,10 +128,10 @@ export function HeroSlider({
             className="h-full w-full object-cover"
             draggable={false}
           />
-          {/* Dark overlay */}
+          {/* Dark overlay — lighter so background patterns show through */}
           <div
             className="absolute inset-0"
-            style={{ background: "rgba(80,10,10,0.72)" }}
+            style={{ background: "rgba(50,8,8,0.52)" }}
           />
         </div>
       ))}
