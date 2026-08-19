@@ -9,12 +9,26 @@ import { PrintButton } from "@/components/PrintButton";
 export const dynamic = "force-dynamic";
 
 // सदस्यता प्रमाणपत्र — print-friendly।
+// code = memberCode (NYS-2026-001) या certNumber (NYS-CERT-2026-00002) दोनों काम करेंगे
 export default async function CertificatePage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const [member, s] = await Promise.all([
-    prisma.member.findUnique({ where: { memberCode: code }, include: { plan: true, certificates: true } }),
-    getSettings(),
-  ]);
+
+  // पहले certNumber से ढूँढो, नहीं मिला तो memberCode से
+  let member = null;
+  const cert = await prisma.certificate.findUnique({
+    where: { certNumber: code },
+    include: { member: { include: { plan: true, certificates: true } } },
+  });
+  if (cert) {
+    member = cert.member;
+  } else {
+    member = await prisma.member.findUnique({
+      where: { memberCode: code },
+      include: { plan: true, certificates: true },
+    });
+  }
+
+  const [s] = await Promise.all([getSettings()]);
   if (!member) notFound();
   if (member.status !== "ACTIVE") {
     return (
@@ -24,8 +38,8 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
     );
   }
 
-  const cert = member.certificates[0];
-  const certNumber = cert?.certNumber ?? `${s.certPrefix}-${new Date().getFullYear()}-PENDING`;
+  const memberCert = member.certificates[0];
+  const certNumber = memberCert?.certNumber ?? `${s.certPrefix}-${new Date().getFullYear()}-PENDING`;
   const qr = await qrDataUrl(siteUrl(`/verify?code=${member.memberCode}`));
 
   return (
