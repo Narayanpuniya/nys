@@ -137,3 +137,28 @@ export async function updateMember(
   revalidatePath(`/admin/members/${memberId}/edit`);
   redirect(`/admin/members/${memberId}`);
 }
+
+// ── सदस्य डिलीट (Soft Delete) ────────────────────────────────────────────────
+export async function deleteMember(memberId: string) {
+  const user = await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
+
+  const member = await prisma.member.findUnique({ where: { id: memberId } });
+  if (!member) return;
+
+  // Soft delete — data रहता है, सिर्फ hide होता है
+  await prisma.member.update({
+    where: { id: memberId },
+    data: { deletedAt: new Date(), status: "REJECTED" },
+  });
+
+  await logAudit({
+    userId: user.id,
+    action: "DELETE",
+    entity: "Member",
+    entityId: memberId,
+    detail: `सदस्य डिलीट: ${member.fullName} (${member.memberCode})`,
+  });
+
+  revalidatePath("/admin/members");
+  redirect("/admin/members");
+}

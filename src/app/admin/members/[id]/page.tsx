@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { IdCard, Award, Check, X, ExternalLink, Pencil } from "lucide-react";
+import { IdCard, Award, Check, X, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatINR, formatDateHi } from "@/lib/utils";
-import { approveMember, rejectMember } from "../actions";
+import { approveMember, rejectMember, deleteMember } from "../actions";
+import { DeleteMemberButton } from "./DeleteMemberButton";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +30,15 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/admin/members" className="text-sm text-saffron-700">← सभी सदस्य</Link>
-        <Link
-          href={`/admin/members/${member.id}/edit`}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-saffron-600 px-4 py-2 text-sm font-medium text-white hover:bg-saffron-700"
-        >
-          <Pencil className="h-4 w-4" /> संपादित करें
-        </Link>
+        <div className="flex items-center gap-2">
+          <DeleteMemberButton memberId={member.id} memberName={member.fullName} />
+          <Link
+            href={`/admin/members/${member.id}/edit`}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-saffron-600 px-4 py-2 text-sm font-medium text-white hover:bg-saffron-700"
+          >
+            <Pencil className="h-4 w-4" /> संपादित करें
+          </Link>
+        </div>
       </div>
 
       <div className="mt-3 grid gap-4 lg:grid-cols-3">
