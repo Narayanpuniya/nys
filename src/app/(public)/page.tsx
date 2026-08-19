@@ -71,7 +71,7 @@ export default async function HomePage() {
     // Admin द्वारा जोड़ी गई slides, sortOrder के अनुसार
     heroSlides = rawSlides
       .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map((s) => ({ imageUrl: s.imageUrl, title: s.title }));
+      .map((s) => ({ id: s.id, imageUrl: s.imageUrl, title: s.title }));
   } catch (err) {
     console.error("[HomePage] database unavailable:", err);
   }
