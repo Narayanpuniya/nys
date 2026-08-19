@@ -1,12 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 
-// Prisma client singleton (dev hot-reload में multiple connections से बचने हेतु)
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+// ── Prisma Singleton — production में भी एक ही connection रहे ────────────────
+// यह critical है: नया PrismaClient हर request पर नहीं बनना चाहिए
+declare global {
+  // eslint-disable-next-line no-var
+  var _prisma: PrismaClient | undefined;
+}
 
 export const prisma =
-  globalForPrisma.prisma ??
+  global._prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["warn"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+global._prisma = prisma; // production में भी singleton रखें

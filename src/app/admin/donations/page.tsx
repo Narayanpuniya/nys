@@ -5,6 +5,7 @@ import { Card, Badge } from "@/components/ui/primitives";
 import { StatCard } from "@/components/admin/StatCard";
 import { Toolbar } from "@/components/admin/Toolbar";
 import { formatINR, formatDateHi } from "@/lib/utils";
+import { AddDonationModal } from "./AddDonationModal";
 
 export const dynamic = "force-dynamic";
 const PAGE = 20;
@@ -33,7 +34,10 @@ export default async function DonationsPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-extrabold text-ink">दान प्रबंधन</h1>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-extrabold text-ink">दान प्रबंधन</h1>
+        <AddDonationModal />
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="कुल दान (सफल)" value={formatINR(success._sum.amount ?? 0)} icon="HandCoins" tone="green" />
