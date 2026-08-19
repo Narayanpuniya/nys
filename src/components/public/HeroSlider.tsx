@@ -114,6 +114,13 @@ export function HeroSlider({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      {/* Slide title animation keyframe */}
+      <style>{`
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       {/* ── Slide backgrounds ── */}
       {slides.map((s, i) => (
         <div
@@ -171,9 +178,30 @@ export function HeroSlider({
           {orgName}
         </h1>
 
+        {/* Current slide title badge — changes with each slide */}
+        {slide?.title && (
+          <div
+            key={current}
+            className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-1.5"
+            style={{
+              background: "linear-gradient(135deg, rgba(217,119,6,0.75), rgba(127,29,29,0.6))",
+              border: "1px solid rgba(251,191,36,0.4)",
+              backdropFilter: "blur(8px)",
+              animation: "fadeSlideUp 0.6s ease forwards",
+            }}
+          >
+            <span
+              className="text-sm font-bold tracking-wide text-white"
+              style={{ textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}
+            >
+              {slide.title}
+            </span>
+          </div>
+        )}
+
         {/* Tagline / उद्देश्य */}
         <p
-          className="mt-4 max-w-2xl text-base font-medium text-orange-100 sm:text-lg lg:text-xl"
+          className="mt-3 max-w-2xl text-base font-medium text-orange-100 sm:text-lg lg:text-xl"
           style={{ textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
         >
           {tagline}
@@ -182,13 +210,6 @@ export function HeroSlider({
         {/* Address */}
         {orgAddress && (
           <p className="mt-2 text-sm text-orange-200/70">{orgAddress}</p>
-        )}
-
-        {/* Slide category label */}
-        {slide?.category && (
-          <div className="mt-3 inline-block rounded-full bg-white/10 px-4 py-1 text-xs font-medium text-white/80 backdrop-blur-sm">
-            📍 {slide.category}{slide.title ? ` · ${slide.title}` : ""}
-          </div>
         )}
 
         {/* CTA Buttons */}

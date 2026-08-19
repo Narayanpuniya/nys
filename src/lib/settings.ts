@@ -118,12 +118,13 @@ export type HeroSlide = {
 };
 
 // Built-in NYS background slides (served from public/slides/ — committed to git)
+// nys-bg-*.png = pure gradient/geometric backgrounds (no baked-in text)
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
-  { id: "default-1", imageUrl: "/slides/nys-slide-1.png", title: "NYS परिचय",    sortOrder: 1 },
-  { id: "default-2", imageUrl: "/slides/nys-slide-2.png", title: "शिक्षा",         sortOrder: 2 },
-  { id: "default-3", imageUrl: "/slides/nys-slide-3.png", title: "खेल",            sortOrder: 3 },
-  { id: "default-4", imageUrl: "/slides/nys-slide-4.png", title: "पर्यावरण",       sortOrder: 4 },
-  { id: "default-5", imageUrl: "/slides/nys-slide-5.png", title: "NYS से जुड़ें", sortOrder: 5 },
+  { id: "default-1", imageUrl: "/slides/nys-bg-1.png", title: "NYS परिचय",    sortOrder: 1 },
+  { id: "default-2", imageUrl: "/slides/nys-bg-2.png", title: "शिक्षा",         sortOrder: 2 },
+  { id: "default-3", imageUrl: "/slides/nys-bg-3.png", title: "खेल",            sortOrder: 3 },
+  { id: "default-4", imageUrl: "/slides/nys-bg-4.png", title: "पर्यावरण",       sortOrder: 4 },
+  { id: "default-5", imageUrl: "/slides/nys-bg-5.png", title: "NYS से जुड़ें", sortOrder: 5 },
 ];
 
 export async function getHeroSlides(): Promise<HeroSlide[]> {
