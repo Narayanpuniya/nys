@@ -85,7 +85,6 @@ model Member {
   joiningDate     DateTime @default(now())
   validUntil      DateTime?
   status          String   @default("PENDING")
-  passwordHash    String?
   showMobile      Boolean  @default(false)
   consent         Boolean  @default(false)
 

@@ -41,10 +41,12 @@ export async function adminLoginAction(
 }
 
 // ── Member Login ─────────────────────────────────────────────────────────────
-// identifier = मोबाइल नंबर (10 अंक) या ईमेल address
 const memberLoginSchema = z.object({
-  identifier: z.string().trim().min(1, "मोबाइल नंबर या ईमेल दर्ज करें"),
-  password: z.string().min(1, "पासवर्ड दर्ज करें"),
+  mobile: z
+    .string()
+    .trim()
+    .regex(/^(\+91[- ]?)?[6-9]\d{9}$/, "मान्य मोबाइल नंबर दर्ज करें (10 अंक)"),
+  memberCode: z.string().trim().min(3, "सदस्य कोड आवश्यक है"),
 });
 
 export type MemberLoginState = { error?: string };
@@ -54,24 +56,18 @@ export async function memberLoginAction(
   formData: FormData
 ): Promise<MemberLoginState> {
   const parsed = memberLoginSchema.safeParse({
-    identifier: formData.get("identifier"),
-    password: formData.get("password"),
+    mobile: formData.get("mobile"),
+    memberCode: formData.get("memberCode"),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "कृपया सही जानकारी दर्ज करें।" };
+    const firstError = parsed.error.issues[0]?.message;
+    return { error: firstError ?? "कृपया सही जानकारी दर्ज करें।" };
   }
 
   try {
-    const result = await loginMember(parsed.data.identifier, parsed.data.password);
-
-    if (!result.ok) {
-      if (result.reason === "no_password") {
-        return {
-          error:
-            "आपके खाते में पासवर्ड सेट नहीं है। Admin से संपर्क करें या नई सदस्यता लेते समय पासवर्ड सेट करें।",
-        };
-      }
-      return { error: "मोबाइल/ईमेल या पासवर्ड गलत है। कृपया जाँचें।" };
+    const result = await loginMember(parsed.data.mobile, parsed.data.memberCode);
+    if (!result) {
+      return { error: "मोबाइल नंबर या सदस्य कोड गलत है। कृपया जाँचें।" };
     }
 
     redirect("/member");

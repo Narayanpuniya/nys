@@ -5,7 +5,6 @@ import { generateMemberCode, generateMembershipReceipt } from "@/lib/sequence";
 import { getSettings } from "@/lib/settings";
 import { saveReceiptProof } from "@/lib/upload";
 import { logAudit } from "@/lib/audit";
-import { hashMemberPassword } from "@/lib/member-auth";
 
 /**
  * ऑफलाइन सदस्यता: UPI/बैंक भुगतान की रसीद अपलोड → PENDING सदस्य + PENDING भुगतान।
@@ -59,10 +58,6 @@ export async function POST(req: NextRequest) {
     }
 
     const d = parsed.data;
-    // पासवर्ड hash करें
-    const rawPassword = String(form.get("password") ?? "").trim();
-    const passwordHash = rawPassword.length >= 6 ? await hashMemberPassword(rawPassword) : null;
-
     const plan = await prisma.membershipPlan.findUnique({ where: { id: d.planId } });
     if (!plan || !plan.isActive) {
       return NextResponse.json({ error: "सदस्यता योजना अमान्य।" }, { status: 400 });
@@ -100,7 +95,6 @@ export async function POST(req: NextRequest) {
         consent: true,
         showMobile: settings.privacy.showMemberMobileDefault,
         validUntil: periodEnd,
-        ...(passwordHash ? { passwordHash } : {}),
       },
     });
 

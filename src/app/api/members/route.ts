@@ -4,7 +4,6 @@ import { memberSchema } from "@/lib/validation";
 import { createOrder, isMockMode } from "@/lib/payments";
 import { generateMemberCode } from "@/lib/sequence";
 import { getSettings } from "@/lib/settings";
-import { hashMemberPassword } from "@/lib/member-auth";
 
 // STEP 1: सदस्य पंजीकरण — PENDING member + membership payment order।
 export async function POST(req: NextRequest) {
@@ -18,9 +17,6 @@ export async function POST(req: NextRequest) {
       );
     }
     const d = parsed.data;
-    // पासवर्ड hash करें (optional — नया system)
-    const rawPassword = typeof body?.password === "string" ? body.password : "";
-    const passwordHash = rawPassword.length >= 6 ? await hashMemberPassword(rawPassword) : null;
 
     const plan = await prisma.membershipPlan.findUnique({ where: { id: d.planId } });
     if (!plan || !plan.isActive) {
@@ -52,7 +48,6 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         consent: true,
         showMobile: settings.privacy.showMemberMobileDefault,
-        ...(passwordHash ? { passwordHash } : {}),
       },
     });
 
