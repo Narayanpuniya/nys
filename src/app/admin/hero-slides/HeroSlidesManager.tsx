@@ -143,22 +143,24 @@ export function HeroSlidesManager({ initialSlides }: { initialSlides: HeroSlide[
 
       {/* ── Current slides ── */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 font-bold text-ink">
-          वर्तमान स्लाइड्स ({slides.length})
-        </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-bold text-ink">
+            वर्तमान स्लाइड्स ({slides.length})
+          </h2>
+          <button
+            onClick={handleLoadDefaults}
+            disabled={loadingDefaults}
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-saffron-300 bg-saffron-50 px-4 py-2 text-sm font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-50"
+          >
+            <RotateCcw className={`h-4 w-4 ${loadingDefaults ? "animate-spin" : ""}`} />
+            {loadingDefaults ? "लोड हो रहा है…" : "NYS Default Slides लोड करें"}
+          </button>
+        </div>
 
         {slides.length === 0 ? (
           <div className="py-12 text-center text-stone-400">
             <ImagePlus className="mx-auto mb-3 h-10 w-10 opacity-30" />
-            <p className="mb-4">कोई स्लाइड नहीं। ऊपर से जोड़ें या NYS default slides load करें।</p>
-            <button
-              onClick={handleLoadDefaults}
-              disabled={loadingDefaults}
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-saffron-300 bg-saffron-50 px-5 py-2.5 text-sm font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-50"
-            >
-              <RotateCcw className="h-4 w-4" />
-              {loadingDefaults ? "लोड हो रहा है…" : "NYS Default Slides लोड करें"}
-            </button>
+            <p>कोई स्लाइड नहीं। ऊपर से जोड़ें या NYS default slides load करें।</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
