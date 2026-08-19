@@ -91,6 +91,89 @@ export default async function HomePage() {
         regNo={settings.legal?.registrationNo}
       />
 
+      {/* ── Intro strip — HeroSlider और हमारे प्रभाव के बीच ── */}
+      <section className="bg-amber-50/60 border-y border-amber-100">
+        <div className="mx-auto max-w-7xl px-4 py-10 lg:py-14">
+          <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-12 xl:gap-16 items-center">
+
+            {/* Left — tagline + description + CTA */}
+            <div>
+              {/* Badge */}
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-white px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm">
+                {settings.logoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={settings.logoUrl} alt="" className="h-4 w-4 rounded-full object-contain" />
+                )}
+                {settings.name}
+              </div>
+              {/* Big tagline */}
+              <h2 className="text-2xl font-black leading-snug text-maroon-900 sm:text-3xl lg:text-4xl" style={{ textWrap: "balance" }}>
+                {settings.tagline}
+              </h2>
+              {/* Description */}
+              <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base lg:max-w-xl">
+                {dict.hero_intro}
+              </p>
+              {/* CTA buttons */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/join"
+                  className="rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:opacity-90 active:scale-95"
+                  style={{ background: "linear-gradient(135deg,#d97706,#b45309)" }}
+                >
+                  {dict.hero_join}
+                </Link>
+                <Link
+                  href="/donate"
+                  className="rounded-full border-2 border-maroon-700 px-6 py-2.5 text-sm font-bold text-maroon-800 transition hover:bg-maroon-50"
+                >
+                  {dict.hero_donate}
+                </Link>
+                <Link
+                  href="/activities"
+                  className="rounded-full border border-stone-300 bg-white px-6 py-2.5 text-sm font-medium text-stone-700 transition hover:border-amber-400 hover:text-amber-800"
+                >
+                  {dict.hero_activities}
+                </Link>
+              </div>
+            </div>
+
+            {/* Right — welcome card */}
+            <div className="rounded-3xl border border-stone-200 bg-white p-7 shadow-lg">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50">
+                {settings.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={settings.logoUrl} alt={settings.name} className="h-10 w-10 rounded-xl object-contain" />
+                ) : (
+                  <span className="text-3xl">🪔</span>
+                )}
+              </div>
+              <h3 className="text-lg font-bold text-maroon-900">{dict.hero_welcome_title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-stone-500">{dict.hero_welcome_body}</p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <Link
+                  href="/join"
+                  className="rounded-2xl py-3 text-center text-sm font-bold text-white shadow-sm transition hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg,#991b1b,#7f1d1d)" }}
+                >
+                  {dict.home_join_cta}
+                </Link>
+                <Link
+                  href="/donate"
+                  className="rounded-2xl border-2 border-amber-500 py-3 text-center text-sm font-bold text-amber-700 transition hover:bg-amber-50"
+                >
+                  {dict.home_donate_cta}
+                </Link>
+              </div>
+              <div className="mt-4 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+                💡 {dict.home_join_body}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-12">
         <SectionHeading title={dict.home_impact} subtitle={dict.home_impact_sub} viewAllLabel={dict.viewAll} />
         <ImpactCounters data={counters} />
