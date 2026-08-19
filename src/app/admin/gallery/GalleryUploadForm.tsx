@@ -12,6 +12,7 @@ interface GalleryItem {
   imageUrl: string;
   title: string | null;
   category: string;
+  date: Date;
 }
 
 export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
@@ -20,6 +21,7 @@ export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
   const [previews, setPreviews] = useState<{ file: File; url: string }[]>([]);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("General");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10)); // आज की तारीख default
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -42,6 +44,7 @@ export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
     previews.forEach(({ file }) => fd.append("files", file));
     fd.set("title", title);
     fd.set("category", category);
+    fd.set("date", date);
 
     const res = await fetch("/api/admin/gallery", { method: "POST", body: fd });
     const data = await res.json();
@@ -114,7 +117,7 @@ export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
         )}
 
         {/* Meta */}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div>
             <label className="mb-1 block text-sm font-medium text-ink">शीर्षक (वैकल्पिक)</label>
             <input
@@ -133,6 +136,15 @@ export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
             >
               {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink">दिनांक</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-ink outline-none focus:border-saffron-400 focus:bg-white"
+            />
           </div>
         </div>
 
@@ -163,11 +175,10 @@ export function GalleryUploadForm({ items }: { items: GalleryItem[] }) {
               <div key={item.id} className="group relative aspect-square overflow-hidden rounded-lg bg-stone-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.imageUrl} alt={item.title ?? ""} className="h-full w-full object-cover" />
-                {item.title && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100 truncate">
-                    {item.title}
-                  </div>
-                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-1 opacity-0 transition group-hover:opacity-100">
+                  {item.title && <p className="truncate text-xs text-white">{item.title}</p>}
+                  <p className="text-xs text-stone-300">{new Date(item.date).toLocaleDateString("hi-IN")}</p>
+                </div>
                 <button
                   onClick={() => deleteItem(item.id)}
                   disabled={deleting === item.id}

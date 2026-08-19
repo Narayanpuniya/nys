@@ -354,9 +354,11 @@ model GalleryItem {
   title     String?
   category  String   @default("General")
   imageUrl  String
+  date      DateTime @default(now())
   createdAt DateTime @default(now())
 
   @@index([category])
+  @@index([date])
 }
 
 model Video {

@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
   const files = form.getAll("files") as File[];
   const title    = String(form.get("title") ?? "").trim() || null;
   const category = String(form.get("category") ?? "General").trim() || "General";
+  const rawDate  = String(form.get("date") ?? "").trim();
+  const date     = rawDate ? new Date(rawDate) : new Date();
 
   if (!files.length) {
     return NextResponse.json({ error: "कोई फ़ाइल नहीं मिली।" }, { status: 400 });
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
     try {
       const url = await saveUploadedImage(file, "gallery", { maxBytes: 5 * 1024 * 1024 });
       if (!url) { errors.push(`${file.name}: disk write विफल`); continue; }
-      await prisma.galleryItem.create({ data: { title, category, imageUrl: url } });
+      await prisma.galleryItem.create({ data: { title, category, imageUrl: url, date } });
       saved.push(url);
     } catch (e) {
       errors.push(`${file.name}: ${e instanceof Error ? e.message : "unknown"}`);
