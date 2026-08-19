@@ -22,6 +22,14 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
 
   return (
     <div className="min-h-screen bg-stone-200 p-4 print:bg-white print:p-0">
+      {/* Print: force background colors/gradients */}
+      <style>{`
+        @media print {
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+          .no-print { display: none !important; }
+          body { margin: 0 !important; background: white !important; }
+        }
+      `}</style>
       <div className="mx-auto max-w-3xl">
         {/* Controls */}
         <div className="no-print mb-4 flex items-center justify-between">
