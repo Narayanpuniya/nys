@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download, CreditCard, Award, Receipt, ChevronDown } from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { setLocale } from "@/app/actions/locale";
@@ -50,7 +50,18 @@ export function Header({
   orgPlace?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [dlOpen, setDlOpen] = useState(false);
+  const dlRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (dlRef.current && !dlRef.current.contains(e.target as Node)) setDlOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md" style={{ isolation: "isolate" }}>
@@ -106,6 +117,43 @@ export function Header({
         {/* ── Desktop right buttons ── */}
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
           <LanguageSwitcher locale={locale} />
+
+          {/* Downloads dropdown */}
+          <div className="relative" ref={dlRef}>
+            <button
+              type="button"
+              onClick={() => setDlOpen((v) => !v)}
+              className="flex items-center gap-1 rounded-full border-2 border-stone-300 px-4 py-1.5 text-sm font-bold text-stone-700 transition hover:border-saffron-400 hover:text-saffron-800"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {dict.nav_downloads}
+              <ChevronDown className={`h-3 w-3 transition-transform ${dlOpen ? "rotate-180" : ""}`} />
+            </button>
+            {dlOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-stone-100 bg-white py-2 shadow-xl">
+                <p className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">दस्तावेज़ डाउनलोड</p>
+                <Link href="/downloads#idcard" onClick={() => setDlOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-700">
+                  <CreditCard className="h-4 w-4 text-blue-500" /> {dict.nav_dl_idcard}
+                </Link>
+                <Link href="/downloads#cert" onClick={() => setDlOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-green-50 hover:text-green-700">
+                  <Award className="h-4 w-4 text-green-500" /> {dict.nav_dl_cert}
+                </Link>
+                <Link href="/downloads#receipt" onClick={() => setDlOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-700">
+                  <Receipt className="h-4 w-4 text-amber-500" /> {dict.nav_dl_receipt}
+                </Link>
+                <div className="mx-4 mt-1 border-t border-stone-100 pt-1">
+                  <Link href="/downloads" onClick={() => setDlOpen(false)}
+                    className="flex items-center gap-2 px-0 py-2 text-xs font-semibold text-saffron-700 hover:underline">
+                    सभी डाउनलोड देखें →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Link
             href="/login"
             className="rounded-full border-2 border-maroon-700 px-4 py-1.5 text-sm font-bold text-maroon-800 transition hover:bg-maroon-50"
@@ -161,6 +209,25 @@ export function Header({
               </Link>
             ))}
           </nav>
+
+          {/* Downloads section mobile */}
+          <div className="mx-4 mb-2 rounded-xl border border-stone-100 bg-stone-50 p-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-stone-400">📥 दस्तावेज़ डाउनलोड</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              <Link href="/downloads#idcard" onClick={() => setOpen(false)}
+                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-blue-700 shadow-sm">
+                <CreditCard className="h-4 w-4" /> ID कार्ड
+              </Link>
+              <Link href="/downloads#cert" onClick={() => setOpen(false)}
+                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-green-700 shadow-sm">
+                <Award className="h-4 w-4" /> प्रमाण पत्र
+              </Link>
+              <Link href="/downloads#receipt" onClick={() => setOpen(false)}
+                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-amber-700 shadow-sm">
+                <Receipt className="h-4 w-4" /> दान रसीद
+              </Link>
+            </div>
+          </div>
 
           {/* CTA buttons */}
           <div className="flex gap-2 px-4 pb-3">
