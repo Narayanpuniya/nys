@@ -140,17 +140,17 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
         <Pencil className="h-3.5 w-3.5" /> एडिट / देखें
       </button>
 
-      {/* Modal overlay */}
+      {/* Modal overlay — full screen scroll so nothing gets cut off */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 py-8"
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-          <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
 
-            {/* Header */}
+            {/* Sticky header */}
             <div
-              className="flex items-center justify-between px-5 py-4"
+              className="sticky top-0 z-10 flex items-center justify-between px-5 py-4"
               style={{ background: "linear-gradient(135deg, #d97706 0%, #7f1d1d 100%)" }}
             >
               <h2 className="text-base font-bold text-white">दान संपादन / सत्यापन</h2>
@@ -159,7 +159,7 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
               </button>
             </div>
 
-            <div className="max-h-[82vh] overflow-y-auto p-5">
+            <div className="p-5">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-saffron-600" />
