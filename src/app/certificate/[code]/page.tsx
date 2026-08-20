@@ -56,7 +56,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
       <div className="mx-auto max-w-3xl">
         {/* Controls */}
         <div className="no-print mb-4 flex items-center justify-between">
-          <BackButton label="← वापस जाएं" />
+          <BackButton label="← वापस जाएं" fallback="/downloads" />
           <PrintButton label="प्रमाणपत्र प्रिंट / PDF" />
         </div>
 

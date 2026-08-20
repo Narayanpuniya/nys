@@ -43,7 +43,7 @@ export default async function ReceiptPage({
       <div className="mx-auto max-w-2xl">
         {/* Top controls — hidden on print */}
         <div className="no-print mb-4 flex items-center justify-between">
-          <BackButton label="← वापस जाएं" />
+          <BackButton label="← वापस जाएं" fallback="/donate" />
           <PrintButton />
         </div>
 

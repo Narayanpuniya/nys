@@ -33,7 +33,7 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
       <div className="mx-auto max-w-3xl">
         {/* Controls */}
         <div className="no-print mb-4 flex items-center justify-between">
-          <BackButton label="← वापस जाएं" />
+          <BackButton label="← वापस जाएं" fallback="/downloads" />
           <PrintButton label="ID कार्ड प्रिंट / PDF" />
         </div>
 
