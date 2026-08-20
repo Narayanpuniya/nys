@@ -56,23 +56,42 @@ function assertUploadable(
   return byExt.startsWith("image/") || byExt === "application/pdf" ? byExt : type;
 }
 
+/**
+ * Hostinger deploys to a versioned path:
+ *   /home/user/domains/nys.org.in/hbuilds/versions/{HASH}/nodejs/
+ * Going 4 levels up gives a PERSISTENT path across deployments:
+ *   /home/user/domains/nys.org.in/uploads/
+ */
+function getUploadCandidates(category: UploadCategory): string[] {
+  const cwd = process.cwd();
+
+  // Hostinger versioned build detected → use persistent path 4 levels up
+  if (cwd.includes("/hbuilds/versions/")) {
+    const persistent = path.resolve(cwd, "../../../../uploads", category);
+    return [persistent, path.join("/tmp", "nys-uploads", category)];
+  }
+
+  // Local dev / other hosts → public/uploads in project
+  return [
+    path.join(cwd, "public", "uploads", category),
+    path.join(cwd, "..", "public", "uploads", category),
+    path.join("/tmp", "nys-uploads", category),
+  ];
+}
+
 async function tryWritePublicFile(
   buf: Buffer,
   category: UploadCategory,
   ext: string,
 ): Promise<string | null> {
   const name = `${Date.now()}-${randomBytes(4).toString("hex")}.${ext}`;
-  const candidates = [
-    path.join(process.cwd(), "public", "uploads", category),
-    path.join(process.cwd(), "..", "public", "uploads", category),
-    path.join("/tmp", "nys-uploads", category),
-  ];
+  const candidates = getUploadCandidates(category);
   for (const dir of candidates) {
     try {
       await mkdir(dir, { recursive: true });
       await writeFile(path.join(dir, name), buf);
-      // /tmp सेव public URL नहीं बन सकता — सिर्फ public/ वाले ही URL दें
-      if (dir.includes(`${path.sep}public${path.sep}uploads${path.sep}`) || dir.includes("/public/uploads/")) {
+      // /tmp → URL नहीं बन सकती; बाकी सब → URL दें
+      if (!dir.startsWith("/tmp")) {
         return `/uploads/${category}/${name}`;
       }
     } catch {

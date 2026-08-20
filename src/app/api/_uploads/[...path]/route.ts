@@ -13,6 +13,32 @@ const MIME: Record<string, string> = {
 };
 
 /**
+ * Hostinger versioned build path:
+ *   cwd = /home/user/domains/nys.org.in/hbuilds/versions/{HASH}/nodejs
+ * Persistent uploads (4 levels up):
+ *   /home/user/domains/nys.org.in/uploads/
+ */
+function getUploadCandidates(safe: string[]): string[] {
+  const cwd = process.cwd();
+
+  if (cwd.includes("/hbuilds/versions/")) {
+    // Hostinger: persistent path, doesn't change with deployments
+    const persistent = path.resolve(cwd, "../../../../uploads");
+    return [
+      path.join(persistent, ...safe),
+      path.join(cwd, "public", "uploads", ...safe), // fallback: versioned public
+    ];
+  }
+
+  // Local dev / other hosts
+  return [
+    path.join(cwd, "public", "uploads", ...safe),
+    path.join(cwd, "..", "public", "uploads", ...safe),
+    path.join(cwd, "..", "..", "public", "uploads", ...safe),
+  ];
+}
+
+/**
  * Serves uploaded files from disk.
  * Next.js standalone mode does not auto-serve public/ — this route handles it.
  * Rewrite in next.config.mjs: /uploads/:path* → /api/_uploads/:path*
@@ -24,18 +50,14 @@ export async function GET(
   const { path: segments } = await params;
 
   // Security: block path traversal
-  const safe = (segments || []).map((s) => s.replace(/\.\./g, "").replace(/[^\w.\-]/g, ""));
+  const safe = (segments || []).map((s) =>
+    s.replace(/\.\./g, "").replace(/[<>:"|?*]/g, ""),
+  );
   if (safe.some((s) => !s)) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 
-  // Try multiple locations — handles both dev and Hostinger standalone
-  const cwd = process.cwd();
-  const candidates = [
-    path.join(cwd, "public", "uploads", ...safe),
-    path.join(cwd, "..", "public", "uploads", ...safe),
-    path.join(cwd, "..", "..", "public", "uploads", ...safe),
-  ];
+  const candidates = getUploadCandidates(safe);
 
   for (const filePath of candidates) {
     try {
@@ -54,5 +76,5 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({ error: "File not found" }, { status: 404 });
+  return NextResponse.json({ error: "File not found", tried: candidates }, { status: 404 });
 }
