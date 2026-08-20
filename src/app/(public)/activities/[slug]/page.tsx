@@ -6,6 +6,7 @@ import { FacebookIcon, YoutubeIcon } from "@/components/ui/BrandIcons";
 import { prisma } from "@/lib/db";
 import { formatDateHi, safeJsonParse } from "@/lib/utils";
 import { ShareButtons } from "@/components/public/ShareButtons";
+import { PhotoSlideshow } from "@/components/public/PhotoSlideshow";
 
 export const revalidate = 60;
 
@@ -109,22 +110,26 @@ export default async function PostDetail({
             )}
           </div>
 
-          {/* Main image — full natural size (no crop) */}
-          <div className="mt-5 overflow-hidden rounded-2xl">
-            {post.mainImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.mainImage}
-                alt={displayHeadline}
-                className="h-auto w-full rounded-2xl"
-                style={{ display: "block" }}
-              />
-            ) : (
-              <div className="flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-saffron-50 to-amber-50">
-                <span className="text-5xl opacity-20">📰</span>
+          {/* Photos — main + gallery as swipeable slideshow */}
+          {(() => {
+            const allPhotos = [
+              ...(post.mainImage ? [post.mainImage] : []),
+              ...images,
+            ];
+            if (allPhotos.length > 0) {
+              return (
+                <PhotoSlideshow
+                  images={allPhotos}
+                  altPrefix={displayHeadline}
+                />
+              );
+            }
+            return (
+              <div className="mt-5 flex h-40 items-center justify-center rounded-2xl bg-gradient-to-br from-saffron-50 to-amber-50">
+                <span className="text-5xl opacity-20">🪔</span>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Lead paragraph (excerpt) */}
           {post.excerpt && (
@@ -137,27 +142,6 @@ export default async function PostDetail({
           <div className="mt-5 max-w-none whitespace-pre-line text-[15px] leading-8 text-stone-700">
             {post.content}
           </div>
-
-          {/* Photo gallery */}
-          {images.length > 0 && (
-            <div className="mt-8">
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-stone-500">
-                📷 फोटो गैलरी
-              </h3>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-                {images.map((src, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    className="aspect-video w-full rounded-xl object-cover"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Video / Social links */}
           {(post.youtubeUrl || post.facebookUrl) && (

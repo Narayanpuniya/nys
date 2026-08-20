@@ -24,6 +24,7 @@ export async function savePost(formData: FormData) {
     excerpt: String(formData.get("excerpt") ?? "") || null,
     content: String(formData.get("content") ?? ""),
     mainImage: String(formData.get("mainImage") ?? "") || null,
+    images: String(formData.get("images") ?? "") || null,   // JSON array of gallery URLs
     youtubeUrl: String(formData.get("youtubeUrl") ?? "") || null,
     facebookUrl: String(formData.get("facebookUrl") ?? "") || null,
     impactNumber: formData.get("impactNumber") ? parseInt(String(formData.get("impactNumber")), 10) : null,
