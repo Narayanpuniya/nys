@@ -29,7 +29,15 @@ export default async function JoinPage() {
         {plans.length ? (
           <JoinForm
             plans={plans.map((p) => ({ id: p.id, name: p.name, amount: p.amount, description: p.description }))}
-            bank={settings.bank}
+            bank={{
+              accountName: settings.bank.accountName,
+              bankName: settings.bank.bankName,
+              accountNumber: settings.bank.accountNumber,
+              ifsc: settings.bank.ifsc,
+              branch: settings.bank.branch,
+              upiId: settings.bank.upiId,
+              upiQrUrl: settings.bank.upiQrUrl,
+            }}
           />
         ) : (
           <p className="text-center text-sm text-stone-500">फिलहाल कोई सदस्यता योजना उपलब्ध नहीं है।</p>

@@ -22,6 +22,7 @@ type BankInfo = {
   ifsc?: string;
   branch?: string;
   upiId?: string;
+  upiQrUrl?: string;
 };
 
 const empty = {
@@ -272,19 +273,81 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
       )}
 
       {step === 2 && (
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-ink">सदस्यता योजना चुनें</p>
-          {plans.map((p) => (
-            <button key={p.id} type="button" onClick={() => setPlanId(p.id)}
-              className={cn("flex w-full items-center justify-between rounded-xl border-2 p-4 text-left transition",
-                planId === p.id ? "border-saffron-500 bg-saffron-50" : "border-stone-200 bg-white hover:border-saffron-300")}>
-              <div>
-                <div className="font-semibold text-ink">{p.name}</div>
-                {p.description && <div className="text-xs text-stone-500">{p.description}</div>}
+        <div className="space-y-4">
+          {/* Plan selection */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-ink">सदस्यता योजना चुनें</p>
+            {plans.map((p) => (
+              <button key={p.id} type="button" onClick={() => setPlanId(p.id)}
+                className={cn("flex w-full items-center justify-between rounded-xl border-2 p-4 text-left transition",
+                  planId === p.id ? "border-saffron-500 bg-saffron-50" : "border-stone-200 bg-white hover:border-saffron-300")}>
+                <div>
+                  <div className="font-semibold text-ink">{p.name}</div>
+                  {p.description && <div className="text-xs text-stone-500">{p.description}</div>}
+                </div>
+                <div className="text-xl font-extrabold text-saffron-800">{formatINR(p.amount)}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Bank + UPI details — shown here so member can pay while choosing plan */}
+          {hasBank && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+              <p className="mb-3 text-sm font-bold text-amber-900">💳 भुगतान विवरण — यहाँ ट्रांसफर करें</p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                {/* Bank info */}
+                <div className="flex-1 space-y-1.5 text-sm text-stone-700">
+                  {bank?.upiId && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-20 shrink-0 text-xs font-semibold text-stone-500">UPI ID</span>
+                      <span className="rounded bg-white px-2 py-0.5 font-mono font-semibold text-saffron-800 border border-saffron-200 select-all">{bank.upiId}</span>
+                    </div>
+                  )}
+                  {bank?.accountName && (
+                    <div className="flex items-start gap-2">
+                      <span className="w-20 shrink-0 text-xs font-semibold text-stone-500">खाता नाम</span>
+                      <span>{bank.accountName}</span>
+                    </div>
+                  )}
+                  {bank?.bankName && (
+                    <div className="flex items-start gap-2">
+                      <span className="w-20 shrink-0 text-xs font-semibold text-stone-500">बैंक</span>
+                      <span>{bank.bankName}{bank.branch ? ` (${bank.branch})` : ""}</span>
+                    </div>
+                  )}
+                  {bank?.accountNumber && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-20 shrink-0 text-xs font-semibold text-stone-500">खाता नं.</span>
+                      <span className="rounded bg-white px-2 py-0.5 font-mono border border-stone-200 select-all">{bank.accountNumber}</span>
+                    </div>
+                  )}
+                  {bank?.ifsc && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-20 shrink-0 text-xs font-semibold text-stone-500">IFSC</span>
+                      <span className="font-mono">{bank.ifsc}</span>
+                    </div>
+                  )}
+                  <p className="mt-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs text-amber-800">
+                    ⚡ चुनी हुई योजना की राशि <strong>{formatINR(plans.find(p => p.id === planId)?.amount ?? 0)}</strong> ट्रांसफर करें, फिर अगले चरण में रसीद अपलोड करें।
+                  </p>
+                </div>
+                {/* UPI QR */}
+                {bank?.upiQrUrl && (
+                  <div className="flex shrink-0 flex-col items-center gap-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={bank.upiQrUrl} alt="UPI QR" className="h-32 w-32 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
+                    <span className="text-[11px] font-semibold text-stone-500">UPI QR स्कैन करें</span>
+                  </div>
+                )}
               </div>
-              <div className="text-xl font-extrabold text-saffron-800">{formatINR(p.amount)}</div>
-            </button>
-          ))}
+            </div>
+          )}
+
+          {!hasBank && (
+            <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs text-stone-500">
+              💡 बैंक/UPI विवरण Admin → Settings में जोड़ें — तब यहाँ दिखेगा।
+            </div>
+          )}
         </div>
       )}
 

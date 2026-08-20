@@ -8,6 +8,7 @@ import { Card, Badge, SectionHeading } from "@/components/ui/primitives";
 import { DonateForm } from "@/components/public/DonateForm";
 import { ShareButtons } from "@/components/public/ShareButtons";
 import { Users, MapPin, Target } from "lucide-react";
+import { getSettings } from "@/lib/settings";
 
 export const revalidate = 30;
 
@@ -27,10 +28,13 @@ export default async function CampaignDetail({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const campaign = await prisma.campaign.findUnique({
-    where: { slug },
-    include: { updates: { orderBy: { createdAt: "desc" } } },
-  });
+  const [campaign, s] = await Promise.all([
+    prisma.campaign.findUnique({
+      where: { slug },
+      include: { updates: { orderBy: { createdAt: "desc" } } },
+    }),
+    getSettings(),
+  ]);
   if (!campaign) notFound();
 
   const p = await getCampaignProgress(campaign.id);
@@ -108,7 +112,20 @@ export default async function CampaignDetail({
             {acceptsDonation ? (
               <Card className="p-6">
                 <h3 className="mb-3 font-bold text-ink">इस अभियान में सहयोग करें</h3>
-                <DonateForm purposes={[{ key: "CAMPAIGN", label: campaign.title }]} campaignId={campaign.id} campaignTitle={campaign.title} />
+                <DonateForm
+                  purposes={[{ key: "CAMPAIGN", label: campaign.title }]}
+                  campaignId={campaign.id}
+                  campaignTitle={campaign.title}
+                  bank={{
+                    accountName: s.bank.accountName,
+                    bankName: s.bank.bankName,
+                    accountNumber: s.bank.accountNumber,
+                    ifsc: s.bank.ifsc,
+                    branch: s.bank.branch,
+                    upiId: s.bank.upiId,
+                    upiQrUrl: s.bank.upiQrUrl,
+                  }}
+                />
               </Card>
             ) : (
               <Card className="p-6 text-center text-sm text-stone-500">

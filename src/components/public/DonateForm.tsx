@@ -16,15 +16,21 @@ declare global {
 const PRESETS = [100, 500, 1000, 5000];
 
 type Purpose = { key: string; label: string };
+type BankInfo = {
+  accountName?: string; bankName?: string; accountNumber?: string;
+  ifsc?: string; branch?: string; upiId?: string; upiQrUrl?: string;
+};
 
 export function DonateForm({
   purposes,
   campaignId,
   campaignTitle,
+  bank,
 }: {
   purposes: Purpose[];
   campaignId?: string;
   campaignTitle?: string;
+  bank?: BankInfo;
 }) {
   const router = useRouter();
   const [amount, setAmount] = useState(500);
@@ -218,6 +224,59 @@ export function DonateForm({
       <Field label="संदेश (वैकल्पिक)">
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={2} className={inputClass} />
       </Field>
+
+      {/* ── Bank / UPI Details ── */}
+      {(bank?.upiId || bank?.accountNumber) && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-amber-800">💳 यहाँ दान करें (UPI / बैंक ट्रांसफर)</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+            {/* Info */}
+            <div className="flex-1 space-y-1.5 text-sm">
+              {bank.upiId && (
+                <div className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-[11px] font-semibold text-stone-500">UPI ID</span>
+                  <span className="select-all rounded border border-saffron-200 bg-white px-2 py-0.5 font-mono text-sm font-semibold text-saffron-800">{bank.upiId}</span>
+                </div>
+              )}
+              {bank.accountName && (
+                <div className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-[11px] font-semibold text-stone-500">नाम</span>
+                  <span className="text-stone-700">{bank.accountName}</span>
+                </div>
+              )}
+              {bank.bankName && (
+                <div className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-[11px] font-semibold text-stone-500">बैंक</span>
+                  <span className="text-stone-700">{bank.bankName}{bank.branch ? ` (${bank.branch})` : ""}</span>
+                </div>
+              )}
+              {bank.accountNumber && (
+                <div className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-[11px] font-semibold text-stone-500">खाता</span>
+                  <span className="select-all rounded border border-stone-200 bg-white px-2 py-0.5 font-mono text-stone-700">{bank.accountNumber}</span>
+                </div>
+              )}
+              {bank.ifsc && (
+                <div className="flex items-center gap-2">
+                  <span className="w-14 shrink-0 text-[11px] font-semibold text-stone-500">IFSC</span>
+                  <span className="font-mono text-stone-700">{bank.ifsc}</span>
+                </div>
+              )}
+              <p className="mt-1.5 text-[11px] text-amber-700">
+                ऊपर चुनी राशि <strong className="text-amber-900">{formatINR(finalAmount || 0)}</strong> ट्रांसफर करें, फिर "दान करें" दबाएँ।
+              </p>
+            </div>
+            {/* QR */}
+            {bank.upiQrUrl && (
+              <div className="flex shrink-0 flex-col items-center gap-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={bank.upiQrUrl} alt="UPI QR" className="h-28 w-28 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
+                <span className="text-[11px] font-medium text-stone-500">QR स्कैन करें</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {error && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
 

@@ -38,7 +38,18 @@ export default async function DonatePage() {
 
       <div className="grid gap-8 lg:grid-cols-5">
         <Card className="p-6 lg:col-span-3">
-          <DonateForm purposes={DONATION_PURPOSES.map((p) => ({ key: p.key, label: p.label }))} />
+          <DonateForm
+            purposes={DONATION_PURPOSES.map((p) => ({ key: p.key, label: p.label }))}
+            bank={{
+              accountName: s.bank.accountName,
+              bankName: s.bank.bankName,
+              accountNumber: s.bank.accountNumber,
+              ifsc: s.bank.ifsc,
+              branch: s.bank.branch,
+              upiId: s.bank.upiId,
+              upiQrUrl: s.bank.upiQrUrl,
+            }}
+          />
         </Card>
 
         <div className="space-y-4 lg:col-span-2">
