@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { readdir, stat, mkdir, copyFile, writeFile, unlink } from "fs/promises";
+import { readdir, stat, mkdir, writeFile, unlink, copyFile } from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
 
 export async function GET(req: Request) {
   const cwd = process.cwd();
@@ -11,117 +10,90 @@ export async function GET(req: Request) {
     ? path.resolve(cwd, "../../../../uploads")
     : path.join(cwd, "public", "uploads");
 
-  // Source repo path derived from __filename
-  let sourceRepoUploads = "";
-  try {
-    const __filename = fileURLToPath(import.meta.url);
-    // __filename = /home/.../hbuilds/source/repository/src/app/api/debug-uploads/route.ts
-    // go up 6 levels to get repo root
-    const repoRoot = path.resolve(path.dirname(__filename), "../../../../../..");
-    sourceRepoUploads = path.join(repoRoot, "public", "uploads");
-  } catch { /* ignore */ }
-
   if (url.searchParams.get("migrate") === "1") {
-    return handleMigrate(cwd, persistentBase, sourceRepoUploads);
+    return handleMigrate(cwd, persistentBase);
   }
 
-  // Check all candidate paths
-  const checkPaths = [
-    persistentBase,
-    sourceRepoUploads,
-    path.join(cwd, "public", "uploads"),
-  ].filter(Boolean);
+  // Test: write a real image (1x1 pixel transparent PNG) to persistent path
+  const testImageName = "_test_image.png";
+  const testImagePath = path.join(persistentBase, "gallery", testImageName);
+  // 1x1 transparent PNG bytes
+  const PNG_1x1 = Buffer.from(
+    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489000000" +
+    "0a49444154789c6260000000020001e221bc330000000049454e44ae426082",
+    "hex"
+  );
 
-  const results: Record<string, unknown> = {
+  let uploadTest = "";
+  let serveTest = "";
+
+  try {
+    await mkdir(path.join(persistentBase, "gallery"), { recursive: true });
+    await writeFile(testImagePath, PNG_1x1);
+    uploadTest = "✅ File written to persistent path";
+
+    // Check serve URL
+    serveTest = `Test it: /uploads/gallery/${testImageName}`;
+  } catch (e) {
+    uploadTest = `❌ Write failed: ${String(e)}`;
+  }
+
+  // List all image files in persistent path
+  let persistentImages: string[] = [];
+  try {
+    const files = (await readdir(persistentBase, { recursive: true })) as string[];
+    persistentImages = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f) && !f.startsWith("_test"));
+  } catch { /* empty */ }
+
+  return NextResponse.json({
     cwd,
     persistentBase,
-    sourceRepoUploads,
-    isHostinger: cwd.includes("/hbuilds/versions/"),
-    paths: {},
-  };
-
-  for (const dir of checkPaths) {
-    try {
-      const s = await stat(dir);
-      if (s.isDirectory()) {
-        const files = (await readdir(dir, { recursive: true }).catch(() => [])) as string[];
-        const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f));
-        (results.paths as Record<string, unknown>)[dir] = {
-          exists: true,
-          totalFiles: files.length,
-          imageFiles: imageFiles.length,
-          sample: imageFiles.slice(0, 5),
-        };
-      }
-    } catch {
-      (results.paths as Record<string, unknown>)[dir] = { exists: false };
-    }
-  }
-
-  // Write test
-  const testDir = path.join(persistentBase, "gallery");
-  const testFile = path.join(testDir, "_test_write.txt");
-  try {
-    await mkdir(testDir, { recursive: true });
-    await writeFile(testFile, "write test ok");
-    await unlink(testFile);
-    (results as Record<string, unknown>).writeTest = "✅ writable";
-  } catch (e) {
-    (results as Record<string, unknown>).writeTest = `❌ ${String(e)}`;
-  }
-
-  return NextResponse.json(results);
+    uploadTest,
+    serveTest,
+    persistentImagesCount: persistentImages.length,
+    persistentImages: persistentImages.slice(0, 10),
+    hint: persistentImages.length === 0
+      ? "No real images yet — upload one from admin panel then re-check"
+      : `${persistentImages.length} images found in persistent storage ✅`,
+  });
 }
 
-async function handleMigrate(cwd: string, persistentBase: string, sourceRepoUploads: string) {
+async function handleMigrate(cwd: string, persistentBase: string) {
   const versionsDir = path.resolve(cwd, "../../");
   const copied: string[] = [];
   const skipped: string[] = [];
   const errors: string[] = [];
 
-  // Search in multiple places
-  const searchBases: string[] = [sourceRepoUploads];
-  try {
-    const versionFolders = await readdir(versionsDir);
-    for (const vf of versionFolders) {
-      searchBases.push(path.join(versionsDir, vf, "nodejs", "public", "uploads"));
-    }
-  } catch { /* ignore */ }
+  let versionFolders: string[] = [];
+  try { versionFolders = await readdir(versionsDir); } catch {
+    return NextResponse.json({ error: `Cannot read versions dir: ${versionsDir}` }, { status: 500 });
+  }
 
-  for (const uploadsDir of searchBases.filter(Boolean)) {
+  for (const vfolder of versionFolders) {
+    const uploadsDir = path.join(versionsDir, vfolder, "nodejs", "public", "uploads");
     try { await stat(uploadsDir); } catch { continue; }
-
     const allFiles = (await readdir(uploadsDir, { recursive: true }).catch(() => [])) as string[];
     for (const relFile of allFiles) {
       const srcFile = path.join(uploadsDir, relFile);
       const destFile = path.join(persistentBase, relFile);
-
-      try {
-        const s = await stat(srcFile);
-        if (s.isDirectory()) continue;
-      } catch { continue; }
-
-      if (relFile.endsWith(".gitkeep")) { skipped.push(relFile); continue; }
-
+      try { const s = await stat(srcFile); if (s.isDirectory()) continue; } catch { continue; }
+      if (relFile.endsWith(".gitkeep") || relFile.startsWith("_test")) { skipped.push(relFile); continue; }
       try { await stat(destFile); skipped.push(`EXISTS:${relFile}`); continue; } catch { /* ok */ }
-
       try {
         await mkdir(path.dirname(destFile), { recursive: true });
         await copyFile(srcFile, destFile);
         copied.push(relFile);
-      } catch (e) {
-        errors.push(`FAIL:${relFile}—${String(e)}`);
-      }
+      } catch (e) { errors.push(`FAIL:${relFile}—${String(e)}`); }
     }
   }
 
   return NextResponse.json({
     persistentBase,
-    searchedIn: searchBases,
+    versionFoldersFound: versionFolders.length,
     copied: copied.length,
     copiedFiles: copied,
     skipped: skipped.length,
     errors,
-    status: copied.length > 0 ? `✅ ${copied.length} files recovered!` : "❌ No files found to copy",
+    status: copied.length > 0 ? `✅ ${copied.length} files recovered!` : "❌ No files found",
   });
 }
