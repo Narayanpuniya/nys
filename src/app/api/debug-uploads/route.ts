@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readdir, stat, mkdir, copyFile, writeFile, unlink } from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
 
 export async function GET(req: Request) {
   const cwd = process.cwd();
@@ -10,33 +11,54 @@ export async function GET(req: Request) {
     ? path.resolve(cwd, "../../../../uploads")
     : path.join(cwd, "public", "uploads");
 
-  // ?migrate=1 → copy all old versioned photos to persistent path
+  // Source repo path derived from __filename
+  let sourceRepoUploads = "";
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    // __filename = /home/.../hbuilds/source/repository/src/app/api/debug-uploads/route.ts
+    // go up 6 levels to get repo root
+    const repoRoot = path.resolve(path.dirname(__filename), "../../../../../..");
+    sourceRepoUploads = path.join(repoRoot, "public", "uploads");
+  } catch { /* ignore */ }
+
   if (url.searchParams.get("migrate") === "1") {
-    return handleMigrate(cwd, persistentBase);
+    return handleMigrate(cwd, persistentBase, sourceRepoUploads);
   }
 
-  // Default: show status
+  // Check all candidate paths
+  const checkPaths = [
+    persistentBase,
+    sourceRepoUploads,
+    path.join(cwd, "public", "uploads"),
+  ].filter(Boolean);
+
   const results: Record<string, unknown> = {
     cwd,
     persistentBase,
+    sourceRepoUploads,
     isHostinger: cwd.includes("/hbuilds/versions/"),
     paths: {},
-    writeTest: null,
-    hint: "Add ?migrate=1 to copy old photos to persistent path",
   };
 
-  for (const dir of [persistentBase, path.join(cwd, "public", "uploads")]) {
+  for (const dir of checkPaths) {
     try {
       const s = await stat(dir);
       if (s.isDirectory()) {
-        const files = await readdir(dir, { recursive: true }).catch(() => []);
-        (results.paths as Record<string, unknown>)[dir] = { exists: true, count: files.length, sample: files.slice(0, 8) };
+        const files = (await readdir(dir, { recursive: true }).catch(() => [])) as string[];
+        const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f));
+        (results.paths as Record<string, unknown>)[dir] = {
+          exists: true,
+          totalFiles: files.length,
+          imageFiles: imageFiles.length,
+          sample: imageFiles.slice(0, 5),
+        };
       }
     } catch {
       (results.paths as Record<string, unknown>)[dir] = { exists: false };
     }
   }
 
+  // Write test
   const testDir = path.join(persistentBase, "gallery");
   const testFile = path.join(testDir, "_test_write.txt");
   try {
@@ -51,77 +73,55 @@ export async function GET(req: Request) {
   return NextResponse.json(results);
 }
 
-async function handleMigrate(cwd: string, persistentBase: string) {
-  const versionsDir = path.resolve(cwd, "../../"); // /hbuilds/versions/
+async function handleMigrate(cwd: string, persistentBase: string, sourceRepoUploads: string) {
+  const versionsDir = path.resolve(cwd, "../../");
   const copied: string[] = [];
   const skipped: string[] = [];
   const errors: string[] = [];
 
-  let versionFolders: string[] = [];
+  // Search in multiple places
+  const searchBases: string[] = [sourceRepoUploads];
   try {
-    versionFolders = await readdir(versionsDir);
-  } catch (e) {
-    return NextResponse.json({ error: `Cannot read versions dir: ${versionsDir} — ${String(e)}` }, { status: 500 });
-  }
-
-  for (const vfolder of versionFolders) {
-    const uploadsDir = path.join(versionsDir, vfolder, "nodejs", "public", "uploads");
-    try {
-      await stat(uploadsDir);
-    } catch {
-      continue; // folder doesn't exist, skip
+    const versionFolders = await readdir(versionsDir);
+    for (const vf of versionFolders) {
+      searchBases.push(path.join(versionsDir, vf, "nodejs", "public", "uploads"));
     }
+  } catch { /* ignore */ }
 
-    // Walk all files in this old versioned uploads dir
-    let allFiles: string[] = [];
-    try {
-      allFiles = (await readdir(uploadsDir, { recursive: true })) as string[];
-    } catch {
-      continue;
-    }
+  for (const uploadsDir of searchBases.filter(Boolean)) {
+    try { await stat(uploadsDir); } catch { continue; }
 
+    const allFiles = (await readdir(uploadsDir, { recursive: true }).catch(() => [])) as string[];
     for (const relFile of allFiles) {
       const srcFile = path.join(uploadsDir, relFile);
       const destFile = path.join(persistentBase, relFile);
 
-      // Skip .gitkeep and directories
       try {
         const s = await stat(srcFile);
         if (s.isDirectory()) continue;
-      } catch {
-        continue;
-      }
+      } catch { continue; }
 
-      if (relFile.endsWith(".gitkeep")) {
-        skipped.push(relFile);
-        continue;
-      }
+      if (relFile.endsWith(".gitkeep")) { skipped.push(relFile); continue; }
 
-      // Already exists at destination?
-      try {
-        await stat(destFile);
-        skipped.push(`EXISTS: ${relFile}`);
-        continue;
-      } catch { /* doesn't exist, copy it */ }
+      try { await stat(destFile); skipped.push(`EXISTS:${relFile}`); continue; } catch { /* ok */ }
 
       try {
         await mkdir(path.dirname(destFile), { recursive: true });
         await copyFile(srcFile, destFile);
-        copied.push(`${vfolder.substring(0, 8)}… → ${relFile}`);
+        copied.push(relFile);
       } catch (e) {
-        errors.push(`FAIL: ${relFile} — ${String(e)}`);
+        errors.push(`FAIL:${relFile}—${String(e)}`);
       }
     }
   }
 
   return NextResponse.json({
-    versionsDir,
     persistentBase,
-    versionFoldersFound: versionFolders.length,
+    searchedIn: searchBases,
     copied: copied.length,
     copiedFiles: copied,
     skipped: skipped.length,
     errors,
-    status: errors.length === 0 ? "✅ Migration complete" : "⚠️ Some errors",
+    status: copied.length > 0 ? `✅ ${copied.length} files recovered!` : "❌ No files found to copy",
   });
 }
