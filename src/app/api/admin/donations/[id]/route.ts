@@ -72,32 +72,29 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const donation = await prisma.donation.findUnique({ where: { id } });
   if (!donation) return NextResponse.json({ error: "दान नहीं मिला।" }, { status: 404 });
 
+  // For SUCCESS: also delete linked income entry, then hard delete
   if (donation.status === "SUCCESS") {
-    // Soft-delete: mark VOID (income entry remains for audit)
-    await prisma.donation.update({ where: { id }, data: { status: "VOID" } });
-    await logAudit({
-      action: "DELETE",
-      entity: "Donation",
-      entityId: id,
-      summary: `दान निरस्त (VOID): ${donation.receiptNumber} — ₹${donation.amount} (${user.name})`,
+    await prisma.income.deleteMany({
+      where: { refType: "Donation", refId: donation.id },
     });
-    return NextResponse.json({ ok: true, deleted: false, voided: true });
   }
 
-  // Hard delete for PENDING/PAID/FAILED
+  // Hard delete (all statuses)
   await prisma.donation.delete({ where: { id } });
-  // Also delete the orphan donor if no other donations
+
+  // Clean up orphan donor if no other donations remain
   if (donation.donorId) {
     const otherDonations = await prisma.donation.count({ where: { donorId: donation.donorId } });
     if (otherDonations === 0) {
       await prisma.donor.delete({ where: { id: donation.donorId } }).catch(() => {});
     }
   }
+
   await logAudit({
     action: "DELETE",
     entity: "Donation",
     entityId: id,
-    summary: `दान हटाया: ${donation.receiptNumber} — ₹${donation.amount} (${user.name})`,
+    summary: `दान हटाया: ${donation.receiptNumber} — ₹${donation.amount} [${donation.status}] (${user.name})`,
   });
   return NextResponse.json({ ok: true, deleted: true });
 }

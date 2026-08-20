@@ -150,7 +150,8 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
     }
   }
 
-  if (!["PENDING", "PAID"].includes(status)) return null;
+  // Show for all statuses (SUCCESS also needs delete for test/wrong entries)
+  // if (status === "VOID") return null; // optional: hide for already-voided
 
   return (
     <>
@@ -333,45 +334,48 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
                     <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
                   )}
 
-                  {/* ── 4. Approve / Reject ── */}
-                  <div className="rounded-xl border-2 border-stone-200 p-4">
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">अंतिम कार्रवाई</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleAction("approve")}
-                        disabled={acting}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-bold text-white transition hover:bg-green-700 disabled:opacity-60"
-                      >
-                        {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                        ✅ स्वीकृत करें
-                      </button>
-                      <button
-                        onClick={() => handleAction("reject")}
-                        disabled={acting}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60"
-                      >
-                        {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                        ❌ अस्वीकृत करें
-                      </button>
+                  {/* ── 4. Approve / Reject — only for PENDING / PAID ── */}
+                  {!["SUCCESS", "FAILED", "VOID"].includes(donation.status) && (
+                    <div className="rounded-xl border-2 border-stone-200 p-4">
+                      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-stone-500">अंतिम कार्रवाई</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => handleAction("approve")}
+                          disabled={acting}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-bold text-white transition hover:bg-green-700 disabled:opacity-60"
+                        >
+                          {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                          ✅ स्वीकृत करें
+                        </button>
+                        <button
+                          onClick={() => handleAction("reject")}
+                          disabled={acting}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60"
+                        >
+                          {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                          ❌ अस्वीकृत करें
+                        </button>
+                      </div>
+                      <p className="mt-2 text-center text-[11px] text-stone-400">
+                        पहले बदलाव सेव करें, फिर स्वीकृत / अस्वीकृत करें
+                      </p>
                     </div>
-                    <p className="mt-2 text-center text-[11px] text-stone-400">
-                      पहले बदलाव सेव करें, फिर स्वीकृत / अस्वीकृत करें
-                    </p>
-                  </div>
+                  )}
 
-                  {/* ── Delete section ── */}
+                  {/* ── Delete — सभी statuses के लिए ── */}
                   <div className="rounded-xl border border-red-100 bg-red-50 p-4">
                     <p className="mb-2 text-xs font-bold text-red-700 uppercase tracking-wider">
                       ⚠️ गलत इंट्री हटाएँ
                     </p>
-                    {donation.status === "SUCCESS" ? (
-                      <p className="text-[11px] text-red-600">
-                        सफल दान हटाया नहीं जा सकता। "अस्वीकृत करें" दबाने से VOID हो जाएगा।
-                      </p>
-                    ) : confirmDelete ? (
+                    {confirmDelete ? (
                       <div className="space-y-2">
                         <p className="text-xs font-semibold text-red-800">
                           क्या आप सच में <strong>{donation.receiptNumber}</strong> ({formatINR(donation.amount)}) हटाना चाहते हैं?
+                          {donation.status === "SUCCESS" && (
+                            <span className="mt-1 block text-[11px] text-red-600">
+                              ⚠️ आय (Income) रिकॉर्ड भी साथ हटाया जाएगा।
+                            </span>
+                          )}
                         </p>
                         <div className="flex gap-2">
                           <button
