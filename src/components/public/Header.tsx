@@ -113,6 +113,13 @@ export function Header({
             {dict.nav_login}
           </Link>
           <Link
+            href="/donate"
+            className="rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+          >
+            {dict.nav_donate}
+          </Link>
+          <Link
             href="/join"
             className="rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-md transition hover:opacity-90"
             style={{ background: "linear-gradient(135deg, #991b1b, #7f1d1d)" }}
@@ -157,17 +164,22 @@ export function Header({
 
           {/* CTA buttons */}
           <div className="flex gap-2 px-4 pb-3">
-            {PUBLIC_CTA.map((c) => (
-              <Link
-                key={c.href}
-                href={c.href}
-                onClick={() => setOpen(false)}
-                className="flex-1 rounded-xl py-2.5 text-center text-sm font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
-              >
-                {dict[c.labelKey]}
-              </Link>
-            ))}
+            <Link
+              href="/donate"
+              onClick={() => setOpen(false)}
+              className="flex-1 rounded-xl py-2.5 text-center text-sm font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+            >
+              {dict.nav_donate}
+            </Link>
+            <Link
+              href="/join"
+              onClick={() => setOpen(false)}
+              className="flex-1 rounded-xl py-2.5 text-center text-sm font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #991b1b, #7f1d1d)" }}
+            >
+              {dict.nav_join}
+            </Link>
             <Link
               href="/login"
               onClick={() => setOpen(false)}
