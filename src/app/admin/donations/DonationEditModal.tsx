@@ -13,6 +13,7 @@ type Donation = {
   purpose: string;
   status: string;
   message: string | null;
+  proofUrl: string | null;
   gatewayTxnId: string | null;
   gatewayOrderId: string | null;
   mode: string;
@@ -167,7 +168,38 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
               ) : donation ? (
                 <div className="space-y-4">
 
-                  {/* ── 1. Receipt button — सबसे पहले ── */}
+                  {/* ── 1. Payment proof screenshot — सबसे पहले ── */}
+                  {donation.proofUrl ? (
+                    <div className="rounded-xl border-2 border-green-400 bg-green-50 p-3">
+                      <p className="mb-2 text-xs font-bold text-green-800">
+                        ✅ भुगतान प्रमाण (दानदाता द्वारा अपलोड)
+                      </p>
+                      {/\.(jpg|jpeg|png|webp|gif)$/i.test(donation.proofUrl) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={donation.proofUrl}
+                          alt="payment proof"
+                          className="max-h-64 w-full cursor-pointer rounded-lg border border-green-200 bg-white object-contain"
+                          onClick={() => window.open(donation.proofUrl!, "_blank")}
+                        />
+                      ) : (
+                        <a href={donation.proofUrl} target="_blank" rel="noreferrer"
+                          className="flex items-center gap-2 text-sm font-semibold text-green-700 hover:underline">
+                          <FileText className="h-4 w-4" /> प्रमाण देखें (PDF) ↗
+                        </a>
+                      )}
+                      <p className="mt-1.5 text-[11px] text-green-600">
+                        छवि पर क्लिक करें → पूर्ण साइज़ में देखें
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 p-3 text-center">
+                      <p className="text-xs text-stone-500">📷 दानदाता ने भुगतान प्रमाण अपलोड नहीं किया।</p>
+                      <p className="mt-0.5 text-[11px] text-stone-400">WhatsApp/SMS पर स्क्रीनशॉट माँगें।</p>
+                    </div>
+                  )}
+
+                  {/* ── 2. Receipt button ── */}
                   <a
                     href={`/receipt/${donation.receiptNumber}`}
                     target="_blank"
@@ -175,11 +207,11 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
                     className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-saffron-400 bg-saffron-50 py-2.5 text-sm font-bold text-saffron-800 transition hover:bg-saffron-100"
                   >
                     <FileText className="h-4 w-4" />
-                    पेमेंट रसीद देखें / डाउनलोड
+                    पावती रसीद देखें / डाउनलोड
                     <ExternalLink className="h-3.5 w-3.5 opacity-70" />
                   </a>
 
-                  {/* ── 2. Read-only info ── */}
+                  {/* ── 3. Read-only info ── */}
                   <div className="rounded-xl border border-stone-100 bg-stone-50 p-3 text-xs space-y-1.5 text-stone-600">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                       <div><span className="font-semibold text-stone-400">रसीद:</span> {donation.receiptNumber}</div>

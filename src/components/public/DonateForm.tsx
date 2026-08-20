@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, HandCoins, CheckCircle2 } from "lucide-react";
+import { Loader2, HandCoins, CheckCircle2, Camera, Upload } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatINR, cn } from "@/lib/utils";
@@ -37,6 +37,10 @@ export function DonateForm({
   const [anon, setAnon]           = useState(false);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState("");
+  // Payment proof screenshot
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const finalAmount = custom ? parseInt(custom, 10) || 0 : amount;
 
@@ -92,6 +96,15 @@ export function DonateForm({
         setError("रसीद संख्या नहीं मिली। दोबारा प्रयास करें।");
         setLoading(false);
         return;
+      }
+      // Upload payment proof screenshot if provided
+      if (proofFile && data.donationId) {
+        try {
+          const fd = new FormData();
+          fd.append("donationId", data.donationId);
+          fd.append("file", proofFile);
+          await fetch("/api/donations/proof", { method: "POST", body: fd });
+        } catch { /* non-fatal — donation already saved */ }
       }
       router.push(`/donate/success?receipt=${data.receiptNumber}`);
     } catch {
@@ -223,8 +236,55 @@ export function DonateForm({
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
             <span>
               ऊपर QR स्कैन करें या UPI ID पर <strong>{formatINR(finalAmount || 0)}</strong> भेजें।
-              भुगतान के बाद नीचे "दान दर्ज करें" बटन दबाएँ।
+              भुगतान के बाद स्क्रीनशॉट अपलोड करें और "दान दर्ज करें" बटन दबाएँ।
             </span>
+          </div>
+
+          {/* Payment proof upload */}
+          <div className="mt-3">
+            <p className="mb-1.5 text-xs font-bold text-amber-800">
+              📸 भुगतान स्क्रीनशॉट / रसीद अपलोड करें
+              <span className="ml-1 font-normal text-stone-500">(अनिवार्य नहीं, लेकिन जल्दी सत्यापन होगा)</span>
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setProofFile(f);
+                if (f) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setProofPreview(ev.target?.result as string);
+                  reader.readAsDataURL(f);
+                } else {
+                  setProofPreview("");
+                }
+              }}
+            />
+            {proofPreview ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={proofPreview} alt="payment proof" className="h-32 w-full rounded-xl border-2 border-green-300 object-contain bg-white" />
+                <button
+                  type="button"
+                  onClick={() => { setProofFile(null); setProofPreview(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                  className="absolute right-1 top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white"
+                >✕ हटाएँ</button>
+                <p className="mt-1 text-[11px] font-semibold text-green-700">✅ {proofFile?.name}</p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 bg-white py-3 text-sm font-semibold text-amber-700 transition hover:border-amber-400 hover:bg-amber-50"
+              >
+                <Camera className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
+                स्क्रीनशॉट / फोटो चुनें
+              </button>
+            )}
           </div>
         </div>
       )}

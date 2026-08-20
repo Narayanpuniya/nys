@@ -175,6 +175,8 @@ model Donation {
   // VOID    → cancelled
   status        String   @default("PENDING")
   message       String?
+  /// UPI/बैंक ट्रांसफर का भुगतान स्क्रीनशॉट / प्रमाण
+  proofUrl      String?
   createdAt     DateTime @default(now())
   paidAt        DateTime?
 
