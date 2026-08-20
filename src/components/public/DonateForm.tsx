@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, HandCoins } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
@@ -45,6 +45,25 @@ export function DonateForm({
   const [error, setError] = useState("");
 
   const finalAmount = custom ? parseInt(custom, 10) || 0 : amount;
+
+  // ── Dynamic UPI QR (amount pre-filled) ───────────────────────────────────
+  const [upiQrDataUrl, setUpiQrDataUrl] = useState<string>("");
+  const qrTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!bank?.upiId || !finalAmount) { setUpiQrDataUrl(""); return; }
+    // Debounce — regenerate 400 ms after user stops changing amount
+    if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
+    qrTimerRef.current = setTimeout(async () => {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const upiLink = `upi://pay?pa=${encodeURIComponent(bank.upiId!)}&pn=${encodeURIComponent(bank.accountName ?? "NYS")}&am=${finalAmount}&cu=INR&tn=${encodeURIComponent("NYS दान")}`;
+        const dataUrl = await QRCode.toDataURL(upiLink, { width: 220, margin: 1, color: { dark: "#1c1917", light: "#ffffff" } });
+        setUpiQrDataUrl(dataUrl);
+      } catch { /* silently fallback to static QR */ }
+    }, 400);
+    return () => { if (qrTimerRef.current) clearTimeout(qrTimerRef.current); };
+  }, [finalAmount, bank?.upiId, bank?.accountName]);
 
   async function loadRazorpay(): Promise<boolean> {
     if (window.Razorpay) return true;
@@ -266,12 +285,22 @@ export function DonateForm({
                 ऊपर चुनी राशि <strong className="text-amber-900">{formatINR(finalAmount || 0)}</strong> ट्रांसफर करें, फिर "दान करें" दबाएँ।
               </p>
             </div>
-            {/* QR */}
-            {bank.upiQrUrl && (
+            {/* QR — dynamic (amount pre-filled) or static fallback */}
+            {(upiQrDataUrl || bank.upiQrUrl) && (
               <div className="flex shrink-0 flex-col items-center gap-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={bank.upiQrUrl} alt="UPI QR" className="h-44 w-44 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
-                <span className="text-[11px] font-medium text-stone-500">QR स्कैन करें</span>
+                <img
+                  src={upiQrDataUrl || bank.upiQrUrl!}
+                  alt="UPI QR"
+                  className="h-44 w-44 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm"
+                />
+                {upiQrDataUrl ? (
+                  <span className="text-[11px] font-bold text-green-700">
+                    ✅ {formatINR(finalAmount)} — QR स्कैन करें
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium text-stone-500">QR स्कैन करें</span>
+                )}
               </div>
             )}
           </div>

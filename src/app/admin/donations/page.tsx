@@ -7,6 +7,7 @@ import { Toolbar } from "@/components/admin/Toolbar";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { AddDonationModal } from "./AddDonationModal";
 import { DonationVerifyActions } from "./DonationActions";
+import { DonationEditModal } from "./DonationEditModal";
 
 export const dynamic = "force-dynamic";
 const PAGE = 20;
@@ -95,8 +96,8 @@ export default async function DonationsPage({
                       {d.status === "SUCCESS" && (
                         <Link href={`/receipt/${d.receiptNumber}`} target="_blank" className="text-xs font-medium text-saffron-700 hover:underline">रसीद ↗</Link>
                       )}
-                      {/* Approve / Reject for PAID or PENDING */}
-                      <DonationVerifyActions donationId={d.id} status={d.status} />
+                      {/* Edit + Approve/Reject for PAID or PENDING — single modal */}
+                      <DonationEditModal donationId={d.id} status={d.status} />
                     </div>
                   </td>
                 </tr>

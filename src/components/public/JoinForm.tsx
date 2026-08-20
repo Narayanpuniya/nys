@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowRight, ArrowLeft, Check, Upload, Eye, EyeOff } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
@@ -183,6 +183,25 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const selectedPlan = plans.find((p) => p.id === planId);
   const hasBank = !!(bank?.upiId || bank?.accountNumber);
 
+  // ── Dynamic UPI QR with plan amount pre-filled ──────────────────────────
+  const [upiQrDataUrl, setUpiQrDataUrl] = useState<string>("");
+  const qrTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const amount = selectedPlan?.amount;
+    if (!bank?.upiId || !amount) { setUpiQrDataUrl(""); return; }
+    if (qrTimerRef.current) clearTimeout(qrTimerRef.current);
+    qrTimerRef.current = setTimeout(async () => {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const upiLink = `upi://pay?pa=${encodeURIComponent(bank.upiId!)}&pn=${encodeURIComponent(bank.accountName ?? "NYS")}&am=${amount}&cu=INR&tn=${encodeURIComponent("NYS सदस्यता")}`;
+        const dataUrl = await QRCode.toDataURL(upiLink, { width: 220, margin: 1, color: { dark: "#1c1917", light: "#ffffff" } });
+        setUpiQrDataUrl(dataUrl);
+      } catch { /* fallback to static */ }
+    }, 300);
+    return () => { if (qrTimerRef.current) clearTimeout(qrTimerRef.current); };
+  }, [selectedPlan?.amount, bank?.upiId, bank?.accountName]);
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-center gap-2">
@@ -331,12 +350,22 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
                     ⚡ चुनी हुई योजना की राशि <strong>{formatINR(plans.find(p => p.id === planId)?.amount ?? 0)}</strong> ट्रांसफर करें, फिर अगले चरण में रसीद अपलोड करें।
                   </p>
                 </div>
-                {/* UPI QR */}
-                {bank?.upiQrUrl && (
+                {/* UPI QR — dynamic with plan amount pre-filled */}
+                {(upiQrDataUrl || bank?.upiQrUrl) && (
                   <div className="flex shrink-0 flex-col items-center gap-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={bank.upiQrUrl} alt="UPI QR" className="h-44 w-44 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
-                    <span className="text-[11px] font-semibold text-stone-500">UPI QR स्कैन करें</span>
+                    <img
+                      src={upiQrDataUrl || bank?.upiQrUrl!}
+                      alt="UPI QR"
+                      className="h-44 w-44 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm"
+                    />
+                    {upiQrDataUrl ? (
+                      <span className="text-[11px] font-bold text-green-700">
+                        ✅ {formatINR(selectedPlan?.amount ?? 0)} — QR स्कैन करें
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-stone-500">UPI QR स्कैन करें</span>
+                    )}
                   </div>
                 )}
               </div>
