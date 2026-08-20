@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateHi } from "@/lib/utils";
+import { DeletePostButton } from "@/components/admin/DeletePostButton";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,12 @@ export default async function AdminPostsPage() {
                 <td className="px-4 py-3">{p.category?.name ?? "—"}</td>
                 <td className="px-4 py-3"><Badge tone={tone[p.status] ?? "neutral"}>{p.status}</Badge></td>
                 <td className="px-4 py-3 text-stone-500">{formatDateHi(p.date)}</td>
-                <td className="px-4 py-3"><Link href={`/admin/posts/${p.id}`} className="text-saffron-700">संपादित करें</Link></td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={`/admin/posts/${p.id}`} className="text-saffron-700 text-xs font-medium hover:underline">संपादित करें</Link>
+                    <DeletePostButton id={p.id} title={p.title} />
+                  </div>
+                </td>
               </tr>
             ))}
             {posts.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-stone-400">कोई पोस्ट नहीं।</td></tr>}

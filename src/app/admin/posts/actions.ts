@@ -54,3 +54,15 @@ export async function deletePost(id: string) {
   await logAudit({ user, action: "UPDATE", entity: "Post", entityId: id, summary: "पोस्ट संग्रहित (archived)" });
   revalidatePath("/admin/posts");
 }
+
+export async function hardDeletePost(id: string) {
+  const user = await requirePermission(PERMISSIONS.POSTS_MANAGE);
+  const post = await prisma.post.findUnique({ where: { id }, select: { title: true } });
+  await prisma.post.delete({ where: { id } });
+  await logAudit({
+    user, action: "DELETE", entity: "Post", entityId: id,
+    summary: `पोस्ट स्थायी रूप से हटाया: ${post?.title ?? id}`,
+  });
+  revalidatePath("/admin/posts");
+  revalidatePath("/activities");
+}
