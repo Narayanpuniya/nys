@@ -3,6 +3,7 @@ import { Card, SectionHeading, Badge, inputClass } from "@/components/ui/primiti
 import { StatCard } from "@/components/admin/StatCard";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { addExpense } from "./actions";
+import { ImportFinanceModal } from "./ImportFinanceModal";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,10 @@ export default async function FinancePage({
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-extrabold text-ink">वित्त प्रबंधन</h1>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-extrabold text-ink">वित्त प्रबंधन</h1>
+        <ImportFinanceModal />
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="कुल आय" value={formatINR(incomeAll._sum.amount ?? 0)} icon="TrendingUp" tone="green" />

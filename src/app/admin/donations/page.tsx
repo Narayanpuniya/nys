@@ -7,6 +7,7 @@ import { Toolbar } from "@/components/admin/Toolbar";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { AddDonationModal } from "./AddDonationModal";
 import { DonationEditModal } from "./DonationEditModal";
+import { ImportDonationsModal } from "./ImportDonationsModal";
 
 export const dynamic = "force-dynamic";
 const PAGE = 20;
@@ -37,7 +38,10 @@ export default async function DonationsPage({
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-extrabold text-ink">दान प्रबंधन</h1>
-        <AddDonationModal />
+        <div className="flex items-center gap-2">
+          <ImportDonationsModal />
+          <AddDonationModal />
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
