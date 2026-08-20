@@ -91,19 +91,18 @@ export default async function DonationSuccessPage({
     );
   }
 
-  // ── PENDING / PAID — awaiting admin verification ──────────────────────────
+  // ── PENDING / PAID — manual bank transfer, awaiting admin verification ──────
+  // Note: Razorpay online payments now auto-approve → SUCCESS directly.
+  // This screen only shows for manual bank-transfer donations.
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 text-center">
       <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100">
         <Clock className="h-12 w-12 text-amber-600" />
       </div>
-      <h1 className="text-3xl font-extrabold text-ink">
-        {donation.status === "PAID" ? "भुगतान प्राप्त हुआ! 🙏" : "आवेदन प्राप्त हुआ! 🙏"}
-      </h1>
+      <h1 className="text-3xl font-extrabold text-ink">आवेदन प्राप्त हुआ! 🙏</h1>
       <p className="mt-2 text-stone-600">
-        {donation.status === "PAID"
-          ? "आपका भुगतान हमें मिल गया है। Admin सत्यापन के बाद रसीद जारी होगी।"
-          : "आपका दान आवेदन प्राप्त हो गया है। भुगतान के बाद Admin सत्यापन करेंगे।"}
+        आपका दान आवेदन मिल गया है। बैंक ट्रांसफर / UPI का स्क्रीनशॉट या रसीद
+        WhatsApp पर भेजें — Admin सत्यापन के बाद रसीद जारी होगी।
       </p>
 
       {/* Status badge */}
