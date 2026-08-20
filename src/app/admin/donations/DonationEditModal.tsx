@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, X, Loader2, Save, CheckCircle2, XCircle, ExternalLink, FileText } from "lucide-react";
+import { Pencil, X, Loader2, Save, CheckCircle2, XCircle, ExternalLink, FileText, Trash2 } from "lucide-react";
 import { formatINR } from "@/lib/utils";
 
 type Donation = {
@@ -42,6 +42,8 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
   const [loading, setLoading]   = useState(false);
   const [saving, setSaving]     = useState(false);
   const [acting, setActing]     = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError]       = useState("");
   const [saved, setSaved]       = useState(false);
 
@@ -104,6 +106,25 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
       setError("नेटवर्क त्रुटि — दोबारा प्रयास करें।");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setError(""); setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/donations/${donationId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setOpen(false);
+        router.refresh();
+      } else {
+        setError(data.error ?? "हटाया नहीं जा सका।");
+      }
+    } catch {
+      setError("नेटवर्क त्रुटि — दोबारा प्रयास करें।");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   }
 
@@ -336,6 +357,47 @@ export function DonationEditModal({ donationId, status }: { donationId: string; 
                     <p className="mt-2 text-center text-[11px] text-stone-400">
                       पहले बदलाव सेव करें, फिर स्वीकृत / अस्वीकृत करें
                     </p>
+                  </div>
+
+                  {/* ── Delete section ── */}
+                  <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                    <p className="mb-2 text-xs font-bold text-red-700 uppercase tracking-wider">
+                      ⚠️ गलत इंट्री हटाएँ
+                    </p>
+                    {donation.status === "SUCCESS" ? (
+                      <p className="text-[11px] text-red-600">
+                        सफल दान हटाया नहीं जा सकता। "अस्वीकृत करें" दबाने से VOID हो जाएगा।
+                      </p>
+                    ) : confirmDelete ? (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-red-800">
+                          क्या आप सच में <strong>{donation.receiptNumber}</strong> ({formatINR(donation.amount)}) हटाना चाहते हैं?
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleDelete}
+                            disabled={deleting}
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-red-600 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                          >
+                            {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                            हाँ, हटाएँ
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(false)}
+                            className="flex-1 rounded-xl border border-stone-300 bg-white py-2 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+                          >
+                            रद्द करें
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-white py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> इस दान को हटाएँ (Delete)
+                      </button>
+                    )}
                   </div>
 
                 </div>

@@ -81,7 +81,7 @@ export function DonateForm({
         }),
       });
       const text = await res.text();
-      let data: { ok?: boolean; error?: string; receiptNumber?: string; issues?: unknown } = {};
+      let data: { ok?: boolean; error?: string; receiptNumber?: string; donationId?: string; issues?: unknown } = {};
       try { data = text ? JSON.parse(text) : {}; } catch {
         setError("सर्वर उत्तर अमान्य है। बाद में प्रयास करें।");
         setLoading(false);
