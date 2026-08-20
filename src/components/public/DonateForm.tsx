@@ -70,6 +70,7 @@ export function DonateForm({
     setError("");
     if (finalAmount < 10) return setError("न्यूनतम राशि ₹10 है।");
     if (!anon && donorName.trim().length < 2) return setError("कृपया अपना नाम दर्ज करें।");
+    if (!proofFile) return setError("भुगतान का स्क्रीनशॉट / रसीद अपलोड करना अनिवार्य है।");
     setLoading(true);
     try {
       const res = await fetch("/api/donations", {
@@ -244,7 +245,7 @@ export function DonateForm({
           <div className="mt-3">
             <p className="mb-1.5 text-xs font-bold text-amber-800">
               📸 भुगतान स्क्रीनशॉट / रसीद अपलोड करें
-              <span className="ml-1 font-normal text-stone-500">(अनिवार्य नहीं, लेकिन जल्दी सत्यापन होगा)</span>
+              <span className="ml-1 font-semibold text-red-600">* अनिवार्य</span>
             </p>
             <input
               ref={fileInputRef}
@@ -278,11 +279,11 @@ export function DonateForm({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 bg-white py-3 text-sm font-semibold text-amber-700 transition hover:border-amber-400 hover:bg-amber-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-red-400 bg-red-50 py-3 text-sm font-semibold text-red-700 transition hover:border-red-500 hover:bg-red-100"
               >
                 <Camera className="h-4 w-4" />
                 <Upload className="h-4 w-4" />
-                स्क्रीनशॉट / फोटो चुनें
+                📸 स्क्रीनशॉट / फोटो चुनें (अनिवार्य)
               </button>
             )}
           </div>
