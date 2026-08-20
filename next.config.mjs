@@ -29,6 +29,16 @@ const nextConfig = {
     ];
   },
 
+  // /uploads/* → API route (Hostinger standalone mode में public/ serve नहीं होता)
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: "/api/_uploads/:path*",
+      },
+    ];
+  },
+
   // Experimental: Faster builds
   experimental: {
     optimizePackageImports: ["lucide-react", "recharts"],
