@@ -57,12 +57,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, donationId: donation.id, receiptNumber });
   } catch (err) {
     console.error("[POST /api/donations]", err);
-    const detail = err instanceof Error ? err.message : "unknown";
+    const detail = err instanceof Error ? err.message : String(err);
+    const isUnique = detail.includes("Unique constraint") || detail.includes("P2002");
+    const isConn   = detail.includes("P1001") || detail.includes("ECONNREFUSED") || detail.includes("connect");
     return NextResponse.json(
       {
-        error: detail.includes("Unique constraint")
+        error: isUnique
           ? "रसीद नंबर टकराव — दोबारा प्रयास करें।"
-          : `दान शुरू नहीं हो सका। ${detail.slice(0, 160)}`,
+          : isConn
+          ? "डेटाबेस से कनेक्ट नहीं हो सका। बाद में प्रयास करें।"
+          : `दान दर्ज नहीं हो सका। (${detail.slice(0, 120)})`,
       },
       { status: 500 },
     );

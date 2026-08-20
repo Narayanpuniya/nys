@@ -77,14 +77,19 @@ export function DonateForm({
         }),
       });
       const text = await res.text();
-      let data: { ok?: boolean; error?: string; receiptNumber?: string } = {};
+      let data: { ok?: boolean; error?: string; receiptNumber?: string; issues?: unknown } = {};
       try { data = text ? JSON.parse(text) : {}; } catch {
-        setError("सर्वर उत्तर अमान्य है।");
+        setError("सर्वर उत्तर अमान्य है। बाद में प्रयास करें।");
         setLoading(false);
         return;
       }
-      if (!res.ok || !data.ok) {
+      if (!res.ok) {
         setError(data.error || `दान दर्ज नहीं हो सका (${res.status})।`);
+        setLoading(false);
+        return;
+      }
+      if (!data.receiptNumber) {
+        setError("रसीद संख्या नहीं मिली। दोबारा प्रयास करें।");
         setLoading(false);
         return;
       }

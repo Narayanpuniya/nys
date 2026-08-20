@@ -65,27 +65,27 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md" style={{ isolation: "isolate" }}>
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 lg:gap-6 lg:px-6 lg:py-3">
+      <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-3 py-2 lg:gap-3 lg:px-4 lg:py-2">
 
         {/* ── Logo + Org name ── */}
-        <Link href="/" aria-label="NYS Home" className="flex min-w-0 flex-1 items-center gap-2 lg:shrink-0 lg:flex-none lg:gap-3">
-          {/* Logo circle — smaller on mobile */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-saffron-200 bg-saffron-50 lg:h-14 lg:w-14">
+        <Link href="/" aria-label="NYS Home" className="flex min-w-0 flex-1 items-center gap-2 lg:shrink-0 lg:flex-none">
+          {/* Logo circle */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-saffron-200 bg-saffron-50 lg:h-12 lg:w-12">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt={orgName ?? "NYS"} className="h-8 w-8 object-contain lg:h-12 lg:w-12" />
+              <img src={logoUrl} alt={orgName ?? "NYS"} className="h-8 w-8 object-contain lg:h-10 lg:w-10" />
             ) : (
-              <LogoMark className="h-7 w-7 lg:h-10 lg:w-10" />
+              <LogoMark className="h-7 w-7 lg:h-9 lg:w-9" />
             )}
           </div>
-          {/* Org name — 1 line truncated on mobile, full on desktop */}
+          {/* Org name */}
           <div className="min-w-0">
-            <div className="truncate text-sm font-extrabold leading-tight text-maroon-800 lg:text-lg">
+            <div className="truncate text-sm font-extrabold leading-tight text-maroon-800 lg:text-base">
               {orgName ?? dict.orgName}
             </div>
-            <div className="hidden text-[11px] text-stone-500 sm:block">{orgPlace ?? dict.orgPlace}</div>
+            <div className="hidden text-[10px] text-stone-500 lg:block">{orgPlace ?? dict.orgPlace}</div>
             {registrationNo && (
-              <div className="hidden text-[10px] font-semibold text-saffron-700 sm:block">
+              <div className="hidden text-[9px] font-semibold text-saffron-700 lg:block">
                 Reg. No. {registrationNo}
               </div>
             )}
@@ -93,20 +93,20 @@ export function Header({
         </Link>
 
         {/* ── Nav (center) — desktop only ── */}
-        <nav className="hidden flex-1 items-center justify-center gap-0.5 xl:flex">
+        <nav className="hidden flex-1 items-center justify-center gap-0 xl:flex">
           {PUBLIC_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "relative px-3 py-2 text-sm font-medium text-stone-700 transition hover:text-maroon-800",
-                pathname === item.href && "text-maroon-800 font-bold",
+                "relative whitespace-nowrap px-2 py-2 text-[12px] font-medium text-stone-700 transition hover:text-maroon-800",
+                pathname === item.href && "font-bold text-maroon-800",
               )}
             >
               {dict[item.labelKey]}
               {pathname === item.href && (
                 <span
-                  className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full"
+                  className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
                   style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }}
                 />
               )}
@@ -115,39 +115,39 @@ export function Header({
         </nav>
 
         {/* ── Desktop right buttons ── */}
-        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
           <LanguageSwitcher locale={locale} />
 
-          {/* Downloads dropdown */}
+          {/* Downloads dropdown — icon + label compact */}
           <div className="relative" ref={dlRef}>
             <button
               type="button"
               onClick={() => setDlOpen((v) => !v)}
-              className="flex items-center gap-1 rounded-full border-2 border-stone-300 px-4 py-1.5 text-sm font-bold text-stone-700 transition hover:border-saffron-400 hover:text-saffron-800"
+              className="flex items-center gap-1 rounded-full border border-stone-300 px-2.5 py-1 text-[11px] font-bold text-stone-700 transition hover:border-saffron-400 hover:text-saffron-800"
             >
-              <Download className="h-3.5 w-3.5" />
-              {dict.nav_downloads}
-              <ChevronDown className={`h-3 w-3 transition-transform ${dlOpen ? "rotate-180" : ""}`} />
+              <Download className="h-3 w-3" />
+              <span className="hidden 2xl:inline">{dict.nav_downloads}</span>
+              <ChevronDown className={`h-2.5 w-2.5 transition-transform ${dlOpen ? "rotate-180" : ""}`} />
             </button>
             {dlOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-stone-100 bg-white py-2 shadow-xl">
-                <p className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">दस्तावेज़ डाउनलोड</p>
+              <div className="absolute right-0 top-full z-50 mt-2 w-52 rounded-2xl border border-stone-100 bg-white py-2 shadow-xl">
+                <p className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">डाउनलोड</p>
                 <Link href="/downloads#idcard" onClick={() => setDlOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-700">
+                  className="flex items-center gap-3 px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-blue-50 hover:text-blue-700">
                   <CreditCard className="h-4 w-4 text-blue-500" /> {dict.nav_dl_idcard}
                 </Link>
                 <Link href="/downloads#cert" onClick={() => setDlOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-green-50 hover:text-green-700">
+                  className="flex items-center gap-3 px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-green-50 hover:text-green-700">
                   <Award className="h-4 w-4 text-green-500" /> {dict.nav_dl_cert}
                 </Link>
                 <Link href="/downloads#receipt" onClick={() => setDlOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-700">
+                  className="flex items-center gap-3 px-4 py-2 text-[13px] font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-700">
                   <Receipt className="h-4 w-4 text-amber-500" /> {dict.nav_dl_receipt}
                 </Link>
                 <div className="mx-4 mt-1 border-t border-stone-100 pt-1">
                   <Link href="/downloads" onClick={() => setDlOpen(false)}
-                    className="flex items-center gap-2 px-0 py-2 text-xs font-semibold text-saffron-700 hover:underline">
-                    सभी डाउनलोड देखें →
+                    className="flex items-center gap-2 px-0 py-1.5 text-xs font-semibold text-saffron-700 hover:underline">
+                    सभी डाउनलोड →
                   </Link>
                 </div>
               </div>
@@ -156,20 +156,20 @@ export function Header({
 
           <Link
             href="/login"
-            className="rounded-full border-2 border-maroon-700 px-4 py-1.5 text-sm font-bold text-maroon-800 transition hover:bg-maroon-50"
+            className="whitespace-nowrap rounded-full border border-maroon-600 px-3 py-1 text-[11px] font-bold text-maroon-800 transition hover:bg-maroon-50"
           >
             {dict.nav_login}
           </Link>
           <Link
             href="/donate"
-            className="rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+            className="whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold text-white shadow-md transition hover:opacity-90"
             style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
           >
             {dict.nav_donate}
           </Link>
           <Link
             href="/join"
-            className="rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+            className="whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold text-white shadow-md transition hover:opacity-90"
             style={{ background: "linear-gradient(135deg, #991b1b, #7f1d1d)" }}
           >
             {dict.nav_join}
