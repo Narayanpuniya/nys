@@ -335,7 +335,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
                 {bank?.upiQrUrl && (
                   <div className="flex shrink-0 flex-col items-center gap-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={bank.upiQrUrl} alt="UPI QR" className="h-32 w-32 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
+                    <img src={bank.upiQrUrl} alt="UPI QR" className="h-44 w-44 rounded-xl border border-amber-200 bg-white object-contain p-1 shadow-sm" />
                     <span className="text-[11px] font-semibold text-stone-500">UPI QR स्कैन करें</span>
                   </div>
                 )}

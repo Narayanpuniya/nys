@@ -74,7 +74,7 @@ export default async function DonatePage() {
               </dl>
               {s.bank.upiQrUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.bank.upiQrUrl} alt="UPI QR" className="mt-3 mx-auto h-36 w-36 object-contain" />
+                <img src={s.bank.upiQrUrl} alt="UPI QR" className="mt-4 mx-auto h-56 w-56 object-contain rounded-xl border border-amber-200 bg-white p-1 shadow-sm" />
               )}
             </Card>
           )}
