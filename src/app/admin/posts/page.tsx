@@ -12,7 +12,7 @@ const tone: Record<string, "green" | "amber" | "neutral" | "blue"> = {
 };
 
 export default async function AdminPostsPage() {
-  const posts = await prisma.post.findMany({ include: { category: true }, orderBy: { createdAt: "desc" }, take: 100 });
+  const posts = await prisma.post.findMany({ include: { category: true }, orderBy: { date: "desc" }, take: 100 });
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
