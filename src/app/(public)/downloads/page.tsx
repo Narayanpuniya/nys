@@ -4,12 +4,51 @@ import { useState } from "react";
 import { CreditCard, Award, Receipt, Download, ShieldCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ── Shared input style ────────────────────────────────────────────────────────
+// ── Current year for prefix ───────────────────────────────────────────────────
+const YEAR = new Date().getFullYear();
+const MEMBER_PREFIX = `NYS-${YEAR}-`;
+const RECEIPT_PREFIX = `DON-${YEAR}-`;
+
+// ── Shared styles ─────────────────────────────────────────────────────────────
 const inputCls =
+  "flex-1 min-w-0 rounded-r-xl border border-l-0 border-stone-300 bg-stone-50 px-3 py-2.5 text-sm text-stone-800 placeholder-stone-400 outline-none focus:border-saffron-400 focus:ring-2 focus:ring-saffron-100 transition";
+
+const plainInputCls =
   "w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-2.5 text-sm text-stone-800 placeholder-stone-400 outline-none focus:border-saffron-400 focus:ring-2 focus:ring-saffron-100 transition";
 
+// ── Prefix input component ────────────────────────────────────────────────────
+function PrefixInput({
+  prefix,
+  value,
+  onChange,
+  placeholder,
+}: {
+  prefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex overflow-hidden rounded-xl border border-stone-300 focus-within:border-saffron-400 focus-within:ring-2 focus-within:ring-saffron-100 transition">
+      <span className="flex items-center rounded-l-xl border-r border-stone-300 bg-saffron-50 px-3 py-2.5 text-sm font-bold text-saffron-800 select-none whitespace-nowrap">
+        {prefix}
+      </span>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value.replace(/\D/g, ""))}
+        placeholder={placeholder ?? "00001"}
+        inputMode="numeric"
+        maxLength={10}
+        className="flex-1 min-w-0 rounded-r-xl bg-stone-50 px-3 py-2.5 text-sm text-stone-800 placeholder-stone-400 outline-none"
+      />
+    </div>
+  );
+}
+
 // ── Verify API call ───────────────────────────────────────────────────────────
-async function callVerify(body: Record<string, string>): Promise<{ ok?: boolean; url?: string; name?: string; error?: string; remaining?: number }> {
+async function callVerify(body: Record<string, string>): Promise<{
+  ok?: boolean; url?: string; name?: string; error?: string; remaining?: number;
+}> {
   const res = await fetch("/api/downloads/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -19,7 +58,7 @@ async function callVerify(body: Record<string, string>): Promise<{ ok?: boolean;
   try { return text ? JSON.parse(text) : {}; } catch { return { error: "सर्वर उत्तर अमान्य है।" }; }
 }
 
-// ── Single download card ─────────────────────────────────────────────────────
+// ── Single download card ──────────────────────────────────────────────────────
 function DownloadCard({
   icon: Icon,
   title,
@@ -45,9 +84,9 @@ function DownloadCard({
   );
 }
 
-// ── ID Card Card ──────────────────────────────────────────────────────────────
+// ── ID Card ───────────────────────────────────────────────────────────────────
 function IdCardDownload() {
-  const [code, setCode]     = useState("");
+  const [num, setNum]       = useState("");
   const [mobile, setMobile] = useState("");
   const [dob, setDob]       = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,8 +96,12 @@ function IdCardDownload() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!code.trim() || !mobile.trim() || !dob.trim()) { setError("सदस्य कोड, मोबाइल नंबर और जन्म तारीख — तीनों आवश्यक हैं।"); return; }
+    if (!num.trim() || !mobile.trim() || !dob.trim()) {
+      setError("सदस्य कोड, मोबाइल नंबर और जन्म तारीख — तीनों आवश्यक हैं।");
+      return;
+    }
     setLoading(true);
+    const code = `${MEMBER_PREFIX}${num.padStart(5, "0")}`;
     const data = await callVerify({ type: "idcard", code, mobile, dob });
     setLoading(false);
     if (data.ok && data.url) {
@@ -74,15 +117,16 @@ function IdCardDownload() {
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="mb-1 block text-xs font-semibold text-stone-600">सदस्य कोड <span className="text-red-500">*</span></label>
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder="जैसे: NYS-2026-00001" className={inputCls} />
+          <PrefixInput prefix={MEMBER_PREFIX} value={num} onChange={setNum} placeholder="00001" />
+          <p className="mt-1 text-[11px] text-stone-400">सिर्फ नंबर डालें — {MEMBER_PREFIX} अपने आप लगेगा।</p>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल नंबर <span className="text-red-500">*</span></label>
-          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल" inputMode="tel" maxLength={15} className={inputCls} />
+          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल <span className="text-red-500">*</span></label>
+          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल नंबर" inputMode="tel" maxLength={15} className={plainInputCls} />
         </div>
         <div>
           <label className="mb-1 block text-xs font-semibold text-stone-600">जन्म तारीख <span className="text-red-500">*</span></label>
-          <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={inputCls} />
+          <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={plainInputCls} />
         </div>
         {error   && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
         {success && <p className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">{success}</p>}
@@ -97,9 +141,9 @@ function IdCardDownload() {
   );
 }
 
-// ── Certificate Card ──────────────────────────────────────────────────────────
+// ── Certificate ───────────────────────────────────────────────────────────────
 function CertDownload() {
-  const [code, setCode]     = useState("");
+  const [num, setNum]       = useState("");
   const [mobile, setMobile] = useState("");
   const [dob, setDob]       = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,8 +153,12 @@ function CertDownload() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!code.trim() || !mobile.trim() || !dob.trim()) { setError("सदस्य कोड, मोबाइल नंबर और जन्म तारीख — तीनों आवश्यक हैं।"); return; }
+    if (!num.trim() || !mobile.trim() || !dob.trim()) {
+      setError("सदस्य कोड, मोबाइल नंबर और जन्म तारीख — तीनों आवश्यक हैं।");
+      return;
+    }
     setLoading(true);
+    const code = `${MEMBER_PREFIX}${num.padStart(5, "0")}`;
     const data = await callVerify({ type: "cert", code, mobile, dob });
     setLoading(false);
     if (data.ok && data.url) {
@@ -126,15 +174,16 @@ function CertDownload() {
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="mb-1 block text-xs font-semibold text-stone-600">सदस्य कोड <span className="text-red-500">*</span></label>
-          <input value={code} onChange={e => setCode(e.target.value)} placeholder="जैसे: NYS-2026-00001" className={inputCls} />
+          <PrefixInput prefix={MEMBER_PREFIX} value={num} onChange={setNum} placeholder="00001" />
+          <p className="mt-1 text-[11px] text-stone-400">सिर्फ नंबर डालें — {MEMBER_PREFIX} अपने आप लगेगा।</p>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल नंबर <span className="text-red-500">*</span></label>
-          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल" inputMode="tel" maxLength={15} className={inputCls} />
+          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल <span className="text-red-500">*</span></label>
+          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल नंबर" inputMode="tel" maxLength={15} className={plainInputCls} />
         </div>
         <div>
           <label className="mb-1 block text-xs font-semibold text-stone-600">जन्म तारीख <span className="text-red-500">*</span></label>
-          <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={inputCls} />
+          <input type="date" value={dob} onChange={e => setDob(e.target.value)} className={plainInputCls} />
         </div>
         {error   && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
         {success && <p className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">{success}</p>}
@@ -149,20 +198,21 @@ function CertDownload() {
   );
 }
 
-// ── Receipt Card ──────────────────────────────────────────────────────────────
+// ── Donation Receipt ──────────────────────────────────────────────────────────
 function ReceiptDownload() {
-  const [receipt, setReceipt] = useState("");
-  const [mobile, setMobile]   = useState("");
+  const [num, setNum]       = useState("");
+  const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError]   = useState("");
   const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!receipt.trim()) { setError("रसीद संख्या आवश्यक है।"); return; }
+    if (!num.trim()) { setError("रसीद संख्या आवश्यक है।"); return; }
     setLoading(true);
-    const data = await callVerify({ type: "receipt", receiptNumber: receipt, mobile });
+    const receiptNumber = `${RECEIPT_PREFIX}${num.padStart(5, "0")}`;
+    const data = await callVerify({ type: "receipt", receiptNumber, mobile });
     setLoading(false);
     if (data.ok && data.url) {
       setSuccess(`✅ सत्यापन सफल — ${data.name ?? ""}`);
@@ -177,12 +227,12 @@ function ReceiptDownload() {
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="mb-1 block text-xs font-semibold text-stone-600">रसीद संख्या <span className="text-red-500">*</span></label>
-          <input value={receipt} onChange={e => setReceipt(e.target.value)} placeholder="जैसे: DON-2026-00037" className={inputCls} />
-          <p className="mt-1 text-[11px] text-stone-400">भुगतान के बाद स्क्रीन पर दिखी थी।</p>
+          <PrefixInput prefix={RECEIPT_PREFIX} value={num} onChange={setNum} placeholder="00037" />
+          <p className="mt-1 text-[11px] text-stone-400">सिर्फ नंबर डालें — {RECEIPT_PREFIX} अपने आप लगेगा।</p>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल नंबर <span className="text-stone-400 font-normal">(यदि दिया था)</span></label>
-          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल" inputMode="tel" maxLength={15} className={inputCls} />
+          <label className="mb-1 block text-xs font-semibold text-stone-600">पंजीकृत मोबाइल <span className="text-stone-400 font-normal">(यदि दिया था)</span></label>
+          <input value={mobile} onChange={e => setMobile(e.target.value)} placeholder="10 अंकों का मोबाइल नंबर" inputMode="tel" maxLength={15} className={plainInputCls} />
         </div>
         {error   && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
         {success && <p className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">{success}</p>}
@@ -208,9 +258,7 @@ export default function DownloadsPage() {
           <Download className="h-7 w-7 text-white" />
         </div>
         <h1 className="text-3xl font-extrabold text-stone-800">डाउनलोड केंद्र</h1>
-        <p className="mt-2 text-stone-500">
-          सुरक्षित सत्यापन के बाद अपना दस्तावेज़ डाउनलोड करें।
-        </p>
+        <p className="mt-2 text-stone-500">सुरक्षित सत्यापन के बाद अपना दस्तावेज़ डाउनलोड करें।</p>
       </div>
 
       {/* Security notice */}
@@ -219,7 +267,7 @@ export default function DownloadsPage() {
         <div>
           <p className="font-semibold">🔒 सुरक्षित सत्यापन</p>
           <p className="mt-0.5 text-xs text-green-700">
-            आपका डेटा सुरक्षित है। दस्तावेज़ केवल पंजीकृत मोबाइल/कोड से ही डाउनलोड हो सकता है।
+            आपका डेटा सुरक्षित है। दस्तावेज़ केवल पंजीकृत मोबाइल व जन्म तारीख मिलने पर ही डाउनलोड होगा।
             5 गलत प्रयास के बाद 15 मिनट के लिए अवरुद्ध।
           </p>
         </div>
@@ -233,11 +281,11 @@ export default function DownloadsPage() {
       </div>
 
       {/* Help */}
-      <div className="mt-8 rounded-2xl border border-stone-100 bg-stone-50 p-5 text-sm text-stone-600">
-        <p className="font-semibold text-stone-700">📌 सहायता</p>
+      <div className="mt-8 rounded-2xl border border-stone-100 bg-stone-50 p-5">
+        <p className="font-semibold text-stone-700 text-sm">📌 सहायता</p>
         <ul className="mt-2 list-inside list-disc space-y-1.5 text-stone-500 text-xs">
-          <li>सदस्य कोड <strong>अनुमोदन ईमेल / SMS</strong> में मिला होगा।</li>
-          <li>रसीद संख्या <strong>भुगतान के बाद की स्क्रीन</strong> पर थी (DON-YYYY-XXXXX)।</li>
+          <li>सदस्य कोड में <strong>सिर्फ अंत के नंबर</strong> डालें — <strong className="text-saffron-700">{MEMBER_PREFIX}</strong> अपने आप जुड़ जाएगा।</li>
+          <li>रसीद में भी <strong>सिर्फ अंत के नंबर</strong> डालें — <strong className="text-saffron-700">{RECEIPT_PREFIX}</strong> अपने आप जुड़ेगा।</li>
           <li>मोबाइल नंबर वही डालें जो <strong>फॉर्म भरते समय</strong> दिया था।</li>
           <li>कोई समस्या हो तो{" "}
             <a href="/contact" className="font-semibold text-saffron-700 hover:underline">संपर्क करें →</a>
