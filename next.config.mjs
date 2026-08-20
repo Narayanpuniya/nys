@@ -30,11 +30,12 @@ const nextConfig = {
   },
 
   // /uploads/* → API route (Hostinger standalone mode में public/ serve नहीं होता)
+  // NOTE: _uploads folder was renamed to uploads-serve (underscore prefix = private in Next.js)
   async rewrites() {
     return [
       {
         source: "/uploads/:path*",
-        destination: "/api/_uploads/:path*",
+        destination: "/api/uploads-serve/:path*",
       },
     ];
   },
