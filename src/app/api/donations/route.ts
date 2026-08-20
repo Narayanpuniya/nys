@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { donationSchema } from "@/lib/validation";
-import { createOrder, isMockMode } from "@/lib/payments";
 import { generateDonationReceipt } from "@/lib/sequence";
 
-// STEP 1: दान शुरू करें — PENDING donation + payment order बनाएँ।
+// POST /api/donations
+// UPI/Bank-transfer flow: create PENDING donation, admin verifies later.
+// No Razorpay — payment happens externally (UPI QR scan / bank transfer).
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
@@ -28,7 +29,6 @@ export async function POST(req: NextRequest) {
     }
 
     const receiptNumber = await generateDonationReceipt();
-    const order = await createOrder(d.amount, receiptNumber);
     const donorName = d.isAnonymous ? "गुमनाम दानदाता" : d.donorName;
 
     const donor = await prisma.donor.create({
@@ -48,21 +48,13 @@ export async function POST(req: NextRequest) {
         amount: d.amount,
         purpose: campaignId ? "CAMPAIGN" : d.purpose,
         campaignId,
-        mode: "ONLINE",
+        mode: d.mobile ? "UPI" : "BANK_TRANSFER",
         status: "PENDING",
         message: d.message || null,
-        gatewayOrderId: order.orderId,
       },
     });
 
-    return NextResponse.json({
-      donationId: donation.id,
-      receiptNumber,
-      orderId: order.orderId,
-      amount: order.amount,
-      mock: isMockMode(),
-      razorpayKey: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || null,
-    });
+    return NextResponse.json({ ok: true, donationId: donation.id, receiptNumber });
   } catch (err) {
     console.error("[POST /api/donations]", err);
     const detail = err instanceof Error ? err.message : "unknown";
