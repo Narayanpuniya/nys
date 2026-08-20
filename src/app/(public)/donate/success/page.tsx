@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Clock, AlertCircle, Download } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Download, Printer } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
@@ -141,7 +141,14 @@ export default async function DonationSuccessPage({
         </Link>
       </div>
 
-      <div className="mt-6 flex justify-center gap-3">
+      {/* Download pending receipt */}
+      <div className="mt-4 flex justify-center">
+        <ButtonLink href={`/receipt/${donation.receiptNumber}`} target="_blank" variant="outline">
+          <Download className="h-4 w-4" /> पावती रसीद डाउनलोड करें
+        </ButtonLink>
+      </div>
+
+      <div className="mt-4 flex justify-center gap-3">
         <ButtonLink href="/campaigns" variant="outline">अभियान देखें</ButtonLink>
         <ButtonLink href="/" variant="ghost">होम पर जाएँ</ButtonLink>
       </div>

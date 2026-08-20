@@ -21,7 +21,9 @@ export default async function ReceiptPage({
     getSettings(),
   ]);
 
-  if (!donation || donation.status !== "SUCCESS") notFound();
+  if (!donation || donation.status === "FAILED" || donation.status === "VOID") notFound();
+
+  const isPending = donation.status === "PENDING" || donation.status === "PAID";
 
   const purposeLabel =
     donation.campaign?.title ??
@@ -45,8 +47,30 @@ export default async function ReceiptPage({
           <PrintButton />
         </div>
 
+        {/* PENDING banner */}
+        {isPending && (
+          <div className="no-print mb-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            ⏳ यह <strong>प्रारंभिक पावती रसीद</strong> है। Admin सत्यापन के बाद आपको ऑफिशियल रसीद जारी होगी।
+          </div>
+        )}
+
         {/* ─── Receipt Card ─── */}
         <div className="print-page relative overflow-hidden rounded-2xl bg-white shadow-xl print:shadow-none">
+
+          {/* PENDING diagonal watermark */}
+          {isPending && (
+            <div
+              className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center select-none"
+              aria-hidden="true"
+            >
+              <div
+                className="text-6xl font-black tracking-widest text-amber-400"
+                style={{ opacity: 0.12, transform: "rotate(-35deg)", whiteSpace: "nowrap" }}
+              >
+                सत्यापन लंबित
+              </div>
+            </div>
+          )}
 
           {/* NYS Watermark Logo */}
           {s.logoUrl && (
@@ -75,8 +99,12 @@ export default async function ReceiptPage({
               </div>
               <div className="text-right">
                 <div className="rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 backdrop-blur-sm">
-                  <div className="text-sm font-bold uppercase tracking-widest text-white">दान रसीद</div>
-                  <div className="text-[10px] tracking-wider text-orange-100">DONATION RECEIPT</div>
+                  <div className="text-sm font-bold uppercase tracking-widest text-white">
+                    {isPending ? "पावती रसीद" : "दान रसीद"}
+                  </div>
+                  <div className="text-[10px] tracking-wider text-orange-100">
+                    {isPending ? "ACKNOWLEDGEMENT" : "DONATION RECEIPT"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -91,7 +119,7 @@ export default async function ReceiptPage({
             {/* Receipt details grid */}
             <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
               <Row label="रसीद संख्या" value={donation.receiptNumber} accent />
-              <Row label="दिनांक" value={formatDateHi(donation.paidAt)} />
+              <Row label="दिनांक" value={formatDateHi(donation.paidAt ?? donation.createdAt)} />
               <Row label="दानदाता" value={donation.donorName} />
               <Row label="भुगतान मोड" value={donation.mode} />
               <Row label="उद्देश्य" value={purposeLabel} />
