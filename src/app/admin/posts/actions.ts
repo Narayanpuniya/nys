@@ -16,6 +16,9 @@ export async function savePost(formData: FormData) {
 
   const data = {
     title,
+    headline: String(formData.get("headline") ?? "").trim() || null,
+    reporter: String(formData.get("reporter") ?? "").trim() || null,
+    priority: String(formData.get("priority") ?? "NORMAL"),
     categoryId: String(formData.get("categoryId") ?? "") || null,
     location: String(formData.get("location") ?? "") || null,
     excerpt: String(formData.get("excerpt") ?? "") || null,

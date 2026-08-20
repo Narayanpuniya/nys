@@ -94,6 +94,20 @@ body {
   animation: nys-shimmer 1.5s infinite;
 }
 
+/* News ticker scroll animation */
+@keyframes nys-ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.nys-ticker-track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: nys-ticker 30s linear infinite;
+}
+/* hide pill-filter scrollbar on category row */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
 /* Print styles for ID cards / certificates / receipts */
 @media print {
   .no-print { display: none !important; }

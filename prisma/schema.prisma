@@ -327,7 +327,10 @@ model Category {
 model Post {
   id           String   @id @default(cuid())
   slug         String   @unique
-  title        String
+  title        String                        // Internal/admin title
+  headline     String?                       // Public news headline (falls back to title)
+  reporter     String?                       // Byline / reporter name
+  priority     String   @default("NORMAL")  // NORMAL | IMPORTANT | BREAKING
   categoryId   String?
   date         DateTime @default(now())
   location     String?
