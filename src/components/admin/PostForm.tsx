@@ -93,8 +93,7 @@ export function PostForm({
         <Field label="प्राथमिकता">
           <select name="priority" defaultValue={post?.priority ?? "NORMAL"} className={inputClass}>
             <option value="NORMAL">सामान्य</option>
-            <option value="IMPORTANT">महत्वपूर्ण</option>
-            <option value="BREAKING">Breaking News</option>
+            <option value="IMPORTANT">विशेष प्राथमिकता</option>
           </select>
         </Field>
       </div>

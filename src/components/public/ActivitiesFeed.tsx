@@ -11,16 +11,15 @@ import { cn, formatDateHi } from "@/lib/utils";
 type Category = { slug: string; name: string; color?: string | null };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// News Ticker — CSS-only animation, no JS interaction
+// Activity Ticker — CSS-only scrolling strip of recent activity titles
 // ─────────────────────────────────────────────────────────────────────────────
-function NewsTicker({ titles }: { titles: string[] }) {
+function ActivityTicker({ titles }: { titles: string[] }) {
   if (titles.length < 3) return null;
   const text = titles.join("   •   ");
-  // Double the text so the loop is seamless
   return (
     <div className="mb-3 flex items-stretch overflow-hidden rounded-lg border border-stone-100 bg-stone-50">
-      <div className="flex shrink-0 items-center rounded-l-lg bg-red-600 px-2.5 py-1.5">
-        <span className="text-[10px] font-black uppercase tracking-widest text-white">● LIVE</span>
+      <div className="flex shrink-0 items-center rounded-l-lg bg-saffron-600 px-2.5 py-1.5">
+        <span className="text-[10px] font-black uppercase tracking-widest text-white">ताज़ा</span>
       </div>
       <div className="relative min-w-0 flex-1 overflow-hidden py-1.5">
         <div className="nys-ticker-track text-[11px] font-medium text-stone-600">
@@ -44,7 +43,7 @@ function FeaturedCard({ post }: { post: PostCardData }) {
       <article className="overflow-hidden rounded-xl border-2 border-saffron-200 bg-white shadow-sm">
         {/* Top ribbon */}
         <div className="flex items-center gap-2 border-b border-saffron-100 bg-saffron-50 px-3 py-1.5">
-          <span className="text-[10px] font-black uppercase tracking-widest text-saffron-700">⭐ विशेष रिपोर्ट</span>
+          <span className="text-[10px] font-bold text-saffron-700">⭐ विशेष</span>
           {post.categoryName && (
             <span
               className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold"
@@ -68,7 +67,7 @@ function FeaturedCard({ post }: { post: PostCardData }) {
               />
             ) : (
               <div className="flex h-full items-center justify-center">
-                <span className="text-5xl opacity-20">📰</span>
+                <span className="text-5xl opacity-20">🪔</span>
               </div>
             )}
           </div>
@@ -97,7 +96,7 @@ function FeaturedCard({ post }: { post: PostCardData }) {
                 )}
               </div>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron-700 transition-all group-hover:gap-1.5">
-                {reporter} · पूरा समाचार <ArrowRight className="h-3 w-3" />
+                {reporter} · पूरा पढ़ें <ArrowRight className="h-3 w-3" />
               </span>
             </div>
           </div>
@@ -216,13 +215,13 @@ export function ActivitiesFeed({
     ? posts.filter((p) => p.slug !== featuredPost.slug)
     : posts;
 
-  // Ticker: first 10 headlines
+  // Ticker titles
   const tickerTitles = posts.slice(0, 10).map((p) => p.headline?.trim() || p.title);
 
   return (
     <div>
-      {/* News ticker */}
-      <NewsTicker titles={tickerTitles} />
+      {/* Activity ticker */}
+      <ActivityTicker titles={tickerTitles} />
 
       <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm">
 
@@ -235,14 +234,16 @@ export function ActivitiesFeed({
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="NYS गतिविधि खोजें..."
-                className="w-full rounded-xl border border-stone-200 bg-white py-2 pl-8 pr-3 text-[13px] text-stone-800 outline-none placeholder:text-stone-400 focus:border-saffron-400 focus:ring-1 focus:ring-saffron-100"
+                placeholder="गतिविधि खोजें..."
+                className="w-full rounded-xl border border-stone-200 bg-white py-2 pl-8 pr-8 text-[13px] text-stone-800 outline-none placeholder:text-stone-400 focus:border-saffron-400 focus:ring-1 focus:ring-saffron-100"
               />
               {q && (
                 <button
                   onClick={() => setQ("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
-                >✕</button>
+                >
+                  ✕
+                </button>
               )}
             </div>
           </div>
@@ -254,7 +255,9 @@ export function ActivitiesFeed({
         <div ref={scrollRef} className={cn("nys-scroll overflow-y-auto px-4 py-3", height)}>
           {initial ? (
             <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
             </div>
           ) : posts.length === 0 ? (
             <EmptyState message="इस श्रेणी में कोई गतिविधि उपलब्ध नहीं है।" />
@@ -267,14 +270,16 @@ export function ActivitiesFeed({
                   {regularPosts.length > 0 && (
                     <div className="my-3 flex items-center gap-2">
                       <div className="h-px flex-1 bg-stone-100" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">ताज़ा खबरें</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                        नवीनतम
+                      </span>
                       <div className="h-px flex-1 bg-stone-100" />
                     </div>
                   )}
                 </>
               )}
 
-              {/* Regular news cards */}
+              {/* Regular cards */}
               <div className="space-y-2.5">
                 {regularPosts.map((p) => (
                   <PostCard key={p.slug} post={p} />
@@ -293,7 +298,7 @@ export function ActivitiesFeed({
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-saffron-200 bg-saffron-50 py-2.5 text-[13px] font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-60"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  और खबरें देखें ({total - posts.length} शेष)
+                  और देखें ({total - posts.length} शेष)
                 </button>
               )}
             </>
@@ -307,7 +312,7 @@ export function ActivitiesFeed({
             href="/activities"
             className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-saffron-700 transition-all hover:gap-1"
           >
-            सभी खबरें <ArrowRight className="h-3 w-3" />
+            सभी गतिविधियाँ <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>

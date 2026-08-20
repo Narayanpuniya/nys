@@ -55,8 +55,6 @@ export default async function PostDetail({
   const images = safeJsonParse<string[]>(post.images, []);
   const displayHeadline = post.headline?.trim() || post.title;
   const reporter = post.reporter?.trim() || "NYS टीम";
-  const isBreaking = post.priority === "BREAKING";
-  const isImportant = post.priority === "IMPORTANT";
   const catColor = post.category?.color ?? "#ea6205";
 
   return (
@@ -74,18 +72,8 @@ export default async function PostDetail({
             <ArrowLeft className="h-3.5 w-3.5" /> सभी गतिविधियाँ
           </Link>
 
-          {/* Category + priority badges */}
+          {/* Category + featured badge */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {isBreaking && (
-              <span className="animate-pulse rounded-sm bg-red-600 px-2 py-1 text-xs font-black uppercase tracking-widest text-white">
-                ● BREAKING NEWS
-              </span>
-            )}
-            {isImportant && !isBreaking && (
-              <span className="rounded-sm bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
-                ● महत्वपूर्ण
-              </span>
-            )}
             {post.category && (
               <span
                 className="rounded-full px-3 py-0.5 text-xs font-bold"
@@ -199,7 +187,7 @@ export default async function PostDetail({
 
           {/* Share */}
           <div className="mt-8 border-t border-stone-100 pt-6">
-            <p className="mb-3 text-sm font-bold text-stone-700">इस खबर को साझा करें</p>
+            <p className="mb-3 text-sm font-bold text-stone-700">साझा करें</p>
             <ShareButtons url={`/activities/${post.slug}`} text={displayHeadline} />
           </div>
         </article>
@@ -208,7 +196,7 @@ export default async function PostDetail({
         {related.length > 0 && (
           <aside className="w-full shrink-0 lg:w-72">
             <h3 className="mb-3 border-b-2 border-saffron-500 pb-1.5 text-xs font-extrabold uppercase tracking-widest text-stone-800">
-              इससे जुड़ी खबरें
+              इससे जुड़ी गतिविधियाँ
             </h3>
             <div className="space-y-3">
               {related.map((r) => {
@@ -256,7 +244,7 @@ export default async function PostDetail({
               href="/activities"
               className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl border border-saffron-200 bg-saffron-50 py-2 text-[12px] font-semibold text-saffron-800 transition hover:bg-saffron-100"
             >
-              सभी खबरें <ArrowRight className="h-3 w-3" />
+              सभी गतिविधियाँ <ArrowRight className="h-3 w-3" />
             </Link>
           </aside>
         )}

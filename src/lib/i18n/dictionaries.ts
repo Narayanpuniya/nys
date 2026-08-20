@@ -68,7 +68,7 @@ const hi = {
   home_events: "आगामी कार्यक्रम",
   home_no_events: "फिलहाल कोई आगामी कार्यक्रम उपलब्ध नहीं है।",
   home_latest: "ताज़ा NYS गतिविधियाँ",
-  home_latest_sub: "NYS की शिक्षा, खेल, पर्यावरण एवं सामाजिक सेवा से जुड़ी नवीनतम खबरें",
+  home_latest_sub: "NYS की शिक्षा, खेल, पर्यावरण, सामाजिक सेवा एवं Craft & Heritage की नवीनतम गतिविधियाँ",
   home_leadership: "संस्था का नेतृत्व",
   home_leadership_sub: "अध्यक्ष · सचिव · कोषाध्यक्ष",
   home_mentors: "हमारे मार्गदर्शक",
