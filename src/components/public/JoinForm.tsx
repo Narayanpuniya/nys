@@ -312,6 +312,19 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
             </select>
           </Field>
           <Field label="व्यवसाय"><input className={inputClass} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} /></Field>
+          <Field label="ब्लड ग्रुप">
+            <select className={inputClass} value={form.bloodGroup} onChange={(e) => set("bloodGroup", e.target.value)}>
+              <option value="">— चुनें —</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </Field>
           <Field label="गाँव/शहर"><input className={inputClass} value={form.village} onChange={(e) => set("village", e.target.value)} /></Field>
           <Field label="तहसील" required><input className={inputClass} value={form.tehsil} onChange={(e) => set("tehsil", e.target.value)} placeholder="तहसील का नाम" /></Field>
           <Field label="जिला" required><input className={inputClass} value={form.district} onChange={(e) => set("district", e.target.value)} placeholder="जिला का नाम" /></Field>
