@@ -9,8 +9,17 @@ import { FacebookIcon, InstagramIcon, YoutubeIcon, WhatsappIcon } from "@/compon
 export const metadata: Metadata = { title: "संपर्क करें" };
 export const revalidate = 300;
 
+function waUrl(val?: string): string | undefined {
+  if (!val) return undefined;
+  if (val.startsWith("http")) return val;
+  const d = val.replace(/\D/g, "");
+  if (d.length >= 10) return `https://wa.me/${d.startsWith("91") && d.length === 12 ? d : `91${d.slice(-10)}`}`;
+  return undefined;
+}
+
 export default async function ContactPage() {
   const s = await getSettings();
+  const whatsappLink = waUrl(s.social.whatsapp);
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <SectionHeading title="संपर्क करें" subtitle="किसी भी जानकारी या सहयोग हेतु हमसे संपर्क करें।" />
@@ -48,7 +57,7 @@ export default async function ContactPage() {
               {s.social.facebook  && <a href={s.social.facebook}  target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><FacebookIcon  className="h-4 w-4" /></a>}
               {s.social.instagram && <a href={s.social.instagram} target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><InstagramIcon className="h-4 w-4" /></a>}
               {s.social.youtube   && <a href={s.social.youtube}   target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><YoutubeIcon   className="h-4 w-4" /></a>}
-              {s.social.whatsapp  && <a href={s.social.whatsapp}  target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><WhatsappIcon  className="h-4 w-4" /></a>}
+              {whatsappLink       && <a href={whatsappLink}       target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><WhatsappIcon  className="h-4 w-4" /></a>}
             </div>
           </Card>
 

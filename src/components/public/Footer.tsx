@@ -5,9 +5,19 @@ import { LogoMark } from "@/components/ui/Logo";
 import { getSettings } from "@/lib/settings";
 import { getI18n } from "@/lib/i18n";
 
+/** phone number → https://wa.me/91XXXXXXXXXX (safe at render time too) */
+function waUrl(val?: string): string | undefined {
+  if (!val) return undefined;
+  if (val.startsWith("http")) return val;
+  const d = val.replace(/\D/g, "");
+  if (d.length >= 10) return `https://wa.me/${d.startsWith("91") && d.length === 12 ? d : `91${d.slice(-10)}`}`;
+  return undefined;
+}
+
 export async function Footer() {
   const [s, { dict }] = await Promise.all([getSettings(), getI18n()]);
   const year = new Date().getFullYear();
+  const whatsappLink = waUrl(s.social.whatsapp);
 
   return (
     <footer className="mt-16" style={{ background: "linear-gradient(160deg, #1c0800 0%, #2d1000 55%, #1a0404 100%)" }}>
@@ -41,7 +51,7 @@ export async function Footer() {
               {s.social.facebook  && <a href={s.social.facebook}  target="_blank" rel="noreferrer" aria-label="Facebook"  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><FacebookIcon  className="h-4 w-4" /></a>}
               {s.social.instagram && <a href={s.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><InstagramIcon className="h-4 w-4" /></a>}
               {s.social.youtube   && <a href={s.social.youtube}   target="_blank" rel="noreferrer" aria-label="YouTube"   className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><YoutubeIcon   className="h-4 w-4" /></a>}
-              {s.social.whatsapp  && <a href={s.social.whatsapp}  target="_blank" rel="noreferrer" aria-label="WhatsApp"  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><WhatsappIcon  className="h-4 w-4" /></a>}
+              {whatsappLink        && <a href={whatsappLink}       target="_blank" rel="noreferrer" aria-label="WhatsApp"  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><WhatsappIcon  className="h-4 w-4" /></a>}
             </div>
           </div>
 
@@ -104,9 +114,9 @@ export async function Footer() {
               )}
 
               {/* WhatsApp link */}
-              {s.social.whatsapp && (
+              {whatsappLink && (
                 <li>
-                  <a href={s.social.whatsapp} target="_blank" rel="noreferrer"
+                  <a href={whatsappLink} target="_blank" rel="noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-lg bg-green-500/20 px-3 py-1.5 text-xs font-medium text-green-300 hover:bg-green-500/30 transition-colors">
                     <WhatsappIcon className="h-3.5 w-3.5" /> व्हाट्सएप पर संपर्क करें
                   </a>

@@ -11,6 +11,20 @@ function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
+/** WhatsApp number → https://wa.me/91XXXXXXXXXX URL */
+function toWhatsAppUrl(val: string): string {
+  if (!val) return "";
+  if (val.startsWith("http")) return val; // already a URL
+  const digits = val.replace(/\D/g, "");
+  if (digits.length >= 10) {
+    const num = digits.startsWith("91") && digits.length === 12
+      ? digits
+      : `91${digits.slice(-10)}`;
+    return `https://wa.me/${num}`;
+  }
+  return val;
+}
+
 export async function updateSettings(formData: FormData) {
   const user = await requirePermission(PERMISSIONS.SETTINGS_MANAGE);
   const current = await getSettings();
@@ -78,7 +92,7 @@ export async function updateSettings(formData: FormData) {
       facebook: str(formData, "facebook") || undefined,
       instagram: str(formData, "instagram") || undefined,
       youtube: str(formData, "youtube") || undefined,
-      whatsapp: str(formData, "whatsapp") || undefined,
+      whatsapp: toWhatsAppUrl(str(formData, "whatsapp")) || undefined,
     },
     legal: {
       ...current.legal,
