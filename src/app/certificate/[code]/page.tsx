@@ -82,10 +82,11 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
           {/* Top gradient band */}
           <div className="relative z-10" style={{ background: "linear-gradient(135deg, #d97706 0%, #7f1d1d 100%)" }}>
             <div className="flex items-center justify-center gap-4 py-5">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20">
                 <LogoMark className="h-12 w-12" imageUrl={s.logoUrl} />
               </div>
               <div className="text-center">
+                <div className="text-[11px] font-semibold tracking-widest text-orange-200">www.nys.org.in</div>
                 <div className="text-xl font-extrabold tracking-wide text-white">{s.name}</div>
                 <div className="text-[11px] tracking-wider text-orange-100">{s.address}</div>
               </div>
@@ -125,6 +126,23 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
                 {member.village ? `${member.village}, ` : ""}नारायणपुरी यूथ सोसाइटी, गुदियाल नगर के{" "}
                 <span className="font-semibold text-maroon-700">{member.plan?.name ?? "सदस्य"}</span>{" "}
                 के रूप में विधिवत पंजीकृत सदस्य हैं।
+              </p>
+            </div>
+
+            {/* ── अभिनन्दन संदेश ── */}
+            <div className="mx-auto mt-7 max-w-2xl rounded-xl border border-saffron-100 bg-saffron-50/60 px-6 py-4 text-sm leading-relaxed text-stone-700">
+              <p>
+                श्रीमान । श्रीमती{" "}
+                <span className="font-bold text-maroon-800">{member.fullName}</span>
+                {member.guardianName && (
+                  <> पुत्र पुत्री श्री{" "}
+                    <span className="font-bold text-maroon-800">{member.guardianName}</span>
+                  </>
+                )}{" "}
+                आपको अत्यंत हर्ष के साथ सूचित किया जाता है कि आप ही नारायण पुरी यूथ सोसाइटी (NYS) की सदस्यता प्राप्त कर रहे हैं। आशा है आप NYS के सदस्य के तौर पर शिक्षा, खेल व पर्यावरण के क्षेत्र में युगांतकारी और अभूतपूर्व सतत परिवर्तन लाने में आगीदारी निभाएगे। आपके अमूल्य सहयोग और NYS के नए आयामों की योजनाओं के शुभ प्रयमों की भावनाओं को प्रबल करने के लिए टीम NYS आपका हार्दिक अभिनन्दन करती है।
+              </p>
+              <p className="mt-2 font-semibold text-stone-600">
+                Note – सक्रिय सदस्यता हेतु प्रतिमाह न्यूनतम 100 रुपये का सहयोग अनिवार्य है।
               </p>
             </div>
 
