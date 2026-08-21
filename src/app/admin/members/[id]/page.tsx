@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { IdCard, Award, Check, X, ExternalLink, Pencil, FileImage } from "lucide-react";
+import { IdCard, Award, Check, X, ExternalLink, Pencil, FileImage, Receipt } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatINR, formatDateHi } from "@/lib/utils";
@@ -186,16 +186,26 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
                       <td className="pr-3">{p.mode}</td>
                       <td className="pr-3"><Badge tone={p.status === "SUCCESS" ? "green" : "amber"}>{p.status}</Badge></td>
                       <td className="pr-3">
-                        {p.proofUrl ? (
+                        <div className="flex flex-wrap gap-1">
+                          {p.proofUrl && (
+                            <a
+                              href={p.proofUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-xs font-medium text-stone-600 hover:bg-stone-100"
+                            >
+                              <FileImage className="h-3.5 w-3.5" /> प्रूफ
+                            </a>
+                          )}
                           <a
-                            href={p.proofUrl}
+                            href={`/membership-receipt/${p.receiptNumber}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 rounded-lg border border-saffron-300 bg-saffron-50 px-2 py-1 text-xs font-medium text-saffron-800 hover:bg-saffron-100"
+                            className="inline-flex items-center gap-1 rounded-lg border border-saffron-300 bg-saffron-50 px-2 py-1 text-xs font-bold text-saffron-800 hover:bg-saffron-100"
                           >
-                            <FileImage className="h-3.5 w-3.5" /> रसीद देखें
+                            <Receipt className="h-3.5 w-3.5" /> रसीद जारी करें
                           </a>
-                        ) : <span className="text-stone-400">—</span>}
+                        </div>
                       </td>
                       <td className="text-stone-500 text-xs">{formatDateHi(p.paidAt)}</td>
                     </tr>
