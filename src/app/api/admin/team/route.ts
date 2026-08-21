@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
   let photoUrl: string | null = null;
   if (photo instanceof File && photo.size > 0) {
     photoUrl = await saveUploadedImage(photo, "members", { maxBytes: 2 * 1024 * 1024 });
+  } else {
+    // URL string (e.g., from member's existing photoUrl)
+    const urlVal = String(form.get("photoUrl") ?? "").trim();
+    if (urlVal) photoUrl = urlVal;
   }
 
   const memberId = String(form.get("memberId") ?? "").trim() || null;

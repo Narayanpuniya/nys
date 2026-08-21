@@ -6,6 +6,7 @@ import { Card, Badge } from "@/components/ui/primitives";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { approveMember, rejectMember } from "../actions";
 import { DeleteMemberButton } from "./DeleteMemberButton";
+import { AddToTeamMentor } from "./AddToTeamMentor";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
       suggestions: { orderBy: { createdAt: "desc" } },
       volunteers: true,
       eventRegs: { include: { event: true } },
+      teamMembers: { select: { id: true, designation: true } },
+      mentors: { select: { id: true, designation: true, profession: true } },
     },
   });
   if (!member) notFound();
@@ -154,6 +157,21 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
               </Link>
             </div>
           )}
+
+          {/* टीम / मार्गदर्शक में जोड़ें */}
+          <AddToTeamMentor
+            member={{
+              id: member.id,
+              fullName: member.fullName,
+              mobile: member.mobile,
+              photoUrl: member.photoUrl,
+              occupation: member.occupation,
+            }}
+            linked={{
+              teamMembers: member.teamMembers,
+              mentors: member.mentors,
+            }}
+          />
         </Card>
 
         {/* Right details */}
