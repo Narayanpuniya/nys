@@ -117,7 +117,7 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
           {/* ─── BACK CARD ─── */}
           <div
             className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-xl"
-            style={{ background: "linear-gradient(155deg, #7f1d1d 0%, #991b1b 45%, #92400e 100%)" }}
+            style={{ background: "linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%)" }}
           >
             {/* Watermark logo — center */}
             {s.logoUrl ? (
@@ -127,39 +127,41 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 alt=""
                 aria-hidden="true"
                 className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none object-contain"
-                style={{ width: 180, height: 180, opacity: 0.10 }}
+                style={{ width: 180, height: 180, opacity: 0.07 }}
               />
             ) : null}
 
-            {/* Decorative ring */}
+            {/* Header band — same as front */}
             <div
-              className="pointer-events-none absolute -right-10 -top-10 rounded-full"
-              style={{ width: 160, height: 160, border: "2px solid rgba(251,191,36,0.15)" }}
-            />
-            <div
-              className="pointer-events-none absolute -right-6 -top-6 rounded-full"
-              style={{ width: 100, height: 100, border: "1.5px solid rgba(251,191,36,0.12)" }}
-            />
+              className="flex items-center gap-2 px-4 py-2.5"
+              style={{ background: "linear-gradient(135deg, #d97706 0%, #7f1d1d 100%)" }}
+            >
+              <div className="flex-1 leading-tight">
+                <div className="text-[9px] font-semibold tracking-widest text-orange-200">www.nys.org.in</div>
+                <div className="text-[12px] font-extrabold text-white">{s.name}</div>
+              </div>
+              <div className="shrink-0 rounded border border-white/30 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+                पिछला
+              </div>
+            </div>
 
-            {/* Gold top stripe */}
-            <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706, #b45309)" }} />
+            {/* Bottom stripe of header */}
+            <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }} />
 
-            <div className="relative z-10 flex h-full flex-col justify-between px-5 py-3 pb-3">
-              {/* Org info */}
+            <div className="flex h-[calc(100%-56px)] flex-col justify-between px-5 py-2.5">
+              {/* Org contact info */}
               <div>
-                <div className="text-[9px] font-semibold tracking-widest text-orange-200/80">www.nys.org.in</div>
-                <div className="text-[13px] font-extrabold leading-snug text-white">{s.name}</div>
-                <div className="mt-0.5 text-[10px] text-orange-200/80">{s.address}</div>
-                <div className="text-[10px] text-orange-200/80">{s.mobile} · {s.email}</div>
+                <div className="text-[10px] text-stone-600">{s.address}</div>
+                <div className="text-[10px] text-stone-600">{s.mobile} · {s.email}</div>
                 {s.legal?.registrationNo && (
-                  <div className="mt-1 text-[9px] text-amber-300/70">
+                  <div className="mt-0.5 text-[9px] font-semibold text-amber-700">
                     Reg: {s.legal.registrationNo}
                   </div>
                 )}
               </div>
 
               {/* Instructions */}
-              <ul className="space-y-0.5 text-[9.5px] text-orange-100/75">
+              <ul className="space-y-0.5 text-[9.5px] text-stone-600">
                 <li>• यह कार्ड केवल NYS सदस्यता की पहचान हेतु है।</li>
                 <li>• खो जाने पर संस्था को तुरंत सूचित करें।</li>
                 <li>• QR स्कैन कर सदस्यता सत्यापित करें।</li>
@@ -170,25 +172,25 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
               <div className="flex items-end justify-between">
                 <div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qr} alt="QR verify" className="h-14 w-14 rounded-lg bg-white p-0.5" />
-                  <div className="mt-0.5 text-[8px] text-orange-200/60">सत्यापन हेतु</div>
+                  <img src={qr} alt="QR verify" className="h-14 w-14 rounded-lg border border-amber-200 bg-white p-0.5" />
+                  <div className="mt-0.5 text-[8px] text-stone-400">सत्यापन हेतु</div>
                 </div>
                 <div className="text-center">
                   {s.branding.presidentSignUrl ? (
-                    <div className="mx-auto mb-1 flex h-12 w-32 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+                    <div className="mx-auto mb-1 flex h-12 w-32 items-center justify-center rounded-lg border border-saffron-200 bg-white p-1 shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={s.branding.presidentSignUrl} alt="हस्ताक्षर" className="h-full w-full object-contain" />
                     </div>
                   ) : (
-                    <div className="mb-1 h-8 w-28 border-b border-amber-400/50" />
+                    <div className="mb-1 h-8 w-28 border-b border-amber-400" />
                   )}
-                  <div className="text-[9px] font-semibold tracking-wide text-amber-300/80">अधिकृत हस्ताक्षर</div>
+                  <div className="text-[9px] font-semibold tracking-wide text-amber-700">अधिकृत हस्ताक्षर</div>
                 </div>
               </div>
             </div>
 
-            {/* Gold bottom stripe */}
-            <div className="absolute bottom-0 left-0 h-1 w-full" style={{ background: "linear-gradient(90deg, #b45309, #d97706, #f59e0b)" }} />
+            {/* Bottom stripe */}
+            <div className="absolute bottom-0 left-0 h-1.5 w-full" style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }} />
           </div>
 
         </div>
