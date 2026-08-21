@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { Toolbar } from "@/components/admin/Toolbar";
 import { formatDateHi } from "@/lib/utils";
+import { DeleteMemberButton } from "./[id]/DeleteMemberButton";
 
 export const dynamic = "force-dynamic";
 const PAGE = 20;
@@ -82,9 +83,12 @@ export default async function MembersPage({
                   <td className="px-4 py-3"><Badge tone={statusTone[m.status] ?? "neutral"}>{m.status}</Badge></td>
                   <td className="px-4 py-3 text-stone-500">{formatDateHi(m.joiningDate)}</td>
                   <td className="px-4 py-3">
-                    <Link href={`/admin/members/${m.id}/edit`} className="text-sm font-medium text-saffron-700 hover:underline">
-                      संपादित
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link href={`/admin/members/${m.id}/edit`} className="text-sm font-medium text-saffron-700 hover:underline">
+                        संपादित
+                      </Link>
+                      <DeleteMemberButton memberId={m.id} memberName={m.fullName} compact />
+                    </div>
                   </td>
                 </tr>
               ))}
