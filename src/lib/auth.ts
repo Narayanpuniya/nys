@@ -28,7 +28,7 @@ export async function createSession(user: SessionUser): Promise<void> {
   const token = await new SignJWT({ ...user })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime("8h")
     .sign(secret());
 
   const store = await cookies();
@@ -37,7 +37,7 @@ export async function createSession(user: SessionUser): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 8, // 8 घंटे — Admin रोज़ login करे
   });
 }
 

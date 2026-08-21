@@ -20,7 +20,7 @@ export async function createMemberSession(m: MemberSession): Promise<void> {
   const token = await new SignJWT({ ...m })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime("7d")
     .sign(secret());
 
   const store = await cookies();
@@ -29,7 +29,7 @@ export async function createMemberSession(m: MemberSession): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 7, // 7 दिन — सदस्य को हफ्ते में एक बार login करें
   });
 }
 

@@ -17,8 +17,10 @@ export default async function LoginPage({
     getSessionUser(),
     getMemberSession(),
   ]);
+  // Active session है → dashboard पर भेजो
   if (adminUser) redirect("/admin");
   if (memberUser) redirect("/member");
+  // कोई session नहीं → login form दिखाओ
 
   const sp = await searchParams;
   const defaultTab = sp.tab === "admin" ? "admin" : "member";
