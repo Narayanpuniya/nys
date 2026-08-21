@@ -4,6 +4,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { formatINR, formatDateHi } from "@/lib/utils";
 import { addExpense } from "./actions";
 import { ImportFinanceModal } from "./ImportFinanceModal";
+import { FinanceDeleteButton } from "./FinanceDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -78,9 +79,12 @@ export default async function FinancePage({
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {incomes.map((i) => (
-                  <tr key={i.id}>
+                  <tr key={i.id} className={i.status === "VOID" ? "opacity-40 line-through" : ""}>
                     <td className="py-2"><div className="font-medium text-ink">{i.category}</div><div className="text-xs text-stone-400">{i.source} · {formatDateHi(i.date)}</div></td>
-                    <td className="py-2 text-right font-semibold text-green-700">{formatINR(i.amount)}</td>
+                    <td className="py-2 text-right">
+                      <span className="font-semibold text-green-700">{formatINR(i.amount)}</span>
+                      {i.status === "ACTIVE" && <FinanceDeleteButton id={i.id} type="income" label={`₹${i.amount} — ${i.category}`} />}
+                    </td>
                   </tr>
                 ))}
                 {incomes.length === 0 && <tr><td className="py-4 text-center text-stone-400">कोई आय नहीं</td></tr>}
@@ -107,9 +111,13 @@ export default async function FinancePage({
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {expenses.map((e) => (
-                  <tr key={e.id}>
+                  <tr key={e.id} className={e.status === "VOID" ? "opacity-40 line-through" : ""}>
                     <td className="py-2"><div className="font-medium text-ink">{e.category}</div><div className="text-xs text-stone-400">{e.description} · {formatDateHi(e.date)}</div></td>
-                    <td className="py-2 text-right"><span className="font-semibold text-red-700">{formatINR(e.amount)}</span>{e.status !== "ACTIVE" && <Badge tone="neutral" className="ml-1">{e.status}</Badge>}</td>
+                    <td className="py-2 text-right">
+                      <span className="font-semibold text-red-700">{formatINR(e.amount)}</span>
+                      {e.status === "ACTIVE" && <FinanceDeleteButton id={e.id} type="expense" label={`₹${e.amount} — ${e.category}`} />}
+                      {e.status !== "ACTIVE" && <Badge tone="neutral" className="ml-1 text-[10px]">VOID</Badge>}
+                    </td>
                   </tr>
                 ))}
                 {expenses.length === 0 && <tr><td className="py-4 text-center text-stone-400">कोई व्यय नहीं</td></tr>}

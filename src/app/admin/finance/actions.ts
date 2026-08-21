@@ -44,7 +44,16 @@ export async function addIncome(formData: FormData) {
 // Financial records को delete नहीं, VOID करें (audit-safe)।
 export async function voidExpense(id: string) {
   const user = await requirePermission(PERMISSIONS.FINANCE_MANAGE);
+  const rec = await prisma.expense.findUnique({ where: { id } });
   await prisma.expense.update({ where: { id }, data: { status: "VOID" } });
-  await logAudit({ user, action: "VOID", entity: "Expense", entityId: id, summary: "व्यय निरस्त किया" });
+  await logAudit({ user, action: "VOID", entity: "Expense", entityId: id, summary: `व्यय निरस्त: ${rec?.category} ₹${rec?.amount}` });
+  revalidatePath("/admin/finance");
+}
+
+export async function voidIncome(id: string) {
+  const user = await requirePermission(PERMISSIONS.FINANCE_MANAGE);
+  const rec = await prisma.income.findUnique({ where: { id } });
+  await prisma.income.update({ where: { id }, data: { status: "VOID" } });
+  await logAudit({ user, action: "VOID", entity: "Income", entityId: id, summary: `आय निरस्त: ${rec?.category} ₹${rec?.amount}` });
   revalidatePath("/admin/finance");
 }
