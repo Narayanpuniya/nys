@@ -92,10 +92,22 @@ export function MemberEditForm({ member, plans }: { member: MemberEdit; plans: P
               ) : "🙂"}
             </div>
 
-            {/* Upload trigger */}
-            <div className="flex-1">
+            {/* Crop / Upload buttons */}
+            <div className="flex flex-col gap-2">
+              {/* Crop existing photo */}
+              {member.photoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setCropSrc(member.photoUrl!)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100"
+                >
+                  ✂️ मौजूदा फोटो क्रॉप करें
+                </button>
+              )}
+
+              {/* Upload new photo */}
               <label className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-saffron-300 bg-saffron-50 px-4 py-2 text-sm font-medium text-saffron-800 hover:bg-saffron-100">
-                📷 फोटो चुनें (क्रॉप होगी)
+                📷 नई फोटो चुनें
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp,image/gif"
@@ -103,19 +115,13 @@ export function MemberEditForm({ member, plans }: { member: MemberEdit; plans: P
                   onChange={handlePhotoChange}
                 />
               </label>
-              {/* Hidden input that holds the cropped file for form submission */}
-              <input
-                ref={photoInputRef}
-                name="photo"
-                type="file"
-                accept="image/*"
-                className="hidden"
-              />
-              <p className="mt-1.5 text-xs text-stone-400">
-                JPG/PNG/WEBP · अधिकतम 2 MB · खाली छोड़ने पर पुरानी फोटो रहेगी
-              </p>
+
+              {/* Hidden input for cropped file */}
+              <input ref={photoInputRef} name="photo" type="file" accept="image/*" className="hidden" />
+
+              <p className="text-xs text-stone-400">JPG/PNG · खाली छोड़ने पर पुरानी फोटो रहेगी</p>
               {preview && preview !== member.photoUrl && (
-                <p className="mt-1 text-xs font-medium text-green-600">✅ नई क्रॉप की हुई फोटो तैयार है</p>
+                <p className="text-xs font-medium text-green-600">✅ क्रॉप की हुई फोटो तैयार है</p>
               )}
             </div>
           </div>
