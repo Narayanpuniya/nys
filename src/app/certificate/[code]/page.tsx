@@ -123,7 +123,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
                 <p className="mt-1 text-sm text-stone-500">पुत्र/पुत्री: {member.guardianName}</p>
               )}
               <p className="mt-3 max-w-lg mx-auto text-sm leading-relaxed text-stone-600">
-                {member.village ? `${member.village}, ` : ""}नारायणपुरी यूथ सोसाइटी, गुदियाल नगर के{" "}
+                {member.village ? `${member.village}, ` : ""}{s.name} के{" "}
                 <span className="font-semibold text-maroon-700">{member.plan?.name ?? "सदस्य"}</span>{" "}
                 के रूप में विधिवत पंजीकृत सदस्य हैं।
               </p>
@@ -132,14 +132,14 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
             {/* ── अभिनन्दन संदेश ── */}
             <div className="mx-auto mt-7 max-w-2xl rounded-xl border border-saffron-100 bg-saffron-50/60 px-6 py-4 text-sm leading-relaxed text-stone-700">
               <p>
-                श्रीमान । श्रीमती{" "}
+                {member.gender === "पुरुष" ? "श्रीमान" : member.gender === "महिला" ? "श्रीमती" : "श्रीमान / श्रीमती"}{" "}
                 <span className="font-bold text-maroon-800">{member.fullName}</span>
                 {member.guardianName && (
-                  <> पुत्र पुत्री श्री{" "}
+                  <>{" "}{member.gender === "पुरुष" ? "पुत्र" : member.gender === "महिला" ? "पुत्री" : "पुत्र/पुत्री"} श्री{" "}
                     <span className="font-bold text-maroon-800">{member.guardianName}</span>
                   </>
                 )}{" "}
-                आपको अत्यंत हर्ष के साथ सूचित किया जाता है कि आप ही नारायण पुरी यूथ सोसाइटी (NYS) की सदस्यता प्राप्त कर रहे हैं। आशा है आप NYS के सदस्य के तौर पर शिक्षा, खेल व पर्यावरण के क्षेत्र में युगांतकारी और अभूतपूर्व सतत परिवर्तन लाने में भागीदारी निभाएगे। आपके अमूल्य सहयोग और NYS के नए आयामों की योजनाओं के शुभ प्रयमों की भावनाओं को प्रबल करने के लिए टीम NYS आपका हार्दिक अभिनन्दन करती है।
+                आपको अत्यंत हर्ष के साथ सूचित किया जाता है कि आप {s.name} (NYS) की सदस्यता प्राप्त कर रहे हैं। आशा है आप NYS के सदस्य के तौर पर शिक्षा, खेल व पर्यावरण के क्षेत्र में युगांतकारी और अभूतपूर्व सतत परिवर्तन लाने में भागीदारी निभाएगे। आपके अमूल्य सहयोग और NYS के नए आयामों की योजनाओं के शुभ प्रयमों की भावनाओं को प्रबल करने के लिए टीम NYS आपका हार्दिक अभिनन्दन करती है।
               </p>
               <p className="mt-2 font-semibold text-stone-600">
                 Note – सक्रिय सदस्यता हेतु प्रतिमाह न्यूनतम 100 रुपये का सहयोग अनिवार्य है।

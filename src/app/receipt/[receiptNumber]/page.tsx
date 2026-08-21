@@ -92,6 +92,7 @@ export default async function ReceiptPage({
                   <LogoMark className="h-11 w-11" imageUrl={s.logoUrl} />
                 </div>
                 <div>
+                  <div className="text-[10px] font-semibold tracking-widest text-orange-200">www.nys.org.in</div>
                   <div className="text-base font-extrabold leading-tight text-white">{s.name}</div>
                   <div className="text-[11px] text-orange-100">{s.address}</div>
                   <div className="text-[11px] text-orange-100">{s.mobile} · {s.email}</div>

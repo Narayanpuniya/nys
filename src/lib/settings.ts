@@ -61,11 +61,11 @@ export type OrgSettings = {
 };
 
 export const DEFAULT_SETTINGS: OrgSettings = {
-  name: "नारायणपुरी यूथ सोसाइटी, गुदियाल नगर",
+  name: "श्री नारायणपुरी यूथ सोसायटी (NYS)",
   shortName: "NYS",
   tagline:
     "शिक्षा, खेल, पर्यावरण और विरासत के माध्यम से समाज एवं युवाओं के विकास की ओर एक कदम।",
-  address: "गुदियाल नगर, राजस्थान",
+  address: "गुन्दियाल नगर, जाटी भाण्डू, जोधपुर (राज.)",
   mobile: "+91-00000-00000",
   email: "contact@nys.org",
   currency: "INR",

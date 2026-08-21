@@ -65,8 +65,9 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 <LogoMark className="h-7 w-7" imageUrl={s.logoUrl} />
               </div>
               <div className="flex-1 leading-tight">
-                <div className="text-sm font-extrabold text-white">नारायणपुरी यूथ सोसाइटी</div>
-                <div className="text-[10px] tracking-wider text-orange-100">गुदियाल नगर, राजस्थान · NYS</div>
+                <div className="text-[9px] font-semibold tracking-widest text-orange-200">www.nys.org.in</div>
+                <div className="text-sm font-extrabold text-white">{s.name}</div>
+                <div className="text-[10px] tracking-wider text-orange-100">{s.address}</div>
               </div>
               <div className="shrink-0 rounded border border-white/30 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
                 सदस्य ID
@@ -146,6 +147,7 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
             <div className="relative z-10 flex h-full flex-col justify-between px-5 py-3 pb-3">
               {/* Org info */}
               <div>
+                <div className="text-[9px] font-semibold tracking-widest text-orange-200/80">www.nys.org.in</div>
                 <div className="text-[13px] font-extrabold leading-snug text-white">{s.name}</div>
                 <div className="mt-0.5 text-[10px] text-orange-200/80">{s.address}</div>
                 <div className="text-[10px] text-orange-200/80">{s.mobile} · {s.email}</div>
