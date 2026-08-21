@@ -6,7 +6,7 @@ import { jwtVerify } from "jose";
 const secret = () =>
   new TextEncoder().encode(process.env.AUTH_SECRET || "dev-only-insecure-secret-change-me");
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   try {
     const { pathname } = req.nextUrl;
 
