@@ -30,10 +30,14 @@ export default async function EventDetail({ params }: { params: Promise<{ slug: 
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="mb-4 flex h-56 items-center justify-center rounded-2xl bg-gradient-to-br from-saffron-100 to-maroon-100 text-6xl"
-            style={event.posterImage ? { backgroundImage: `url(${event.posterImage})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
-            {!event.posterImage && "📅"}
-          </div>
+          {event.posterImage ? (
+            <div className="mb-4 overflow-hidden rounded-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={event.posterImage} alt={event.title} className="w-full max-h-96 object-cover" />
+            </div>
+          ) : (
+            <div className="mb-4 flex h-56 items-center justify-center rounded-2xl bg-gradient-to-br from-saffron-100 to-maroon-100 text-6xl">📅</div>
+          )}
           <Badge tone="amber">{event.category}</Badge>
           <h1 className="mt-2 text-3xl font-extrabold text-ink">{event.title}</h1>
           <div className="mt-3 grid gap-2 text-sm text-stone-600 sm:grid-cols-2">

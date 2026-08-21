@@ -1,6 +1,7 @@
 import { saveEvent } from "@/app/admin/events/actions";
 import { Field, inputClass } from "@/components/ui/primitives";
 import { EVENT_STATUS } from "@/lib/constants";
+import Image from "next/image";
 
 type Event = {
   id: string; title: string; category: string; description: string; date: Date; time: string | null;
@@ -12,7 +13,7 @@ type Event = {
 export function EventForm({ event }: { event?: Event }) {
   const date = event?.date ? new Date(event.date).toISOString().slice(0, 10) : "";
   return (
-    <form action={saveEvent} className="space-y-4">
+    <form action={saveEvent} encType="multipart/form-data" className="space-y-4">
       {event && <input type="hidden" name="id" value={event.id} />}
       <Field label="शीर्षक" required><input name="title" defaultValue={event?.title} required className={inputClass} /></Field>
       <div className="grid gap-3 sm:grid-cols-3">
@@ -24,7 +25,27 @@ export function EventForm({ event }: { event?: Event }) {
         <Field label="स्थान"><input name="venue" defaultValue={event?.venue ?? ""} className={inputClass} /></Field>
         <Field label="Google Map URL"><input name="mapUrl" defaultValue={event?.mapUrl ?? ""} className={inputClass} /></Field>
       </div>
-      <Field label="पोस्टर URL"><input name="posterImage" defaultValue={event?.posterImage ?? ""} className={inputClass} /></Field>
+
+      {/* पोस्टर upload */}
+      <Field label="पोस्टर इमेज">
+        <div className="space-y-2">
+          {/* मौजूदा poster preview (edit mode) */}
+          {event?.posterImage && (
+            <div className="relative h-36 w-full overflow-hidden rounded-xl border border-stone-200">
+              <Image src={event.posterImage} alt="poster" fill className="object-cover" unoptimized />
+              <span className="absolute left-2 top-2 rounded bg-black/50 px-2 py-0.5 text-[10px] text-white">मौजूदा पोस्टर</span>
+            </div>
+          )}
+          <input
+            name="posterFile"
+            type="file"
+            accept="image/*"
+            className="w-full cursor-pointer rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600 file:mr-3 file:rounded-lg file:border file:border-saffron-200 file:bg-saffron-50 file:px-3 file:py-1 file:text-xs file:font-medium file:text-saffron-800"
+          />
+          <p className="text-xs text-stone-400">JPG/PNG/WebP · अधिकतम 3 MB · यह पोस्टर public website पर दिखेगा</p>
+        </div>
+      </Field>
+
       <Field label="विवरण" required><textarea name="description" defaultValue={event?.description} rows={5} required className={inputClass} /></Field>
       <div className="grid gap-3 sm:grid-cols-3">
         <Field label="संपर्क व्यक्ति"><input name="contactPerson" defaultValue={event?.contactPerson ?? ""} className={inputClass} /></Field>
