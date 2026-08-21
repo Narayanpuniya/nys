@@ -19,8 +19,10 @@ export async function approveMember(memberId: string) {
   if (!member) return;
 
   const settings = await getSettings();
-  const days = member.plan?.periodDays ?? 365;
-  const validUntil = new Date(Date.now() + days * 86400000);
+  // सदस्यता वैधता: सभी योजनाओं के लिए 2 वर्ष (730 दिन)
+  // मासिक/वार्षिक → payment cycle अलग, पर ID कार्ड 2 साल valid रहेगा
+  const MEMBERSHIP_VALIDITY_DAYS = 730;
+  const validUntil = new Date(Date.now() + MEMBERSHIP_VALIDITY_DAYS * 86400000);
 
   await prisma.member.update({ where: { id: memberId }, data: { status: "ACTIVE", validUntil } });
 

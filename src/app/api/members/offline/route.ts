@@ -88,6 +88,8 @@ export async function POST(req: NextRequest) {
       : null;
     const now = new Date();
     const periodEnd = new Date(now.getTime() + plan.periodDays * 86400000);
+    // सदस्यता वैधता: सभी योजनाओं के लिए 2 वर्ष (मासिक/वार्षिक दोनों)
+    const membershipValidUntil = new Date(now.getTime() + 730 * 86400000);
     const modeRaw = String(form.get("mode") ?? "UPI").toUpperCase();
     const mode = modeRaw === "BANK_TRANSFER" ? "BANK_TRANSFER" : "UPI";
     const notes = String(form.get("notes") ?? "").trim() || null;
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         consent: true,
         showMobile: settings.privacy.showMemberMobileDefault,
-        validUntil: periodEnd,
+        validUntil: membershipValidUntil,
         ...(passwordHash ? { passwordHash } : {}),
       },
     });
