@@ -85,6 +85,16 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
     setLoading(true);
     setError("");
     try {
+      // ── Step 1: मोबाइल नंबर duplicate check ──
+      const chkRes = await fetch(`/api/members/check-mobile?mobile=${encodeURIComponent(form.mobile.trim())}`);
+      const chk = await chkRes.json().catch(() => ({}));
+      if (chk.exists) {
+        setError("यह मोबाइल नंबर पहले से पंजीकृत है। Admin से संपर्क करें या अपनी पुरानी सदस्यता देखें।");
+        setLoading(false);
+        return;
+      }
+
+      // ── Step 2: फ़ोटो अपलोड ──
       if (photoFile) {
         const fd = new FormData();
         fd.set("photo", photoFile);

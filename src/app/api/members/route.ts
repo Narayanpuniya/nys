@@ -21,6 +21,18 @@ export async function POST(req: NextRequest) {
     // पासवर्ड (memberSchema से अलग — optional field)
     const rawPassword = typeof body?.password === "string" ? body.password.trim() : "";
 
+    // ── Duplicate mobile check ──
+    const existingMobile = await prisma.member.findFirst({
+      where: { mobile: d.mobile, deletedAt: null },
+      select: { id: true },
+    });
+    if (existingMobile) {
+      return NextResponse.json(
+        { error: "यह मोबाइल नंबर पहले से पंजीकृत है। Admin से संपर्क करें या अपनी पुरानी सदस्यता देखें।" },
+        { status: 409 },
+      );
+    }
+
     const plan = await prisma.membershipPlan.findUnique({ where: { id: d.planId } });
     if (!plan || !plan.isActive) {
       return NextResponse.json({ error: "सदस्यता योजना अमान्य। Admin से योजना जाँचें।" }, { status: 400 });
