@@ -368,8 +368,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
                 className="mt-1 h-4 w-4 accent-green-600"
               />
               <div>
-                <p className="font-semibold text-green-800">🙋 क्या आप स्वयंसेवक के रूप में काम करना चाहेंगे?</p>
-                <p className="text-xs text-green-700">संस्था के कार्यों में स्वेच्छा से सहयोग दें — कार्यक्रम, शिक्षा, पर्यावरण आदि।</p>
+                <p className="font-semibold text-green-800">🙋 क्या आप स्वयंसेवक (Volunteer) के रूप में काम करना चाहेंगे?</p>
+                <p className="text-xs text-green-700">संस्था के कार्यों में स्वेच्छा से सहयोग दें — कार्यक्रम, शिक्षा, पर्यावरण आदि। <span className="text-green-600">(Would you like to work as a Volunteer?)</span></p>
               </div>
             </label>
             {wantVolunteer && (
