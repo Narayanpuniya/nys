@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
     photoUrl = await saveUploadedImage(photo, "members", { maxBytes: 2 * 1024 * 1024 });
   }
 
+  const memberId = String(form.get("memberId") ?? "").trim() || null;
+
   const mentor = await prisma.mentor.create({
     data: {
       name:         String(form.get("name") ?? "").trim(),
@@ -25,6 +27,7 @@ export async function POST(req: NextRequest) {
       showContact:  form.get("showContact") === "true",
       sortOrder:    parseInt(String(form.get("sortOrder") ?? "0")) || 0,
       photoUrl,
+      memberId,
     },
   });
   return NextResponse.json(mentor);
@@ -43,6 +46,8 @@ export async function PATCH(req: NextRequest) {
     photoUrl = (await saveUploadedImage(photo, "members", { maxBytes: 2 * 1024 * 1024 })) ?? undefined;
   }
 
+  const memberId = String(form.get("memberId") ?? "").trim() || null;
+
   const updated = await prisma.mentor.update({
     where: { id },
     data: {
@@ -55,6 +60,7 @@ export async function PATCH(req: NextRequest) {
       featured:     form.get("featured") === "true",
       showContact:  form.get("showContact") === "true",
       sortOrder:    parseInt(String(form.get("sortOrder") ?? "0")) || 0,
+      memberId,
       ...(photoUrl !== undefined ? { photoUrl } : {}),
     },
   });

@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
     photoUrl = await saveUploadedImage(photo, "members", { maxBytes: 2 * 1024 * 1024 });
   }
 
+  const memberId = String(form.get("memberId") ?? "").trim() || null;
+
   const member = await prisma.teamMember.create({
     data: {
       name:           String(form.get("name") ?? "").trim(),
@@ -26,6 +28,7 @@ export async function POST(req: NextRequest) {
       showMobile:     form.get("showMobile") === "true",
       sortOrder:      parseInt(String(form.get("sortOrder") ?? "0")) || 0,
       photoUrl,
+      memberId,
     },
   });
   return NextResponse.json(member);
@@ -45,6 +48,8 @@ export async function PATCH(req: NextRequest) {
     photoUrl = (await saveUploadedImage(photo, "members", { maxBytes: 2 * 1024 * 1024 })) ?? undefined;
   }
 
+  const memberId = String(form.get("memberId") ?? "").trim() || null;
+
   const updated = await prisma.teamMember.update({
     where: { id },
     data: {
@@ -57,6 +62,7 @@ export async function PATCH(req: NextRequest) {
       isLeadership:   form.get("isLeadership") === "true",
       showMobile:     form.get("showMobile") === "true",
       sortOrder:      parseInt(String(form.get("sortOrder") ?? "0")) || 0,
+      memberId,
       ...(photoUrl !== undefined ? { photoUrl } : {}),
     },
   });

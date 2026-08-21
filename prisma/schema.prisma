@@ -102,6 +102,8 @@ model Member {
   suggestions     Suggestion[]
   volunteers      Volunteer[]
   eventRegs       EventRegistration[]
+  teamMembers     TeamMember[]
+  mentors         Mentor[]
 
   @@index([status])
   @@index([mobile])
@@ -383,18 +385,20 @@ model Video {
 }
 
 model TeamMember {
-  id           String   @id @default(cuid())
-  name         String
-  designation  String
-  designationKey String @default("MEMBER")
-  photoUrl     String?
-  mobile       String?
-  bio          String?
+  id             String   @id @default(cuid())
+  name           String
+  designation    String
+  designationKey String   @default("MEMBER")
+  photoUrl       String?
+  mobile         String?
+  bio            String?
   responsibility String?
-  showMobile   Boolean  @default(false)
-  isLeadership Boolean  @default(false)
-  sortOrder    Int      @default(0)
-  createdAt    DateTime @default(now())
+  showMobile     Boolean  @default(false)
+  isLeadership   Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  memberId       String?
+  member         Member?  @relation(fields: [memberId], references: [id])
 }
 
 model Mentor {
@@ -409,6 +413,8 @@ model Mentor {
   showContact  Boolean  @default(false)
   featured     Boolean  @default(false)
   sortOrder    Int      @default(0)
+  memberId     String?
+  member       Member?  @relation(fields: [memberId], references: [id])
 }
 
 model Partner {

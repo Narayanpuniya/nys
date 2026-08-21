@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, X, User, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, X, User, Star, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -10,11 +10,17 @@ type TeamMember = {
   id: string; name: string; designation: string; designationKey: string;
   photoUrl: string | null; mobile: string | null; bio: string | null;
   responsibility: string | null; isLeadership: boolean; showMobile: boolean; sortOrder: number;
+  memberId: string | null;
 };
 type Mentor = {
   id: string; name: string; designation: string | null; profession: string | null;
   photoUrl: string | null; intro: string | null; contribution: string | null;
   contact: string | null; featured: boolean; showContact: boolean; sortOrder: number;
+  memberId: string | null;
+};
+type MemberOption = {
+  id: string; memberCode: string; fullName: string;
+  photoUrl: string | null; mobile: string; occupation: string | null; village: string | null;
 };
 
 const DESIGNATION_KEYS = ["PRESIDENT","VICE_PRESIDENT","SECRETARY","JOINT_SECRETARY","TREASURER","EXECUTIVE_MEMBER","MEMBER"];
@@ -25,6 +31,149 @@ const DESIGNATION_LABELS: Record<string,string> = {
 };
 
 const inp = "w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-ink outline-none focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100";
+
+// ── MemberPicker ─────────────────────────────────────────────────────────────
+function MemberPicker({
+  selectedId,
+  onSelect,
+}: {
+  selectedId: string | null;
+  onSelect: (m: MemberOption | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [members, setMembers] = useState<MemberOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<MemberOption | null>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  const fetchMembers = useCallback(async (query: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/members/list?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setMembers(data.members ?? []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      clearTimeout(debounce.current);
+      debounce.current = setTimeout(() => fetchMembers(q), 300);
+    }
+    return () => clearTimeout(debounce.current);
+  }, [q, open, fetchMembers]);
+
+  // Click outside to close
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Prefetch selected member name when editing existing record
+  useEffect(() => {
+    if (selectedId && !selected) {
+      fetchMembers("").then(() => {/* members already set */});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  function pick(m: MemberOption) {
+    setSelected(m);
+    onSelect(m);
+    setOpen(false);
+    setQ("");
+  }
+
+  function clear(e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelected(null);
+    onSelect(null);
+  }
+
+  return (
+    <div ref={dropRef} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 rounded-lg border border-saffron-300 bg-saffron-50 px-3 py-2 text-sm text-stone-700 hover:border-saffron-400 hover:bg-saffron-100"
+      >
+        {selected?.photoUrl ? (
+          <img src={selected.photoUrl} alt="" className="h-6 w-6 rounded-full object-cover shrink-0" />
+        ) : (
+          <User className="h-4 w-4 shrink-0 text-saffron-500" />
+        )}
+        <span className="flex-1 text-left truncate">
+          {selected ? `${selected.fullName} (${selected.memberCode})` : "सदस्य सूची से चुनें…"}
+        </span>
+        {selected && (
+          <span onClick={clear} className="ml-auto text-stone-400 hover:text-red-500 px-1">✕</span>
+        )}
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-stone-400" />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-stone-200 bg-white shadow-xl">
+          <div className="border-b border-stone-100 p-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="नाम या मोबाइल खोजें…"
+                className="w-full rounded-lg border border-stone-200 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-saffron-400"
+              />
+            </div>
+          </div>
+          <div className="max-h-52 overflow-y-auto py-1">
+            {loading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-saffron-500" />
+              </div>
+            ) : members.length === 0 ? (
+              <p className="py-3 text-center text-xs text-stone-400">कोई सदस्य नहीं मिला</p>
+            ) : (
+              members.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => pick(m)}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-saffron-50",
+                    selected?.id === m.id && "bg-saffron-50 font-medium"
+                  )}
+                >
+                  {m.photoUrl ? (
+                    <img src={m.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-saffron-100 text-xs text-saffron-700">
+                      {m.fullName.charAt(0)}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-stone-800">{m.fullName}</p>
+                    <p className="truncate text-[11px] text-stone-400">
+                      {m.memberCode} · {m.mobile}{m.village ? ` · ${m.village}` : ""}
+                    </p>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── TeamSection ───────────────────────────────────────────────────────────────
 export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
@@ -37,7 +186,7 @@ export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
 
   const emptyTeam: Omit<TeamMember,"id"> = {
     name:"", designation:"", designationKey:"MEMBER", photoUrl:null,
-    mobile:null, bio:null, responsibility:null, isLeadership:false, showMobile:false, sortOrder:0,
+    mobile:null, bio:null, responsibility:null, isLeadership:false, showMobile:false, sortOrder:0, memberId:null,
   };
   const [form, setForm] = useState<Omit<TeamMember,"id">>(emptyTeam);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -47,11 +196,26 @@ export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
   function openEdit(t: TeamMember) {
     setForm({ name:t.name, designation:t.designation, designationKey:t.designationKey,
       photoUrl:t.photoUrl, mobile:t.mobile, bio:t.bio, responsibility:t.responsibility,
-      isLeadership:t.isLeadership, showMobile:t.showMobile, sortOrder:t.sortOrder });
+      isLeadership:t.isLeadership, showMobile:t.showMobile, sortOrder:t.sortOrder, memberId:t.memberId });
     setPhotoPreview(t.photoUrl);
     setEditing(t); setAdding(false); setError("");
   }
   function close() { setAdding(false); setEditing(null); setPhotoPreview(null); }
+
+  function handleMemberSelect(m: MemberOption | null) {
+    if (m) {
+      setForm(f => ({
+        ...f,
+        memberId: m.id,
+        name: m.fullName,
+        mobile: m.mobile ?? null,
+        ...(m.photoUrl ? { photoUrl: m.photoUrl } : {}),
+      }));
+      if (m.photoUrl) setPhotoPreview(m.photoUrl);
+    } else {
+      setForm(f => ({ ...f, memberId: null }));
+    }
+  }
 
   async function save() {
     if (!form.name.trim()) { setError("नाम आवश्यक है।"); return; }
@@ -60,6 +224,9 @@ export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
     fd.set("isLeadership", String(form.isLeadership));
     fd.set("showMobile", String(form.showMobile));
     fd.set("sortOrder", String(form.sortOrder));
+    fd.set("name", form.name);
+    fd.set("mobile", form.mobile ?? "");
+    if (form.memberId) fd.set("memberId", form.memberId);
     if (editing) fd.set("id", editing.id);
 
     const res = await fetch("/api/admin/team", { method: editing ? "PATCH" : "POST", body: fd });
@@ -96,6 +263,7 @@ export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
               <p className="text-xs text-stone-500">{t.designation}</p>
             </div>
             {t.isLeadership && <span className="rounded-full bg-saffron-100 px-2 py-0.5 text-xs font-medium text-saffron-700">नेतृत्व</span>}
+            {t.memberId && <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">सदस्य</span>}
             <button onClick={() => openEdit(t)} className="text-stone-400 hover:text-saffron-600"><Pencil className="h-4 w-4"/></button>
             <button onClick={() => del(t.id)} disabled={deleting===t.id} className="text-stone-400 hover:text-red-600 disabled:opacity-40">
               {deleting===t.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4"/>}
@@ -114,6 +282,14 @@ export function TeamSection({ initialTeam }: { initialTeam: TeamMember[] }) {
               <button onClick={close}><X className="h-5 w-5 text-stone-400"/></button>
             </div>
             <form ref={formRef} className="space-y-3">
+
+              {/* Member Picker */}
+              <div className="rounded-xl border border-saffron-200 bg-saffron-50/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-saffron-700">📋 मौजूदा सदस्य से चुनें (ऑटो-फिल होगा)</p>
+                <MemberPicker selectedId={form.memberId} onSelect={handleMemberSelect} />
+                <p className="mt-1.5 text-[11px] text-stone-400">या नीचे मैन्युअल रूप से भरें</p>
+              </div>
+
               {/* Photo */}
               <div className="flex items-center gap-3">
                 {photoPreview
@@ -180,7 +356,7 @@ export function MentorSection({ initialMentors }: { initialMentors: Mentor[] }) 
 
   const emptyMentor: Omit<Mentor,"id"> = {
     name:"", designation:null, profession:null, photoUrl:null,
-    intro:null, contribution:null, contact:null, featured:false, showContact:false, sortOrder:0,
+    intro:null, contribution:null, contact:null, featured:false, showContact:false, sortOrder:0, memberId:null,
   };
   const [form, setForm] = useState<Omit<Mentor,"id">>(emptyMentor);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -190,10 +366,26 @@ export function MentorSection({ initialMentors }: { initialMentors: Mentor[] }) 
   function openEdit(m: Mentor) {
     setForm({ name:m.name, designation:m.designation, profession:m.profession, photoUrl:m.photoUrl,
       intro:m.intro, contribution:m.contribution, contact:m.contact,
-      featured:m.featured, showContact:m.showContact, sortOrder:m.sortOrder });
+      featured:m.featured, showContact:m.showContact, sortOrder:m.sortOrder, memberId:m.memberId });
     setPhotoPreview(m.photoUrl); setEditing(m); setAdding(false); setError("");
   }
   function close() { setAdding(false); setEditing(null); setPhotoPreview(null); }
+
+  function handleMemberSelect(m: MemberOption | null) {
+    if (m) {
+      setForm(f => ({
+        ...f,
+        memberId: m.id,
+        name: m.fullName,
+        contact: m.mobile ?? null,
+        profession: m.occupation ?? null,
+        ...(m.photoUrl ? { photoUrl: m.photoUrl } : {}),
+      }));
+      if (m.photoUrl) setPhotoPreview(m.photoUrl);
+    } else {
+      setForm(f => ({ ...f, memberId: null }));
+    }
+  }
 
   async function save() {
     if (!form.name.trim()) { setError("नाम आवश्यक है।"); return; }
@@ -202,6 +394,10 @@ export function MentorSection({ initialMentors }: { initialMentors: Mentor[] }) 
     fd.set("featured", String(form.featured));
     fd.set("showContact", String(form.showContact));
     fd.set("sortOrder", String(form.sortOrder));
+    fd.set("name", form.name);
+    fd.set("contact", form.contact ?? "");
+    fd.set("profession", form.profession ?? "");
+    if (form.memberId) fd.set("memberId", form.memberId);
     if (editing) fd.set("id", editing.id);
 
     const res = await fetch("/api/admin/mentors", { method: editing ? "PATCH" : "POST", body: fd });
@@ -237,6 +433,7 @@ export function MentorSection({ initialMentors }: { initialMentors: Mentor[] }) 
               <p className="text-xs text-stone-500">{m.designation ?? m.profession}</p>
             </div>
             {m.featured && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">विशेष</span>}
+            {m.memberId && <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">सदस्य</span>}
             <button onClick={() => openEdit(m)} className="text-stone-400 hover:text-saffron-600"><Pencil className="h-4 w-4"/></button>
             <button onClick={() => del(m.id)} disabled={deleting===m.id} className="text-stone-400 hover:text-red-600 disabled:opacity-40">
               {deleting===m.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4"/>}
@@ -254,6 +451,14 @@ export function MentorSection({ initialMentors }: { initialMentors: Mentor[] }) 
               <button onClick={close}><X className="h-5 w-5 text-stone-400"/></button>
             </div>
             <form ref={formRef} className="space-y-3">
+
+              {/* Member Picker */}
+              <div className="rounded-xl border border-saffron-200 bg-saffron-50/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-saffron-700">📋 मौजूदा सदस्य से चुनें (ऑटो-फिल होगा)</p>
+                <MemberPicker selectedId={form.memberId} onSelect={handleMemberSelect} />
+                <p className="mt-1.5 text-[11px] text-stone-400">या नीचे मैन्युअल रूप से भरें</p>
+              </div>
+
               <div className="flex items-center gap-3">
                 {photoPreview
                   ? <img src={photoPreview} alt="" className="h-16 w-16 rounded-full object-cover"/>
