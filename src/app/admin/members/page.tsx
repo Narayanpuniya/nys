@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
+import { IdCard, Award, Receipt } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { Toolbar } from "@/components/admin/Toolbar";
@@ -33,7 +34,7 @@ export default async function MembersPage({
   };
 
   const [members, total] = await Promise.all([
-    prisma.member.findMany({ where, include: { plan: true }, orderBy: { createdAt: "desc" }, skip: (p - 1) * PAGE, take: PAGE }),
+    prisma.member.findMany({ where, include: { plan: true, payments: { orderBy: { paidAt: "desc" }, take: 1, select: { receiptNumber: true } } }, orderBy: { createdAt: "desc" }, skip: (p - 1) * PAGE, take: PAGE }),
     prisma.member.count({ where }),
   ]);
   const pages = Math.ceil(total / PAGE);
@@ -83,13 +84,37 @@ export default async function MembersPage({
                   <td className="px-4 py-3"><Badge tone={statusTone[m.status] ?? "neutral"}>{m.status}</Badge></td>
                   <td className="px-4 py-3 text-stone-500">{formatDateHi(m.joiningDate)}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {m.status === "PENDING" && (
                         <Link href={`/admin/members/${m.id}`} className="rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 hover:bg-amber-200">
                           ✅ स्वीकृत करें
                         </Link>
                       )}
-                      <Link href={`/admin/members/${m.id}/edit`} className="text-sm font-medium text-saffron-700 hover:underline">
+                      {/* ID कार्ड */}
+                      {m.status === "ACTIVE" && (
+                        <Link href={`/id-card/${m.memberCode}`} target="_blank"
+                          title="ID कार्ड प्रिन्ट"
+                          className="inline-flex items-center gap-1 rounded-lg border border-saffron-200 bg-saffron-50 px-2 py-1 text-xs font-medium text-saffron-800 hover:bg-saffron-100">
+                          <IdCard className="h-3.5 w-3.5" /> ID
+                        </Link>
+                      )}
+                      {/* प्रमाण पत्र */}
+                      {m.status === "ACTIVE" && (
+                        <Link href={`/certificate/${m.memberCode}`} target="_blank"
+                          title="प्रमाण पत्र प्रिन्ट"
+                          className="inline-flex items-center gap-1 rounded-lg border border-maroon-200 bg-maroon-50 px-2 py-1 text-xs font-medium text-maroon-800 hover:bg-maroon-100">
+                          <Award className="h-3.5 w-3.5" /> प्रमाण
+                        </Link>
+                      )}
+                      {/* सदस्यता रसीद */}
+                      {m.payments[0]?.receiptNumber && (
+                        <Link href={`/membership-receipt/${m.payments[0].receiptNumber}`} target="_blank"
+                          title="सदस्यता रसीद प्रिन्ट"
+                          className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100">
+                          <Receipt className="h-3.5 w-3.5" /> रसीद
+                        </Link>
+                      )}
+                      <Link href={`/admin/members/${m.id}/edit`} className="text-xs font-medium text-saffron-700 hover:underline">
                         संपादित
                       </Link>
                       <DeleteMemberButton memberId={m.id} memberName={m.fullName} compact />
