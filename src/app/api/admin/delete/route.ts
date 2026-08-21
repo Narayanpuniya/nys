@@ -6,11 +6,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { can, PERMISSIONS } from "@/lib/constants";
+import { can, PERMISSIONS, Permission } from "@/lib/constants";
 import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
-const ENTITY_CONFIG: Record<string, { permission: string; path: string; label: string }> = {
+const ENTITY_CONFIG: Record<string, { permission: Permission; path: string; label: string }> = {
   campaign:   { permission: PERMISSIONS.CAMPAIGNS_MANAGE,  path: "/admin/campaigns",  label: "अभियान" },
   event:      { permission: PERMISSIONS.EVENTS_MANAGE,     path: "/admin/events",     label: "कार्यक्रम" },
   volunteer:  { permission: PERMISSIONS.MEMBERS_MANAGE,    path: "/admin/volunteers", label: "स्वयंसेवक" },
