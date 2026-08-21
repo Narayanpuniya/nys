@@ -15,6 +15,7 @@ export const memberSchema = z.object({
   email: z.string().trim().email("मान्य ईमेल दर्ज करें").optional().or(z.literal("")),
   address: z.string().trim().optional().or(z.literal("")),
   village: z.string().trim().optional().or(z.literal("")),
+  tehsil: z.string().trim().optional().or(z.literal("")),
   district: z.string().trim().optional().or(z.literal("")),
   state: z.string().trim().optional().or(z.literal("")),
   occupation: z.string().trim().optional().or(z.literal("")),

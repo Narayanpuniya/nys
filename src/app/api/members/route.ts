@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         email: d.email || null,
         address: d.address || null,
         village: d.village || null,
+        tehsil: d.tehsil || null,
         district: d.district || null,
         state: d.state || "Rajasthan",
         occupation: d.occupation || null,

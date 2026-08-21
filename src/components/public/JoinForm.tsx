@@ -27,7 +27,7 @@ type BankInfo = {
 
 const empty = {
   fullName: "", guardianName: "", dob: "", gender: "", mobile: "", whatsapp: "",
-  email: "", address: "", village: "", district: "", state: "Rajasthan",
+  email: "", address: "", village: "", tehsil: "", district: "", state: "Rajasthan",
   occupation: "", bloodGroup: "", emergencyContact: "", photoUrl: "",
 };
 
@@ -46,6 +46,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -54,10 +56,52 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   function validateStep1(): boolean {
     if (form.fullName.trim().length < 2) { setError("कृपया पूरा नाम दर्ज करें।"); return false; }
     if (!/^(\+91[- ]?)?[6-9]\d{9}$/.test(form.mobile.trim())) { setError("मान्य मोबाइल नंबर दर्ज करें।"); return false; }
+    if (!form.dob) { setError("जन्म तिथि अनिवार्य है।"); return false; }
+    if (!form.district.trim()) { setError("जिला अनिवार्य है।"); return false; }
+    if (!form.tehsil.trim()) { setError("तहसील अनिवार्य है।"); return false; }
+    if (!form.state.trim()) { setError("राज्य अनिवार्य है।"); return false; }
+    if (!photoFile && !form.photoUrl) { setError("प्रोफाइल फ़ोटो अनिवार्य है।"); return false; }
     if (password.length < 6) { setError("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।"); return false; }
     if (password !== confirmPassword) { setError("पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाते।"); return false; }
     setError("");
     return true;
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    setPhotoFile(f);
+    if (f) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+      reader.readAsDataURL(f);
+    } else {
+      setPhotoPreview("");
+    }
+  }
+
+  async function uploadPhotoAndAdvance() {
+    if (!validateStep1()) return;
+    setLoading(true);
+    setError("");
+    try {
+      if (photoFile) {
+        const fd = new FormData();
+        fd.set("photo", photoFile);
+        const res = await fetch("/api/members/photo", { method: "POST", body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) {
+          setError(data.error ?? "फ़ोटो अपलोड विफल। दोबारा प्रयास करें।");
+          setLoading(false);
+          return;
+        }
+        set("photoUrl", data.url);
+      }
+      setStep((s) => s + 1);
+    } catch {
+      setError("नेटवर्क त्रुटि। कनेक्शन जाँचें।");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function loadRazorpay(): Promise<boolean> {
@@ -220,6 +264,28 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
 
       {step === 1 && (
         <div className="grid gap-3 sm:grid-cols-2">
+          {/* ── प्रोफाइल फ़ोटो ── */}
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-ink">प्रोफाइल फ़ोटो <span className="text-red-500">*</span></label>
+            <label className="flex cursor-pointer items-center gap-4">
+              {photoPreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photoPreview} alt="preview" className="h-20 w-20 rounded-full border-2 border-saffron-300 object-cover shadow" />
+              ) : (
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-stone-300 bg-stone-50 text-3xl">
+                  📷
+                </div>
+              )}
+              <div className="flex-1">
+                <span className="inline-flex items-center gap-1.5 rounded-xl border border-saffron-300 bg-saffron-50 px-3 py-1.5 text-sm font-medium text-saffron-800 hover:bg-saffron-100">
+                  <Upload className="h-4 w-4" /> फ़ोटो चुनें
+                </span>
+                <p className="mt-1 text-xs text-stone-400">JPG / PNG · अधिकतम 3 MB · पासपोर्ट साइज़</p>
+              </div>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
+            </label>
+          </div>
+
           <Field label="पूरा नाम" required><input className={inputClass} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} /></Field>
           <Field label="पिता/पति का नाम"><input className={inputClass} value={form.guardianName} onChange={(e) => set("guardianName", e.target.value)} /></Field>
           <div>
@@ -235,7 +301,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
             </Field>
             <p className="mt-1 text-xs text-saffron-700 font-medium">📧 ईमेल से भी लॉगिन कर सकते हैं (वैकल्पिक)</p>
           </div>
-          <Field label="जन्म तिथि"><input className={inputClass} type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} /></Field>
+          <Field label="जन्म तिथि" required><input className={inputClass} type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} /></Field>
           <Field label="लिंग">
             <select className={inputClass} value={form.gender} onChange={(e) => set("gender", e.target.value)}>
               <option value="">चुनें</option><option>पुरुष</option><option>महिला</option><option>अन्य</option>
@@ -243,7 +309,11 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
           </Field>
           <Field label="व्यवसाय"><input className={inputClass} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} /></Field>
           <Field label="गाँव/शहर"><input className={inputClass} value={form.village} onChange={(e) => set("village", e.target.value)} /></Field>
-          <Field label="जिला"><input className={inputClass} value={form.district} onChange={(e) => set("district", e.target.value)} /></Field>
+          <Field label="तहसील" required><input className={inputClass} value={form.tehsil} onChange={(e) => set("tehsil", e.target.value)} placeholder="तहसील का नाम" /></Field>
+          <Field label="जिला" required><input className={inputClass} value={form.district} onChange={(e) => set("district", e.target.value)} placeholder="जिला का नाम" /></Field>
+          <Field label="राज्य" required>
+            <input className={inputClass} value={form.state} onChange={(e) => set("state", e.target.value)} placeholder="राजस्थान" />
+          </Field>
           <div className="sm:col-span-2">
             <Field label="पता"><textarea className={inputClass} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></Field>
           </div>
@@ -475,7 +545,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
           <Button variant="outline" onClick={() => setStep((s) => s - 1)}><ArrowLeft className="h-4 w-4" /> पीछे</Button>
         ) : <span />}
         {step < 3 ? (
-          <Button onClick={() => { if (step === 1 && !validateStep1()) return; setStep((s) => s + 1); }}>
+          <Button onClick={() => { if (step === 1) { uploadPhotoAndAdvance(); return; } setStep((s) => s + 1); }} disabled={loading}>
+            {loading && step === 1 ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             आगे <ArrowRight className="h-4 w-4" />
           </Button>
         ) : (

@@ -76,6 +76,7 @@ model Member {
   email           String?
   address         String?
   village         String?
+  tehsil          String?
   district        String?
   state           String?  @default("Rajasthan")
   occupation      String?
