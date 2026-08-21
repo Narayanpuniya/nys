@@ -47,6 +47,27 @@ export default async function SettingsPage() {
           </div>
         </Card>
 
+        {/* ── संपर्क नंबर (5 तक) ── */}
+        <Card className="p-6">
+          <h3 className="mb-1 font-bold text-ink">संपर्क नंबर (Contact Numbers)</h3>
+          <p className="mb-4 text-sm text-stone-500">ये नंबर public website के संपर्क पेज पर दिखेंगे। 5 तक जोड़ सकते हैं।</p>
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const ph = s.phones[i] ?? { name: "", number: "" };
+              return (
+                <div key={i} className="grid gap-3 sm:grid-cols-2 rounded-xl border border-stone-100 bg-stone-50/50 p-3">
+                  <Field label={`फोन ${i + 1} — नाम`}>
+                    <input name={`phoneName${i + 1}`} defaultValue={ph.name} placeholder="जैसे: अध्यक्ष / बुधाराम जी" className={inputClass} />
+                  </Field>
+                  <Field label={`फोन ${i + 1} — नंबर`}>
+                    <input name={`phoneNumber${i + 1}`} defaultValue={ph.number} placeholder="9XXXXXXXXX" inputMode="tel" className={inputClass} />
+                  </Field>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
         <Card className="p-6">
           <h3 className="mb-3 font-bold text-ink">संस्था लोगो</h3>
           <div className="grid gap-4 sm:grid-cols-[160px_1fr]">

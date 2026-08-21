@@ -58,6 +58,8 @@ export type OrgSettings = {
   };
   membershipAutoApprove: boolean;
   reminderFrequencyDays: number;
+  /** संस्था के संपर्क नंबर (नाम + नंबर, 5 तक) */
+  phones: Array<{ name: string; number: string }>;
 };
 
 export const DEFAULT_SETTINGS: OrgSettings = {
@@ -87,6 +89,7 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   privacy: { donorInfoPublic: false, showMemberMobileDefault: false },
   membershipAutoApprove: false,
   reminderFrequencyDays: 30,
+  phones: [],
 };
 
 export async function getSettings(): Promise<OrgSettings> {
@@ -102,6 +105,7 @@ export async function getSettings(): Promise<OrgSettings> {
       social: { ...DEFAULT_SETTINGS.social, ...(parsed.social ?? {}) },
       legal: { ...DEFAULT_SETTINGS.legal, ...(parsed.legal ?? {}) },
       privacy: { ...DEFAULT_SETTINGS.privacy, ...(parsed.privacy ?? {}) },
+      phones: Array.isArray(parsed.phones) ? parsed.phones : [],
     };
   } catch (err) {
     console.error("[getSettings] database unavailable, using defaults:", err);

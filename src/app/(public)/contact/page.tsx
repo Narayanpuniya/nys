@@ -22,9 +22,27 @@ export default async function ContactPage() {
           <Card className="p-5">
             <h3 className="mb-3 font-bold text-ink">{s.name}</h3>
             <ul className="space-y-2 text-sm text-stone-600">
-              <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-saffron-600" /> {s.address}</li>
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-saffron-600" /> <a href={`tel:${s.mobile}`}>{s.mobile}</a></li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-saffron-600" /> <a href={`mailto:${s.email}`}>{s.email}</a></li>
+              <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron-600" /> {s.address}</li>
+
+              {/* ── एकाधिक संपर्क नंबर ── */}
+              {s.phones && s.phones.length > 0 ? (
+                s.phones.map((ph, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 shrink-0 text-saffron-600" />
+                    <div>
+                      {ph.name && <span className="font-medium text-ink">{ph.name}: </span>}
+                      <a href={`tel:${ph.number}`} className="hover:text-saffron-700 hover:underline">{ph.number}</a>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 shrink-0 text-saffron-600" />
+                  <a href={`tel:${s.mobile}`} className="hover:underline">{s.mobile}</a>
+                </li>
+              )}
+
+              <li className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-saffron-600" /> <a href={`mailto:${s.email}`} className="hover:underline">{s.email}</a></li>
             </ul>
             <div className="mt-4 flex gap-2">
               {s.social.facebook  && <a href={s.social.facebook}  target="_blank" rel="noreferrer" className="rounded-lg bg-saffron-50 p-2 text-saffron-700 hover:bg-saffron-100"><FacebookIcon  className="h-4 w-4" /></a>}

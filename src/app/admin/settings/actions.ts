@@ -44,6 +44,14 @@ export async function updateSettings(formData: FormData) {
   const uploadedQr = await saveUploadedImage(upiQrFile, "docs");
   if (uploadedQr) upiQrUrl = uploadedQr;
 
+  // संपर्क नंबर (5 तक)
+  const phones: OrgSettings["phones"] = [];
+  for (let i = 1; i <= 5; i++) {
+    const name = str(formData, `phoneName${i}`);
+    const number = str(formData, `phoneNumber${i}`);
+    if (name || number) phones.push({ name, number });
+  }
+
   const next: OrgSettings = {
     ...current,
     name: str(formData, "name") || current.name,
@@ -82,6 +90,7 @@ export async function updateSettings(formData: FormData) {
       donorInfoPublic: formData.get("donorInfoPublic") === "on",
       showMemberMobileDefault: formData.get("showMemberMobileDefault") === "on",
     },
+    phones,
   };
 
   await saveSettings(next);
