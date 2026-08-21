@@ -137,9 +137,9 @@ export function MemberEditForm({ member, plans }: { member: MemberEdit; plans: P
             <Field label="लिंग">
               <select name="gender" defaultValue={member.gender ?? ""} className={inputClass}>
                 <option value="">— चुनें —</option>
-                <option value="MALE">पुरुष</option>
-                <option value="FEMALE">महिला</option>
-                <option value="OTHER">अन्य</option>
+                <option value="पुरुष">पुरुष</option>
+                <option value="महिला">महिला</option>
+                <option value="अन्य">अन्य</option>
               </select>
             </Field>
             <Field label="मोबाइल" required>
