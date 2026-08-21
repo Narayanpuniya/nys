@@ -21,7 +21,8 @@ export type UploadCategory =
   | "gallery"
   | "slider"
   | "docs"
-  | "receipts";
+  | "receipts"
+  | "finance";
 
 function assertUploadable(
   file: File,
