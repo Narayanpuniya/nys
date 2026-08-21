@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { deleteMember } from "../actions";
 
@@ -8,17 +9,22 @@ export function DeleteMemberButton({
   memberId,
   memberName,
   compact,
+  redirectTo,
 }: {
   memberId: string;
   memberName: string;
   compact?: boolean;
+  redirectTo?: string;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   function handleDelete() {
     if (!confirm(`"${memberName}" को डिलीट करें?\n\nData छुप जाएगा (बाद में restore हो सकता है)।`)) return;
     startTransition(async () => {
       await deleteMember(memberId);
+      if (redirectTo) router.push(redirectTo);
+      else router.refresh();
     });
   }
 

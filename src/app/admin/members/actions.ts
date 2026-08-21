@@ -161,5 +161,5 @@ export async function deleteMember(memberId: string) {
   });
 
   revalidatePath("/admin/members");
-  redirect("/admin/members");
+  // redirect Client Component से call होने पर crash करता है — client में router.refresh() करेंगे
 }

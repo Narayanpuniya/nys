@@ -32,7 +32,7 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/admin/members" className="text-sm text-saffron-700">← सभी सदस्य</Link>
         <div className="flex items-center gap-2">
-          <DeleteMemberButton memberId={member.id} memberName={member.fullName} />
+          <DeleteMemberButton memberId={member.id} memberName={member.fullName} redirectTo="/admin/members" />
           <Link
             href={`/admin/members/${member.id}/edit`}
             className="inline-flex items-center gap-1.5 rounded-xl bg-saffron-600 px-4 py-2 text-sm font-medium text-white hover:bg-saffron-700"
