@@ -68,17 +68,46 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
           </dl>
 
           {member.status === "PENDING" && (
-            <div className="mt-4 flex gap-2">
-              <form action={approveMember.bind(null, member.id)} className="flex-1">
-                <button className="flex w-full items-center justify-center gap-1 rounded-xl bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700">
-                  <Check className="h-4 w-4" /> स्वीकृत करें
-                </button>
-              </form>
-              <form action={rejectMember.bind(null, member.id)}>
-                <button className="flex items-center justify-center gap-1 rounded-xl border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
-                  <X className="h-4 w-4" />
-                </button>
-              </form>
+            <div className="mt-4 space-y-3">
+              {/* Payment receipt proof — prominent for PENDING */}
+              {member.payments[0]?.proofUrl ? (
+                <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3">
+                  <p className="mb-2 text-xs font-bold text-amber-800">📎 भुगतान रसीद (सदस्य द्वारा अपलोड)</p>
+                  <a href={member.payments[0].proofUrl} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={member.payments[0].proofUrl}
+                      alt="भुगतान रसीद"
+                      className="w-full rounded-lg border border-amber-200 object-contain"
+                      style={{ maxHeight: "260px" }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    <span className="mt-1 block text-center text-xs text-saffron-700 underline">
+                      पूरी रसीद देखें ↗
+                    </span>
+                  </a>
+                  <div className="mt-2 text-xs text-stone-600">
+                    राशि: <strong>₹{member.payments[0].amount}</strong> · मोड: {member.payments[0].mode}
+                    {member.payments[0].notes && <span> · {member.payments[0].notes}</span>}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-stone-400 text-center">
+                  भुगतान रसीद अपलोड नहीं की गई
+                </div>
+              )}
+              <div className="flex gap-2">
+                <form action={approveMember.bind(null, member.id)} className="flex-1">
+                  <button className="flex w-full items-center justify-center gap-1 rounded-xl bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700">
+                    <Check className="h-4 w-4" /> स्वीकृत करें
+                  </button>
+                </form>
+                <form action={rejectMember.bind(null, member.id)}>
+                  <button className="flex items-center justify-center gap-1 rounded-xl border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+                    <X className="h-4 w-4" />
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 
@@ -117,12 +146,20 @@ export default async function MemberProfile({ params }: { params: Promise<{ id: 
                     <td><Badge tone={p.status === "SUCCESS" ? "green" : "amber"}>{p.status}</Badge></td>
                     <td>
                       {p.proofUrl ? (
-                        <a href={p.proofUrl} target="_blank" rel="noreferrer" className="text-saffron-700 underline">
-                          देखें
+                        <a href={p.proofUrl} target="_blank" rel="noreferrer" title="रसीद देखें">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={p.proofUrl}
+                            alt="रसीद"
+                            className="h-12 w-12 rounded border border-stone-200 object-cover hover:opacity-80"
+                            onError={(e) => {
+                              const el = e.target as HTMLImageElement;
+                              el.style.display = "none";
+                              el.insertAdjacentHTML("afterend", '<span class="text-saffron-700 underline text-xs">देखें</span>');
+                            }}
+                          />
                         </a>
-                      ) : (
-                        "—"
-                      )}
+                      ) : "—"}
                     </td>
                     <td className="text-stone-500">{formatDateHi(p.paidAt)}</td>
                   </tr>

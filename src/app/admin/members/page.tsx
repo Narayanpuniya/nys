@@ -83,7 +83,12 @@ export default async function MembersPage({
                   <td className="px-4 py-3"><Badge tone={statusTone[m.status] ?? "neutral"}>{m.status}</Badge></td>
                   <td className="px-4 py-3 text-stone-500">{formatDateHi(m.joiningDate)}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      {m.status === "PENDING" && (
+                        <Link href={`/admin/members/${m.id}`} className="rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 hover:bg-amber-200">
+                          ✅ स्वीकृत करें
+                        </Link>
+                      )}
                       <Link href={`/admin/members/${m.id}/edit`} className="text-sm font-medium text-saffron-700 hover:underline">
                         संपादित
                       </Link>
