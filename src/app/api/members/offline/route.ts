@@ -135,6 +135,24 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // ── स्वयंसेवक auto-create ──
+    const wantVolunteer = form.get("wantVolunteer") === "true";
+    const volunteerAreasRaw = String(form.get("volunteerAreas") ?? "[]");
+    let volunteerAreas: string[] = [];
+    try { volunteerAreas = JSON.parse(volunteerAreasRaw); } catch { /* ignore */ }
+    if (wantVolunteer && volunteerAreas.length > 0) {
+      await prisma.volunteer.create({
+        data: {
+          memberId: member.id,
+          name: member.fullName,
+          mobile: member.mobile,
+          areas: JSON.stringify(volunteerAreas),
+          note: "सदस्यता फ़ॉर्म से स्वयंसेवक हेतु आवेदन",
+          status: "NEW",
+        },
+      });
+    }
+
     await logAudit({
       action: "CREATE",
       entity: "Member",

@@ -48,6 +48,16 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const [error, setError] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [wantVolunteer, setWantVolunteer] = useState(false);
+  const [volunteerAreas, setVolunteerAreas] = useState<string[]>([]);
+
+  const VOLUNTEER_AREAS = ["शिक्षा", "खेल", "पर्यावरण", "सामाजिक सेवा", "कार्यक्रम आयोजन", "आईटी/तकनीक", "अन्य"];
+
+  function toggleArea(area: string) {
+    setVolunteerAreas((prev) =>
+      prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
+    );
+  }
 
   function set<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -62,6 +72,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
     if (!form.tehsil.trim()) { setError("तहसील अनिवार्य है।"); return false; }
     if (!form.state.trim()) { setError("राज्य अनिवार्य है।"); return false; }
     if (!photoFile && !form.photoUrl) { setError("प्रोफाइल फ़ोटो अनिवार्य है।"); return false; }
+    if (wantVolunteer && volunteerAreas.length === 0) { setError("स्वयंसेवक के लिए कम से कम एक क्षेत्र चुनें।"); return false; }
     if (password.length < 6) { setError("पासवर्ड कम से कम 6 अक्षर का होना चाहिए।"); return false; }
     if (password !== confirmPassword) { setError("पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाते।"); return false; }
     setError("");
@@ -129,7 +140,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   async function submitOnline() {
     const res = await fetch("/api/members", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, planId, consent: true, password }),
+      body: JSON.stringify({ ...form, planId, consent: true, password, wantVolunteer, volunteerAreas }),
     });
     const text = await res.text();
     let data: {
@@ -191,6 +202,8 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
     fd.set("mode", bank?.upiId ? "UPI" : "BANK_TRANSFER");
     if (txnNote.trim()) fd.set("notes", txnNote.trim());
     fd.set("proof", proof);
+    fd.set("wantVolunteer", wantVolunteer ? "true" : "false");
+    fd.set("volunteerAreas", JSON.stringify(volunteerAreas));
 
     const res = await fetch("/api/members/offline", { method: "POST", body: fd });
     const text = await res.text();
@@ -343,6 +356,47 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
           </Field>
           <div className="sm:col-span-2">
             <Field label="पता"><textarea className={inputClass} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></Field>
+          </div>
+
+          {/* स्वयंसेवक */}
+          <div className="sm:col-span-2 rounded-xl border border-green-200 bg-green-50 p-4 space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={wantVolunteer}
+                onChange={(e) => { setWantVolunteer(e.target.checked); if (!e.target.checked) setVolunteerAreas([]); }}
+                className="mt-1 h-4 w-4 accent-green-600"
+              />
+              <div>
+                <p className="font-semibold text-green-800">🙋 क्या आप स्वयंसेवक के रूप में काम करना चाहेंगे?</p>
+                <p className="text-xs text-green-700">संस्था के कार्यों में स्वेच्छा से सहयोग दें — कार्यक्रम, शिक्षा, पर्यावरण आदि।</p>
+              </div>
+            </label>
+            {wantVolunteer && (
+              <div>
+                <p className="mb-2 text-xs font-medium text-green-800">किस क्षेत्र में सहयोग देना चाहते हैं? <span className="text-red-500">*</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {VOLUNTEER_AREAS.map((area) => (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() => toggleArea(area)}
+                      className={cn(
+                        "rounded-xl border px-3 py-1.5 text-xs font-medium transition",
+                        volunteerAreas.includes(area)
+                          ? "border-green-500 bg-green-600 text-white"
+                          : "border-green-200 bg-white text-green-700 hover:border-green-400"
+                      )}
+                    >
+                      {area}
+                    </button>
+                  ))}
+                </div>
+                {wantVolunteer && volunteerAreas.length === 0 && (
+                  <p className="mt-1 text-xs text-red-500">कम से कम एक क्षेत्र चुनें।</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* पासवर्ड — login credentials */}
