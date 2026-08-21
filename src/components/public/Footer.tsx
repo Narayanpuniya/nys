@@ -10,7 +10,7 @@ export async function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16" style={{ background: "linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)" }}>
+    <footer className="mt-16" style={{ background: "linear-gradient(160deg, #1c0800 0%, #2d1000 55%, #1a0404 100%)" }}>
 
       {/* Top divider */}
       <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706, #b45309, #d97706, #f59e0b)" }} />
