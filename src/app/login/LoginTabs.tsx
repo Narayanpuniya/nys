@@ -90,7 +90,7 @@ function MemberForm() {
         </div>
       </div>
 
-      <form action={action} className="space-y-4" autoComplete="off">
+      <form action={action} className="space-y-4">
         {/* Identifier: mobile or email */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-ink">
@@ -103,7 +103,7 @@ function MemberForm() {
               type="text"
               required
               inputMode="email"
-              autoComplete="off"
+              autoComplete="username"
               placeholder="9876543210 या name@email.com"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-4 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100"
             />
@@ -122,7 +122,7 @@ function MemberForm() {
               name="password"
               type={showPass ? "text" : "password"}
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
               placeholder="••••••••"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-10 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-saffron-400 focus:bg-white focus:ring-2 focus:ring-saffron-100"
             />
@@ -182,10 +182,7 @@ function AdminForm() {
         </div>
       </div>
 
-      {/* browser auto-fill रोकने के लिए hidden dummy fields */}
-      <input type="email" name="_dummy_email" style={{ display: "none" }} autoComplete="username" readOnly tabIndex={-1} />
-      <input type="password" name="_dummy_pass" style={{ display: "none" }} autoComplete="current-password" readOnly tabIndex={-1} />
-      <form action={action} className="space-y-4" autoComplete="off">
+      <form action={action} className="space-y-4">
         {/* Email */}
         <div>
           <label className="mb-1.5 block text-sm font-medium text-ink">
@@ -197,7 +194,7 @@ function AdminForm() {
               name="email"
               type="email"
               required
-              autoComplete="off"
+              autoComplete="username"
               placeholder="admin@nys.org"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-4 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-stone-400 focus:bg-white focus:ring-2 focus:ring-stone-100"
             />
@@ -215,7 +212,7 @@ function AdminForm() {
               name="password"
               type={showPass ? "text" : "password"}
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
               placeholder="••••••••"
               className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2.5 pl-9 pr-10 text-sm text-ink placeholder-stone-400 outline-none transition focus:border-stone-400 focus:bg-white focus:ring-2 focus:ring-stone-100"
             />
