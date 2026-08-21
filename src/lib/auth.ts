@@ -37,7 +37,8 @@ export async function createSession(user: SessionUser): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 8, // 8 घंटे — Admin रोज़ login करे
+    // maxAge नहीं — Session Cookie: browser बंद होने पर अपने आप delete होगी
+    // JWT का 8h expiry backup के रूप में काम करेगा
   });
 }
 
