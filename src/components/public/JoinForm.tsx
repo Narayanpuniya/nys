@@ -6,6 +6,7 @@ import { Loader2, ArrowRight, ArrowLeft, Check, Upload, Eye, EyeOff } from "luci
 import { Field, inputClass } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { formatINR, cn } from "@/lib/utils";
+import { ImageCropper } from "@/components/ui/ImageCropper";
 
 declare global {
   interface Window {
@@ -48,6 +49,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
   const [error, setError] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [wantVolunteer, setWantVolunteer] = useState(false);
   const [volunteerAreas, setVolunteerAreas] = useState<string[]>([]);
 
@@ -81,14 +83,19 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
-    setPhotoFile(f);
-    if (f) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-      reader.readAsDataURL(f);
-    } else {
-      setPhotoPreview("");
-    }
+    if (!f) return;
+    // Show cropper instead of setting directly
+    const reader = new FileReader();
+    reader.onload = (ev) => setCropSrc(ev.target?.result as string);
+    reader.readAsDataURL(f);
+    // Reset input so same file can be re-picked after cancel
+    e.target.value = "";
+  }
+
+  function handleCropDone(file: File, url: string) {
+    setPhotoFile(file);
+    setPhotoPreview(url);
+    setCropSrc(null);
   }
 
   async function uploadPhotoAndAdvance() {
@@ -272,6 +279,15 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
 
   return (
     <div>
+      {/* ── Image Cropper Modal ── */}
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onDone={handleCropDone}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
+
       <div className="mb-6 flex items-center justify-center gap-2">
         {[1, 2, 3].map((n) => (
           <div key={n} className="flex items-center gap-2">

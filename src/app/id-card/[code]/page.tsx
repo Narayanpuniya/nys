@@ -176,12 +176,14 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 <div className="text-center">
                   {s.branding.presidentSignUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.branding.presidentSignUrl}
-                      alt="हस्ताक्षर"
-                      className="mx-auto mb-1 h-10 w-28 object-contain"
-                      style={{ filter: "invert(1) brightness(2)", mixBlendMode: "screen" }}
-                    />
+                    <div className="mx-auto mb-1 flex h-12 w-32 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={s.branding.presidentSignUrl}
+                        alt="हस्ताक्षर"
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
                   ) : (
                     <div className="mb-1 h-8 w-28 border-b border-amber-400/50" />
                   )}
