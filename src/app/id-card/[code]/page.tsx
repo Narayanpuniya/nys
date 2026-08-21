@@ -41,8 +41,8 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
 
           {/* ─── FRONT CARD ─── */}
           <div
-            className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-xl"
-            style={{ background: "linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%)" }}
+            className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-2xl"
+            style={{ background: "#f0f4fb" }}
           >
             {/* Watermark logo */}
             {s.logoUrl && (
@@ -51,73 +51,83 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 src={s.logoUrl}
                 alt=""
                 aria-hidden="true"
-                className="pointer-events-none absolute right-2 bottom-2 select-none object-contain"
-                style={{ width: 100, height: 100, opacity: 0.07 }}
+                className="pointer-events-none absolute right-3 bottom-8 select-none object-contain"
+                style={{ width: 90, height: 90, opacity: 0.06 }}
               />
             )}
 
-            {/* Header band */}
+            {/* Decorative left accent bar */}
+            <div className="absolute left-0 top-0 h-full w-1" style={{ background: "linear-gradient(180deg, #c9950a 0%, #0f2d52 60%, #c9950a 100%)" }} />
+
+            {/* Header band — deep navy */}
             <div
-              className="relative flex items-center gap-3 px-4 py-3"
-              style={{ background: "linear-gradient(135deg, #d97706 0%, #7f1d1d 100%)" }}
+              className="relative flex items-center gap-3 pl-5 pr-4 py-2.5"
+              style={{ background: "linear-gradient(120deg, #0c1e3e 0%, #1a3a6b 100%)" }}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <LogoMark className="h-7 w-7" imageUrl={s.logoUrl} />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/20">
+                <LogoMark className="h-6 w-6" imageUrl={s.logoUrl} />
               </div>
-              <div className="flex-1 leading-tight">
-                <div className="text-[9px] font-semibold tracking-widest text-orange-200">www.nys.org.in</div>
-                <div className="text-sm font-extrabold text-white">{s.name}</div>
-                <div className="text-[10px] tracking-wider text-orange-100">{s.address}</div>
+              <div className="flex-1 min-w-0 leading-tight">
+                <div className="text-[8px] font-semibold tracking-[0.18em] uppercase" style={{ color: "#c9950a" }}>www.nys.org.in</div>
+                <div className="truncate text-[12px] font-extrabold text-white">{s.name}</div>
+                <div className="truncate text-[9px] text-blue-200/70">{s.address}</div>
               </div>
-              <div className="shrink-0 rounded border border-white/30 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
-                सदस्य ID
+              <div className="shrink-0 rounded border px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest" style={{ borderColor: "#c9950a55", color: "#c9950a" }}>
+                ID Card
               </div>
             </div>
 
+            {/* Gold rule */}
+            <div className="h-[2px] w-full" style={{ background: "linear-gradient(90deg, #c9950a 0%, #f0c040 50%, #c9950a 100%)" }} />
+
             {/* Body */}
-            <div className="flex gap-4 p-4">
+            <div className="flex gap-3 pl-5 pr-4 pt-3 pb-2">
               {/* Photo */}
               <div
-                className="relative flex h-[130px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-saffron-300 bg-saffron-50 text-4xl shadow-sm"
+                className="relative flex h-[124px] w-[94px] shrink-0 items-center justify-center overflow-hidden text-4xl"
+                style={{ borderRadius: 10, border: "2px solid #1a3a6b", background: "#e8edf8" }}
               >
                 {member.photoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={member.photoUrl} alt={member.fullName} className="h-full w-full object-cover" />
                 ) : "🙂"}
+                {/* Photo bottom label */}
+                <div className="absolute bottom-0 left-0 right-0 py-0.5 text-center text-[7px] font-bold tracking-widest text-white" style={{ background: "#0c1e3edd" }}>PHOTO</div>
               </div>
 
               {/* Info */}
-              <div className="min-w-0 flex-1 text-xs">
-                <div className="text-base font-extrabold leading-tight text-ink">{member.fullName}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-extrabold leading-tight" style={{ color: "#0c1e3e" }}>{member.fullName}</div>
                 {member.guardianName && (
-                  <div className="mt-0.5 text-[10px] text-stone-500">S/o: {member.guardianName}</div>
+                  <div className="mt-0.5 text-[9.5px]" style={{ color: "#4a5a7a" }}>पिता/पति: {member.guardianName}</div>
                 )}
-                <div className="mt-2 inline-block rounded-md bg-saffron-700 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white">
+                {/* Member code badge */}
+                <div className="mt-1.5 inline-block rounded px-2 py-0.5 text-[10px] font-bold tracking-wide text-white" style={{ background: "#0c1e3e" }}>
                   {member.memberCode}
                 </div>
-                <div className="mt-2 space-y-1 text-stone-600">
-                  <div><span className="font-medium">प्रकार:</span> {member.plan?.name ?? "सदस्य"}</div>
-                  <div><span className="font-medium">सदस्यता:</span> {formatDateHi(member.joiningDate)}</div>
-                  <div><span className="font-medium">मान्य:</span> {member.validUntil ? formatDateHi(member.validUntil) : "—"}</div>
+                <div className="mt-2 space-y-0.5 text-[9.5px]" style={{ color: "#334466" }}>
+                  <div><span className="font-semibold" style={{ color: "#0c1e3e" }}>प्रकार:</span> {member.plan?.name ?? "सदस्य"}</div>
+                  <div><span className="font-semibold" style={{ color: "#0c1e3e" }}>सदस्यता:</span> {formatDateHi(member.joiningDate)}</div>
+                  <div><span className="font-semibold" style={{ color: "#0c1e3e" }}>मान्य:</span> {member.validUntil ? formatDateHi(member.validUntil) : "—"}</div>
                 </div>
               </div>
 
               {/* QR */}
-              <div className="self-end">
+              <div className="self-end pb-1">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={qr} alt="QR" className="h-[62px] w-[62px] rounded-lg" />
-                <div className="mt-0.5 text-center text-[8px] text-stone-400">Scan</div>
+                <img src={qr} alt="QR" className="rounded" style={{ width: 56, height: 56, border: "1.5px solid #1a3a6b44" }} />
+                <div className="mt-0.5 text-center text-[7px]" style={{ color: "#7a8aaa" }}>Scan</div>
               </div>
             </div>
 
-            {/* Bottom stripe */}
-            <div className="absolute bottom-0 left-0 h-1.5 w-full" style={{ background: "linear-gradient(90deg, #d97706, #7f1d1d)" }} />
+            {/* Gold bottom stripe */}
+            <div className="absolute bottom-0 left-0 h-[3px] w-full" style={{ background: "linear-gradient(90deg, #c9950a 0%, #f0c040 50%, #c9950a 100%)" }} />
           </div>
 
           {/* ─── BACK CARD ─── */}
           <div
-            className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-xl"
-            style={{ background: "linear-gradient(155deg, #7f1d1d 0%, #991b1b 45%, #92400e 100%)" }}
+            className="print-page relative h-[240px] w-[380px] overflow-hidden rounded-2xl shadow-2xl"
+            style={{ background: "linear-gradient(140deg, #0c1e3e 0%, #122848 55%, #1a3a6b 100%)" }}
           >
             {/* Watermark logo — center */}
             {s.logoUrl ? (
@@ -127,39 +137,33 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
                 alt=""
                 aria-hidden="true"
                 className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none object-contain"
-                style={{ width: 180, height: 180, opacity: 0.10 }}
+                style={{ width: 180, height: 180, opacity: 0.08 }}
               />
             ) : null}
 
-            {/* Decorative ring */}
-            <div
-              className="pointer-events-none absolute -right-10 -top-10 rounded-full"
-              style={{ width: 160, height: 160, border: "2px solid rgba(251,191,36,0.15)" }}
-            />
-            <div
-              className="pointer-events-none absolute -right-6 -top-6 rounded-full"
-              style={{ width: 100, height: 100, border: "1.5px solid rgba(251,191,36,0.12)" }}
-            />
+            {/* Decorative circles — top right */}
+            <div className="pointer-events-none absolute -right-8 -top-8 rounded-full" style={{ width: 140, height: 140, border: "1.5px solid rgba(201,149,10,0.18)" }} />
+            <div className="pointer-events-none absolute -right-4 -top-4 rounded-full" style={{ width: 90, height: 90, border: "1px solid rgba(201,149,10,0.12)" }} />
 
             {/* Gold top stripe */}
-            <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #f59e0b, #d97706, #b45309)" }} />
+            <div className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, #c9950a 0%, #f0c040 50%, #c9950a 100%)" }} />
 
-            <div className="relative z-10 flex h-full flex-col justify-between px-5 py-3 pb-3">
+            <div className="relative z-10 flex h-full flex-col justify-between px-5 py-3">
               {/* Org info */}
               <div>
-                <div className="text-[9px] font-semibold tracking-widest text-orange-200/80">www.nys.org.in</div>
-                <div className="text-[13px] font-extrabold leading-snug text-white">{s.name}</div>
-                <div className="mt-0.5 text-[10px] text-orange-200/80">{s.address}</div>
-                <div className="text-[10px] text-orange-200/80">{s.mobile} · {s.email}</div>
+                <div className="text-[8px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#c9950a" }}>www.nys.org.in</div>
+                <div className="mt-0.5 text-[13px] font-extrabold leading-snug text-white">{s.name}</div>
+                <div className="mt-0.5 text-[9.5px]" style={{ color: "#aab8d0" }}>{s.address}</div>
+                <div className="text-[9.5px]" style={{ color: "#aab8d0" }}>{s.mobile} · {s.email}</div>
                 {s.legal?.registrationNo && (
-                  <div className="mt-1 text-[9px] text-amber-300/70">
+                  <div className="mt-1 text-[8.5px]" style={{ color: "#c9950a99" }}>
                     Reg: {s.legal.registrationNo}
                   </div>
                 )}
               </div>
 
               {/* Instructions */}
-              <ul className="space-y-0.5 text-[9.5px] text-orange-100/75">
+              <ul className="space-y-0.5 text-[9px]" style={{ color: "#8899bb" }}>
                 <li>• यह कार्ड केवल NYS सदस्यता की पहचान हेतु है।</li>
                 <li>• खो जाने पर संस्था को तुरंत सूचित करें।</li>
                 <li>• QR स्कैन कर सदस्यता सत्यापित करें।</li>
@@ -170,30 +174,25 @@ export default async function IdCardPage({ params }: { params: Promise<{ code: s
               <div className="flex items-end justify-between">
                 <div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qr} alt="QR verify" className="h-14 w-14 rounded-lg bg-white p-0.5" />
-                  <div className="mt-0.5 text-[8px] text-orange-200/60">सत्यापन हेतु</div>
+                  <img src={qr} alt="QR verify" className="rounded bg-white p-0.5" style={{ width: 52, height: 52 }} />
+                  <div className="mt-0.5 text-[7.5px]" style={{ color: "#556677" }}>सत्यापन हेतु</div>
                 </div>
                 <div className="text-center">
                   {s.branding.presidentSignUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <div className="mx-auto mb-1 flex h-12 w-32 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
+                    <div className="mx-auto mb-1 flex h-11 w-28 items-center justify-center rounded-lg bg-white p-1 shadow-sm">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={s.branding.presidentSignUrl}
-                        alt="हस्ताक्षर"
-                        className="h-full w-full object-contain"
-                      />
+                      <img src={s.branding.presidentSignUrl} alt="हस्ताक्षर" className="h-full w-full object-contain" />
                     </div>
                   ) : (
-                    <div className="mb-1 h-8 w-28 border-b border-amber-400/50" />
+                    <div className="mb-1 h-8 w-28" style={{ borderBottom: "1px solid rgba(201,149,10,0.4)" }} />
                   )}
-                  <div className="text-[9px] font-semibold tracking-wide text-amber-300/80">अधिकृत हस्ताक्षर</div>
+                  <div className="text-[8.5px] font-semibold tracking-wide" style={{ color: "#c9950a" }}>अधिकृत हस्ताक्षर</div>
                 </div>
               </div>
             </div>
 
             {/* Gold bottom stripe */}
-            <div className="absolute bottom-0 left-0 h-1 w-full" style={{ background: "linear-gradient(90deg, #b45309, #d97706, #f59e0b)" }} />
+            <div className="absolute bottom-0 left-0 h-[3px] w-full" style={{ background: "linear-gradient(90deg, #c9950a 0%, #f0c040 50%, #c9950a 100%)" }} />
           </div>
 
         </div>
