@@ -19,6 +19,7 @@ type MemberEdit = {
   email: string | null;
   address: string | null;
   village: string | null;
+  tehsil: string | null;
   district: string | null;
   state: string | null;
   occupation: string | null;
@@ -106,6 +107,9 @@ export function MemberEditForm({ member, plans }: { member: MemberEdit; plans: P
           </div>
           <Field label="गाँव/शहर">
             <input name="village" defaultValue={member.village ?? ""} className={inputClass} />
+          </Field>
+          <Field label="तहसील">
+            <input name="tehsil" defaultValue={member.tehsil ?? ""} className={inputClass} placeholder="तहसील का नाम" />
           </Field>
           <Field label="जिला">
             <input name="district" defaultValue={member.district ?? ""} className={inputClass} />

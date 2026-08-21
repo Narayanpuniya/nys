@@ -112,6 +112,7 @@ export async function updateMember(
       email: String(formData.get("email") ?? "").trim() || null,
       address: String(formData.get("address") ?? "").trim() || null,
       village: String(formData.get("village") ?? "").trim() || null,
+      tehsil: String(formData.get("tehsil") ?? "").trim() || null,
       district: String(formData.get("district") ?? "").trim() || null,
       state: String(formData.get("state") ?? "").trim() || null,
       occupation: String(formData.get("occupation") ?? "").trim() || null,

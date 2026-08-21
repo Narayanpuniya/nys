@@ -57,6 +57,7 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
     if (form.fullName.trim().length < 2) { setError("कृपया पूरा नाम दर्ज करें।"); return false; }
     if (!/^(\+91[- ]?)?[6-9]\d{9}$/.test(form.mobile.trim())) { setError("मान्य मोबाइल नंबर दर्ज करें।"); return false; }
     if (!form.dob) { setError("जन्म तिथि अनिवार्य है।"); return false; }
+    if (!form.gender) { setError("लिंग चुनना अनिवार्य है।"); return false; }
     if (!form.district.trim()) { setError("जिला अनिवार्य है।"); return false; }
     if (!form.tehsil.trim()) { setError("तहसील अनिवार्य है।"); return false; }
     if (!form.state.trim()) { setError("राज्य अनिवार्य है।"); return false; }
@@ -302,9 +303,12 @@ export function JoinForm({ plans, bank }: { plans: Plan[]; bank?: BankInfo }) {
             <p className="mt-1 text-xs text-saffron-700 font-medium">📧 ईमेल से भी लॉगिन कर सकते हैं (वैकल्पिक)</p>
           </div>
           <Field label="जन्म तिथि" required><input className={inputClass} type="date" value={form.dob} onChange={(e) => set("dob", e.target.value)} /></Field>
-          <Field label="लिंग">
+          <Field label="लिंग" required>
             <select className={inputClass} value={form.gender} onChange={(e) => set("gender", e.target.value)}>
-              <option value="">चुनें</option><option>पुरुष</option><option>महिला</option><option>अन्य</option>
+              <option value="">— चुनें —</option>
+              <option value="पुरुष">पुरुष</option>
+              <option value="महिला">महिला</option>
+              <option value="अन्य">अन्य</option>
             </select>
           </Field>
           <Field label="व्यवसाय"><input className={inputClass} value={form.occupation} onChange={(e) => set("occupation", e.target.value)} /></Field>

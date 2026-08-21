@@ -30,6 +30,7 @@ export default async function EditMemberPage({ params }: { params: Promise<{ id:
           email: member.email,
           address: member.address,
           village: member.village,
+          tehsil: (member as Record<string, unknown>).tehsil as string | null,
           district: member.district,
           state: member.state,
           occupation: member.occupation,
