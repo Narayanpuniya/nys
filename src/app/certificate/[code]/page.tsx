@@ -132,10 +132,10 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
             {/* ── अभिनन्दन संदेश ── */}
             <div className="mx-auto mt-7 max-w-2xl rounded-xl border border-saffron-100 bg-saffron-50/60 px-6 py-4 text-sm leading-relaxed text-stone-700">
               <p>
-                {member.gender === "पुरुष" ? "श्रीमान" : member.gender === "महिला" ? "श्रीमती" : "श्रीमान / श्रीमती"}{" "}
+                {member.gender === "महिला" ? "श्रीमती" : "श्रीमान"}{" "}
                 <span className="font-bold text-maroon-800">{member.fullName}</span>
                 {member.guardianName && (
-                  <>{" "}{member.gender === "पुरुष" ? "पुत्र" : member.gender === "महिला" ? "पुत्री" : "पुत्र/पुत्री"} श्री{" "}
+                  <>{" "}{member.gender === "महिला" ? "पुत्री" : "पुत्र"} श्री{" "}
                     <span className="font-bold text-maroon-800">{member.guardianName}</span>
                   </>
                 )}{" "}
