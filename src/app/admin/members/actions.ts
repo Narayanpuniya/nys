@@ -161,5 +161,54 @@ export async function deleteMember(memberId: string) {
   });
 
   revalidatePath("/admin/members");
+  revalidatePath("/admin/members/deleted");
   // redirect Client Component से call होने पर crash करता है — client में router.refresh() करेंगे
+}
+
+// ── सदस्य Restore (Soft Delete वापस) ─────────────────────────────────────────
+export async function restoreMember(memberId: string) {
+  const user = await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
+
+  const member = await prisma.member.findUnique({ where: { id: memberId } });
+  if (!member) return;
+
+  await prisma.member.update({
+    where: { id: memberId },
+    data: { deletedAt: null, status: "ACTIVE" },
+  });
+
+  await logAudit({
+    user,
+    action: "UPDATE",
+    entity: "Member",
+    entityId: memberId,
+    summary: `सदस्य पुनः सक्रिय: ${member.fullName} (${member.memberCode})`,
+  });
+
+  revalidatePath("/admin/members");
+  revalidatePath("/admin/members/deleted");
+}
+
+// ── सदस्य Permanent Delete (DB से हमेशा के लिए हटाएं) ────────────────────────
+export async function permanentDeleteMember(memberId: string) {
+  const user = await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
+
+  const member = await prisma.member.findUnique({ where: { id: memberId } });
+  if (!member) return;
+
+  // पहले सब related records हटाएं
+  await prisma.membershipPayment.deleteMany({ where: { memberId } });
+  await prisma.certificate.deleteMany({ where: { memberId } });
+  await prisma.member.delete({ where: { id: memberId } });
+
+  await logAudit({
+    user,
+    action: "DELETE",
+    entity: "Member",
+    entityId: memberId,
+    summary: `⚠️ सदस्य स्थायी रूप से हटाया: ${member.fullName} (${member.memberCode})`,
+  });
+
+  revalidatePath("/admin/members");
+  revalidatePath("/admin/members/deleted");
 }

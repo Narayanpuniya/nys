@@ -43,6 +43,12 @@ export default async function MembersPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-ink">सदस्य ({total})</h1>
+        <Link
+          href="/admin/members/deleted"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
+        >
+          🗑️ Deleted सदस्य
+        </Link>
       </div>
 
       <Toolbar
