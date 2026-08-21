@@ -5,8 +5,9 @@ import {
   IdCard, Award, CalendarDays, Phone, Mail, MapPin,
   CheckCircle2, Clock, XCircle, LogOut, QrCode,
   LayoutDashboard, User, CreditCard, FileText,
-  BookOpen, ChevronRight, Wallet,
+  BookOpen, ChevronRight, Wallet, MessageSquarePlus,
 } from "lucide-react";
+import { SuggestionForm } from "@/components/public/SuggestionForm";
 import { getMemberSession } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
 import { formatDateHi, formatINR } from "@/lib/utils";
@@ -52,12 +53,13 @@ export default async function MemberPortal() {
   const certCount  = member.certificates.length;
 
   const navLinks = [
-    { icon: LayoutDashboard, label: "डैशबोर्ड",     href: "/member",          active: true },
-    { icon: User,            label: "मेरी प्रोफाइल", href: "#profile",         active: false },
-    { icon: CreditCard,      label: "भुगतान इतिहास", href: "#payments",        active: false },
-    { icon: FileText,        label: "प्रमाण पत्र",   href: "#certificates",   active: false },
-    { icon: IdCard,          label: "ID कार्ड",      href: `/id-card/${member.memberCode}`, active: false },
-    { icon: BookOpen,        label: "नियम एवं शर्तें", href: "/terms",         active: false },
+    { icon: LayoutDashboard,    label: "डैशबोर्ड",       href: "/member",          active: true },
+    { icon: User,               label: "मेरी प्रोफाइल",  href: "#profile",         active: false },
+    { icon: CreditCard,         label: "भुगतान इतिहास",  href: "#payments",        active: false },
+    { icon: FileText,           label: "प्रमाण पत्र",    href: "#certificates",    active: false },
+    { icon: IdCard,             label: "ID कार्ड",       href: `/id-card/${member.memberCode}`, active: false },
+    { icon: MessageSquarePlus,  label: "सुझाव / समस्या", href: "#suggestion",      active: false },
+    { icon: BookOpen,           label: "नियम एवं शर्तें", href: "/terms",          active: false },
   ];
 
   return (
@@ -382,6 +384,22 @@ export default async function MemberPortal() {
               )}
 
             </div>
+
+            {/* ── सुझाव / समस्या ── */}
+            <div id="suggestion" className="rounded-2xl bg-white border border-stone-200 p-5 shadow-sm">
+              <h2 className="font-bold text-ink mb-1 flex items-center gap-2">
+                <MessageSquarePlus className="h-4 w-4 text-saffron-600" /> सुझाव / समस्या भेजें
+              </h2>
+              <p className="text-xs text-stone-400 mb-4">
+                कोई सुझाव, समस्या, या शिकायत — सीधे Admin को भेजें। आपका नाम व ID अपने आप जुड़ जाएगा।
+              </p>
+              <SuggestionForm
+                defaultName={member.fullName}
+                defaultMemberCode={member.memberCode}
+                compact
+              />
+            </div>
+
           </div>
         </main>
       </div>
