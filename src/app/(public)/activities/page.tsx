@@ -28,6 +28,7 @@ export default async function ActivitiesPage() {
       <ActivitiesFeed
         categories={categories.map((c) => ({ slug: c.slug, name: c.name, color: c.color }))}
         pageSize={12}
+        height="h-[700px]"
       />
     </div>
   );

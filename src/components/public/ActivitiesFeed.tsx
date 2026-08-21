@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, Loader2, ArrowRight, CalendarDays, MapPin, ChevronDown } from "lucide-react";
+import { Search, Loader2, ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import Link from "next/link";
 import { PostCard, type PostCardData } from "./PostCard";
 import { CardSkeleton } from "@/components/ui/Skeleton";
@@ -11,7 +11,7 @@ import { cn, formatDateHi } from "@/lib/utils";
 type Category = { slug: string; name: string; color?: string | null };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Activity Ticker — CSS-only scrolling strip of recent activity titles
+// Activity Ticker
 // ─────────────────────────────────────────────────────────────────────────────
 function ActivityTicker({ titles }: { titles: string[] }) {
   if (titles.length < 3) return null;
@@ -31,7 +31,7 @@ function ActivityTicker({ titles }: { titles: string[] }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Featured Card — big format for featured:true posts
+// Featured Card
 // ─────────────────────────────────────────────────────────────────────────────
 function FeaturedCard({ post }: { post: PostCardData }) {
   const displayHeadline = post.headline?.trim() || post.title;
@@ -90,7 +90,7 @@ function FeaturedCard({ post }: { post: PostCardData }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Category Pill Filter
+// Category Pills
 // ─────────────────────────────────────────────────────────────────────────────
 function CategoryPills({ categories, active, onChange }: {
   categories: Category[];
@@ -117,12 +117,12 @@ function CategoryPills({ categories, active, onChange }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Feed Component — full-page natural scroll + auto-load at bottom
+// Main Feed — inner scroll box रहेगा, bottom पर page scroll हो जाएगा
 // ─────────────────────────────────────────────────────────────────────────────
 export function ActivitiesFeed({
   categories,
   pageSize = 8,
-  height: _height,           // kept for API compat, no longer used
+  height = "h-[700px]",
 }: {
   categories: Category[];
   pageSize?: number;
@@ -135,8 +135,8 @@ export function ActivitiesFeed({
   const [total, setTotal]   = useState(0);
   const [loading, setLoading] = useState(false);
   const [initial, setInitial] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const debounce  = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const sentinelRef = useRef<HTMLDivElement>(null);   // bottom trigger
 
   const load = useCallback(async (reset: boolean, nextPage: number) => {
     setLoading(true);
@@ -155,45 +155,41 @@ export function ActivitiesFeed({
     }
   }, [q, cat, pageSize]);
 
-  // Reload on search / category change (debounced)
   useEffect(() => {
     clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => { load(true, 1); }, 300);
+    debounce.current = setTimeout(() => { setPage(1); load(true, 1); }, 300);
     return () => clearTimeout(debounce.current);
   }, [q, cat, load]);
 
-  // ── Intersection Observer: auto-load next page when sentinel is visible ──
-  useEffect(() => {
-    const el = sentinelRef.current;
+  // ── Inner scroll: जब bottom पर पहुँचे → page को नीचे scroll करो ──
+  const handleInnerScroll = useCallback(() => {
+    const el = scrollRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !loading && posts.length < total && !initial) {
-          load(false, page + 1);
-        }
-      },
-      { rootMargin: "200px" }   // start loading 200px before user reaches bottom
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [loading, posts.length, total, initial, page, load]);
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
+    if (atBottom) {
+      // Load more अगर बाकी है
+      if (!loading && posts.length < total) {
+        load(false, page + 1);
+      }
+      // Page को नीचे scroll करो ताकि footer दिखे
+      window.scrollBy({ top: 300, behavior: "smooth" });
+    }
+  }, [loading, posts.length, total, page, load]);
 
   const canLoadMore = posts.length < total;
 
-  // Separate featured (max 1) from regular
-  const showFeatured  = !q && !cat;
-  const featuredPost  = showFeatured ? posts.find((p) => p.featured) : undefined;
-  const regularPosts  = featuredPost ? posts.filter((p) => p.slug !== featuredPost.slug) : posts;
-  const tickerTitles  = posts.slice(0, 10).map((p) => p.headline?.trim() || p.title);
+  const showFeatured = !q && !cat;
+  const featuredPost = showFeatured ? posts.find((p) => p.featured) : undefined;
+  const regularPosts = featuredPost ? posts.filter((p) => p.slug !== featuredPost.slug) : posts;
+  const tickerTitles = posts.slice(0, 10).map((p) => p.headline?.trim() || p.title);
 
   return (
     <div>
-      {/* Ticker */}
       <ActivityTicker titles={tickerTitles} />
 
       <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm">
 
-        {/* ── Controls bar ── */}
+        {/* Controls */}
         <div className="border-b border-stone-100 bg-stone-50/60 px-4 py-3">
           <div className="mb-2.5 flex gap-2">
             <div className="relative flex-1">
@@ -210,8 +206,12 @@ export function ActivitiesFeed({
           <CategoryPills categories={categories} active={cat} onChange={(s) => setCat(s)} />
         </div>
 
-        {/* ── Feed — NO fixed height, natural page scroll ── */}
-        <div className="px-4 py-3">
+        {/* Feed — inner scroll box */}
+        <div
+          ref={scrollRef}
+          onScroll={handleInnerScroll}
+          className={cn("nys-scroll overflow-y-auto px-4 py-3", height)}
+        >
           {initial ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)}
@@ -220,7 +220,6 @@ export function ActivitiesFeed({
             <EmptyState message="इस श्रेणी में कोई गतिविधि उपलब्ध नहीं है।" />
           ) : (
             <>
-              {/* Featured */}
               {featuredPost && (
                 <>
                   <FeaturedCard post={featuredPost} />
@@ -234,52 +233,35 @@ export function ActivitiesFeed({
                 </>
               )}
 
-              {/* Regular cards */}
               <div className="space-y-2.5">
                 {regularPosts.map((p) => <PostCard key={p.slug} post={p} />)}
               </div>
 
-              {/* ── Bottom sentinel + load-more UI ── */}
-              <div ref={sentinelRef} className="mt-6 pb-4">
-                {loading && (
-                  <div className="flex flex-col items-center gap-2 py-6 text-stone-400">
-                    <Loader2 className="h-6 w-6 animate-spin text-saffron-500" />
-                    <span className="text-[12px]">और गतिविधियाँ लोड हो रही हैं…</span>
-                  </div>
-                )}
+              {/* Load more button inside scroll box */}
+              {canLoadMore && (
+                <button
+                  onClick={() => { load(false, page + 1); }}
+                  disabled={loading}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-saffron-200 bg-saffron-50 py-2.5 text-[13px] font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-60"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  और देखें ({total - posts.length} शेष)
+                </button>
+              )}
 
-                {/* Manual "और देखें" — fallback if auto-load doesn't trigger */}
-                {!loading && canLoadMore && (
-                  <button
-                    onClick={() => load(false, page + 1)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-saffron-200 bg-saffron-50 py-3 text-[13px] font-semibold text-saffron-800 transition hover:bg-saffron-100"
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                    और देखें — {total - posts.length} गतिविधियाँ शेष हैं
-                  </button>
-                )}
-
-                {/* All done */}
-                {!loading && !canLoadMore && posts.length > 0 && (
-                  <div className="flex flex-col items-center gap-1 py-6 text-center">
-                    <span className="text-2xl">🎉</span>
-                    <p className="text-[12px] font-semibold text-stone-500">सभी {total} गतिविधियाँ दिखाई दीं</p>
-                    <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                      className="mt-2 text-[11px] font-medium text-saffron-600 hover:underline">
-                      ↑ ऊपर जाएं
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* All loaded — सब दिख गया */}
+              {!canLoadMore && posts.length > 0 && (
+                <div className="mt-4 py-3 text-center text-[11px] text-stone-400">
+                  ✅ सभी {total} गतिविधियाँ दिखाई दीं
+                </div>
+              )}
             </>
           )}
         </div>
 
         {/* Footer bar */}
         <div className="flex items-center justify-between border-t border-stone-100 bg-stone-50/40 px-4 py-2">
-          <span className="text-[11px] text-stone-400">
-            {posts.length} / {total} गतिविधियाँ
-          </span>
+          <span className="text-[11px] text-stone-400">कुल {total} गतिविधियाँ</span>
           <Link href="/activities"
             className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-saffron-700 transition-all hover:gap-1">
             सभी गतिविधियाँ <ArrowRight className="h-3 w-3" />
