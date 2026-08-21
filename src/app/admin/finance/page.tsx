@@ -1,14 +1,16 @@
 import { prisma } from "@/lib/db";
-import { Card, SectionHeading, Badge, inputClass } from "@/components/ui/primitives";
+import { Card, inputClass } from "@/components/ui/primitives";
 import { StatCard } from "@/components/admin/StatCard";
 import { formatINR, formatDateHi } from "@/lib/utils";
-import { addExpense } from "./actions";
+import { addExpense, addIncome } from "./actions";
 import { ImportFinanceModal } from "./ImportFinanceModal";
 import { FinanceDeleteButton } from "./FinanceDeleteButton";
 
 export const dynamic = "force-dynamic";
 
 const EXPENSE_CATS = ["Education", "Sports", "Environment", "Craft & Heritage", "Social Service", "Events", "Office", "Travel", "Equipment", "Other"];
+const INCOME_CATS  = ["Membership", "Donation", "Grant", "Sponsorship", "Event", "Other"];
+const INCOME_SRCS  = ["MEMBERSHIP", "DONATION", "GRANT", "SPONSORSHIP", "EVENT", "OTHER"];
 
 export default async function FinancePage({
   searchParams,
@@ -26,6 +28,7 @@ export default async function FinancePage({
     prisma.expense.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { gte: start, lt: end } }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE", date: { gte: start, lt: end } }, _sum: { amount: true } }),
+    // सभी entries दिखाएं (ACTIVE + VOID) ताकि restore/delete option मिले
     prisma.income.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 50 }),
     prisma.expense.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 50 }),
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { lt: start } }, _sum: { amount: true } }),
@@ -36,6 +39,9 @@ export default async function FinancePage({
   const incM = incomeMonth._sum.amount ?? 0;
   const expM = expenseMonth._sum.amount ?? 0;
   const closing = opening + incM - expM;
+
+  // today's date for default value
+  const todayStr = now.toISOString().slice(0, 10);
 
   return (
     <div>
@@ -69,21 +75,57 @@ export default async function FinancePage({
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Income list */}
+
+        {/* ── आय ── */}
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-bold text-ink">आय (इस माह)</h3>
             <a href="/api/admin/export/income" className="text-xs text-green-700">Excel ↓</a>
           </div>
-          <div className="max-h-80 overflow-y-auto nys-scroll">
+
+          {/* आय जोड़ें form */}
+          <form action={addIncome} encType="multipart/form-data" className="mb-4 rounded-xl border border-green-100 bg-green-50/40 p-3 grid grid-cols-2 gap-2">
+            <input name="amount" type="number" min="1" placeholder="राशि ₹ *" required className={inputClass} />
+            <select name="category" className={inputClass}>
+              {INCOME_CATS.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <select name="source" className={inputClass}>
+              {INCOME_SRCS.map((s) => <option key={s}>{s}</option>)}
+            </select>
+            <select name="mode" className={inputClass}>
+              <option>CASH</option><option>UPI</option><option>BANK</option><option>CHEQUE</option>
+            </select>
+            <input name="description" placeholder="विवरण" className={`${inputClass} col-span-2`} />
+            <div className="col-span-2 flex flex-col gap-1">
+              <label className="text-xs font-medium text-stone-600">तारीख <span className="text-red-500">*</span></label>
+              <input name="date" type="date" required defaultValue={todayStr} className={inputClass} />
+            </div>
+            <div className="col-span-2 flex flex-col gap-1">
+              <label className="text-xs font-medium text-stone-600">बिल / रसीद फोटो (optional)</label>
+              <input name="bill" type="file" accept="image/*,application/pdf" className="text-xs text-stone-500 file:mr-2 file:rounded-lg file:border file:border-green-300 file:bg-green-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-green-700" />
+            </div>
+            <button className="col-span-2 rounded-xl bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700">
+              + आय जोड़ें
+            </button>
+          </form>
+
+          {/* आय list */}
+          <div className="max-h-64 overflow-y-auto nys-scroll">
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {incomes.map((i) => (
-                  <tr key={i.id} className={i.status === "VOID" ? "opacity-40 line-through" : ""}>
-                    <td className="py-2"><div className="font-medium text-ink">{i.category}</div><div className="text-xs text-stone-400">{i.source} · {formatDateHi(i.date)}</div></td>
-                    <td className="py-2 text-right">
-                      <span className="font-semibold text-green-700">{formatINR(i.amount)}</span>
-                      {i.status === "ACTIVE" && <FinanceDeleteButton id={i.id} type="income" label={`₹${i.amount} — ${i.category}`} />}
+                  <tr key={i.id} className={i.status === "VOID" ? "opacity-50" : ""}>
+                    <td className="py-2">
+                      <div className={`font-medium text-ink ${i.status === "VOID" ? "line-through" : ""}`}>{i.category}</div>
+                      <div className="text-xs text-stone-400">{i.source} · {formatDateHi(i.date)}</div>
+                      {/* बिल attachment */}
+                      {i.attachment && (
+                        <a href={i.attachment} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline">📎 बिल देखें</a>
+                      )}
+                    </td>
+                    <td className="py-2 text-right align-top">
+                      <span className={`font-semibold ${i.status === "VOID" ? "text-stone-400 line-through" : "text-green-700"}`}>{formatINR(i.amount)}</span>
+                      <FinanceDeleteButton id={i.id} type="income" status={i.status} label={`₹${i.amount} — ${i.category}`} />
                     </td>
                   </tr>
                 ))}
@@ -93,30 +135,47 @@ export default async function FinancePage({
           </div>
         </Card>
 
-        {/* Expense list + add */}
+        {/* ── व्यय ── */}
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-bold text-ink">व्यय (इस माह)</h3>
             <a href="/api/admin/export/expenses" className="text-xs text-red-700">Excel ↓</a>
           </div>
-          <form action={addExpense} className="mb-3 grid grid-cols-2 gap-2">
-            <input name="amount" type="number" placeholder="राशि ₹" required className={inputClass} />
+
+          {/* व्यय जोड़ें form */}
+          <form action={addExpense} encType="multipart/form-data" className="mb-4 grid grid-cols-2 gap-2">
+            <input name="amount" type="number" min="1" placeholder="राशि ₹ *" required className={inputClass} />
             <select name="category" className={inputClass}>{EXPENSE_CATS.map((c) => <option key={c}>{c}</option>)}</select>
             <input name="description" placeholder="विवरण" className={`${inputClass} col-span-2`} />
             <select name="mode" className={inputClass}><option>CASH</option><option>UPI</option><option>BANK</option><option>CHEQUE</option></select>
-            <input name="date" type="date" className={inputClass} />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-stone-600">तारीख <span className="text-red-500">*</span></label>
+              <input name="date" type="date" required defaultValue={todayStr} className={inputClass} />
+            </div>
+            <div className="col-span-2 flex flex-col gap-1">
+              <label className="text-xs font-medium text-stone-600">बिल / रसीद फोटो (optional)</label>
+              <input name="bill" type="file" accept="image/*,application/pdf" className="text-xs text-stone-500 file:mr-2 file:rounded-lg file:border file:border-red-200 file:bg-red-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-red-700" />
+            </div>
             <button className="col-span-2 rounded-xl bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700">व्यय जोड़ें</button>
           </form>
+
+          {/* व्यय list */}
           <div className="max-h-64 overflow-y-auto nys-scroll">
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {expenses.map((e) => (
-                  <tr key={e.id} className={e.status === "VOID" ? "opacity-40 line-through" : ""}>
-                    <td className="py-2"><div className="font-medium text-ink">{e.category}</div><div className="text-xs text-stone-400">{e.description} · {formatDateHi(e.date)}</div></td>
-                    <td className="py-2 text-right">
-                      <span className="font-semibold text-red-700">{formatINR(e.amount)}</span>
-                      {e.status === "ACTIVE" && <FinanceDeleteButton id={e.id} type="expense" label={`₹${e.amount} — ${e.category}`} />}
-                      {e.status !== "ACTIVE" && <Badge tone="neutral" className="ml-1 text-[10px]">VOID</Badge>}
+                  <tr key={e.id} className={e.status === "VOID" ? "opacity-50" : ""}>
+                    <td className="py-2">
+                      <div className={`font-medium text-ink ${e.status === "VOID" ? "line-through" : ""}`}>{e.category}</div>
+                      <div className="text-xs text-stone-400">{e.description} · {formatDateHi(e.date)}</div>
+                      {/* बिल attachment */}
+                      {e.attachment && (
+                        <a href={e.attachment} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline">📎 बिल देखें</a>
+                      )}
+                    </td>
+                    <td className="py-2 text-right align-top">
+                      <span className={`font-semibold ${e.status === "VOID" ? "text-stone-400 line-through" : "text-red-700"}`}>{formatINR(e.amount)}</span>
+                      <FinanceDeleteButton id={e.id} type="expense" status={e.status} label={`₹${e.amount} — ${e.category}`} />
                     </td>
                   </tr>
                 ))}
