@@ -3,6 +3,7 @@ import { Card, Badge, inputClass } from "@/components/ui/primitives";
 import { SUGGESTION_STATUS } from "@/lib/constants";
 import { formatDateHi } from "@/lib/utils";
 import { updateSuggestion } from "./actions";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,10 @@ export default async function SuggestionsPage() {
                 <h3 className="font-bold text-ink">{s.subject}</h3>
                 <div className="text-xs text-stone-400">{s.name} · {s.category} · {formatDateHi(s.createdAt)}</div>
               </div>
-              <Badge tone={s.status === "NEW" ? "amber" : s.status === "IMPLEMENTED" ? "green" : "neutral"}>{s.status}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge tone={s.status === "NEW" ? "amber" : s.status === "IMPLEMENTED" ? "green" : "neutral"}>{s.status}</Badge>
+                <AdminDeleteButton entity="suggestion" id={s.id} label={s.subject} />
+              </div>
             </div>
             <p className="mt-2 text-sm text-stone-600">{s.body}</p>
             <form action={updateSuggestion.bind(null, s.id)} className="mt-3 flex flex-wrap items-center gap-2">

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatINR } from "@/lib/utils";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,10 @@ export default async function AdminCampaignsPage() {
                   </div>
                 </div>
               )}
-              <div className="mt-3 flex gap-2 text-sm">
-                <Link href={`/admin/campaigns/${c.id}`} className="text-saffron-700">संपादित/अपडेट</Link>
-                <Link href={`/campaigns/${c.slug}`} target="_blank" className="text-stone-500">देखें ↗</Link>
+              <div className="mt-3 flex items-center gap-2 text-sm">
+                <Link href={`/admin/campaigns/${c.id}`} className="text-saffron-700 hover:underline">संपादित</Link>
+                <Link href={`/campaigns/${c.slug}`} target="_blank" className="text-stone-500 hover:underline">देखें ↗</Link>
+                <AdminDeleteButton entity="campaign" id={c.id} label={c.title} />
               </div>
             </Card>
           );

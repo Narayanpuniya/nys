@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateHi, safeJsonParse } from "@/lib/utils";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,10 @@ export default async function VolunteersPage() {
               <div className="mt-2 flex flex-wrap gap-1">
                 {areas.map((a) => <span key={a} className="rounded-full bg-saffron-50 px-2 py-0.5 text-xs text-saffron-800">{a}</span>)}
               </div>
-              <p className="mt-2 text-xs text-stone-400">{formatDateHi(v.createdAt)}</p>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-xs text-stone-400">{formatDateHi(v.createdAt)}</p>
+                <AdminDeleteButton entity="volunteer" id={v.id} label={v.name} />
+              </div>
             </Card>
           );
         })}

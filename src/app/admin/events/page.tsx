@@ -3,6 +3,7 @@ import { Plus, Download } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateHi } from "@/lib/utils";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +31,13 @@ export default async function AdminEventsPage() {
                 <td className="px-4 py-3"><Badge tone={e.status === "UPCOMING" ? "amber" : e.status === "COMPLETED" ? "blue" : "neutral"}>{e.status}</Badge></td>
                 <td className="px-4 py-3">{e._count.registrations}{e.maxParticipants ? `/${e.maxParticipants}` : ""}</td>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/events/${e.id}`} className="text-saffron-700">संपादित</Link>
-                  {e._count.registrations > 0 && (
-                    <a href={`/api/admin/export/participants?eventId=${e.id}`} className="ml-3 inline-flex items-center gap-1 text-green-700"><Download className="h-3.5 w-3.5" />सूची</a>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Link href={`/admin/events/${e.id}`} className="text-saffron-700 hover:underline">संपादित</Link>
+                    {e._count.registrations > 0 && (
+                      <a href={`/api/admin/export/participants?eventId=${e.id}`} className="inline-flex items-center gap-1 text-green-700"><Download className="h-3.5 w-3.5" />सूची</a>
+                    )}
+                    <AdminDeleteButton entity="event" id={e.id} label={e.title} />
+                  </div>
                 </td>
               </tr>
             ))}
