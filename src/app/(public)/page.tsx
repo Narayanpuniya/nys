@@ -14,7 +14,7 @@ import { LeadershipStrip } from "@/components/public/LeadershipStrip";
 import { SectionHeading, EmptyState, Card } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
 
-export const revalidate = 60;
+export const revalidate = 300; // 5 min — home page content rarely changes
 
 async function getFeaturedCampaign() {
   try {

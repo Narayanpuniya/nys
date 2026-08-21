@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { Card, SectionHeading, EmptyState } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "सहयोगी संस्थान" };
-export const revalidate = 120;
+export const revalidate = 600;
 
 export default async function PartnersPage() {
   const partners = await prisma.partner.findMany({

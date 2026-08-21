@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "./db";
 import { clampPercent } from "./utils";
 
@@ -22,55 +23,42 @@ export async function getCampaignProgress(campaignId: string) {
   };
 }
 
-export async function getImpactCounters() {
-  const empty = {
-    totalMembers: 0,
-    totalPrograms: 0,
-    schoolsSupported: 0,
-    studentsBenefited: 0,
-    trees: 0,
-    volunteers: 0,
-    totalDonations: 0,
-  };
-  try {
-    const [
-      totalMembers,
-      totalPrograms,
-      schoolsSupported,
-      volunteers,
-      donationAgg,
-      treesPosts,
-    ] = await Promise.all([
-      prisma.member.count({ where: { status: "ACTIVE", deletedAt: null } }),
-      prisma.post.count({ where: { status: "PUBLISHED" } }),
-      prisma.post.count({ where: { status: "PUBLISHED", category: { slug: "school-sahyog" } } }),
-      prisma.volunteer.count(),
-      prisma.donation.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
-      prisma.post.aggregate({
-        where: { status: "PUBLISHED", category: { slug: "paryavaran" } },
-        _sum: { impactNumber: true },
-      }),
-    ]);
-
-    const studentsBenefited = await prisma.post.aggregate({
-      where: { status: "PUBLISHED", category: { slug: { in: ["shiksha", "school-sahyog"] } } },
-      _sum: { impactNumber: true },
-    });
-
-    return {
-      totalMembers,
-      totalPrograms,
-      schoolsSupported,
-      studentsBenefited: studentsBenefited._sum.impactNumber ?? 0,
-      trees: treesPosts._sum.impactNumber ?? 0,
-      volunteers,
-      totalDonations: donationAgg._sum.amount ?? 0,
+// Impact counters 2 मिनट cache — home page पर heavy aggregate queries
+export const getImpactCounters = unstable_cache(
+  async () => {
+    const empty = {
+      totalMembers: 0, totalPrograms: 0, schoolsSupported: 0,
+      studentsBenefited: 0, trees: 0, volunteers: 0, totalDonations: 0,
     };
-  } catch (err) {
-    console.error("[getImpactCounters] database unavailable:", err);
-    return empty;
-  }
-}
+    try {
+      const [totalMembers, totalPrograms, schoolsSupported, volunteers, donationAgg, treesPosts] =
+        await Promise.all([
+          prisma.member.count({ where: { status: "ACTIVE", deletedAt: null } }),
+          prisma.post.count({ where: { status: "PUBLISHED" } }),
+          prisma.post.count({ where: { status: "PUBLISHED", category: { slug: "school-sahyog" } } }),
+          prisma.volunteer.count(),
+          prisma.donation.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
+          prisma.post.aggregate({ where: { status: "PUBLISHED", category: { slug: "paryavaran" } }, _sum: { impactNumber: true } }),
+        ]);
+      const studentsBenefited = await prisma.post.aggregate({
+        where: { status: "PUBLISHED", category: { slug: { in: ["shiksha", "school-sahyog"] } } },
+        _sum: { impactNumber: true },
+      });
+      return {
+        totalMembers, totalPrograms, schoolsSupported,
+        studentsBenefited: studentsBenefited._sum.impactNumber ?? 0,
+        trees: treesPosts._sum.impactNumber ?? 0,
+        volunteers,
+        totalDonations: donationAgg._sum.amount ?? 0,
+      };
+    } catch (err) {
+      console.error("[getImpactCounters] database unavailable:", err);
+      return empty;
+    }
+  },
+  ["impact-counters"],
+  { revalidate: 120 }, // 2 min
+);
 
 export async function getDashboardStats() {
   const now = new Date();

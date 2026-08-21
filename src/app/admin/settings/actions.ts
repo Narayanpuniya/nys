@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/constants";
 import { getSettings, saveSettings, type OrgSettings } from "@/lib/settings";
@@ -109,6 +109,7 @@ export async function updateSettings(formData: FormData) {
 
   await saveSettings(next);
   await logAudit({ user, action: "UPDATE", entity: "Setting", summary: "संस्था सेटिंग्स अपडेट की" });
+  updateTag("settings"); // settings cache तुरंत expire करो (Next.js 16 Server Action)
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
 }

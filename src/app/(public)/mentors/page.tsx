@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { Card, SectionHeading, EmptyState } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "हमारे मार्गदर्शक" };
-export const revalidate = 120;
+export const revalidate = 600; // 10 min
 
 export default async function MentorsPage() {
   const mentors = await prisma.mentor.findMany({ orderBy: { sortOrder: "asc" } });

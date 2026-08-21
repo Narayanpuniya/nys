@@ -4,7 +4,7 @@ import { GalleryGrid } from "@/components/public/GalleryGrid";
 import { SectionHeading } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "गैलरी" };
-export const revalidate = 120;
+export const revalidate = 600;
 
 export default async function GalleryPage() {
   // 1. Regular gallery items (photos)

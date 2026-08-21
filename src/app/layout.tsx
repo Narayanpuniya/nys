@@ -7,8 +7,9 @@ import "./globals.css";
 const hind = Hind({
   variable: "--font-hind",
   subsets: ["latin", "devanagari"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "600", "700"], // 300 और 500 remove — 2 कम font requests
   display: "swap",
+  preload: true,
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -48,6 +49,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} className={`${hind.variable} h-full antialiased`}>
+      <head>
+        {/* DNS preconnect — Neon DB hostname और Google Fonts पर fast connection */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

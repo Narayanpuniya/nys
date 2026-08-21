@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { formatNumber } from "@/lib/utils";
 
-export const revalidate = 120;
+export const revalidate = 600;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

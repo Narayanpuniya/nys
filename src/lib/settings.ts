@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "./db";
 import { safeJsonParse } from "./utils";
 
@@ -92,26 +93,31 @@ export const DEFAULT_SETTINGS: OrgSettings = {
   phones: [],
 };
 
-export async function getSettings(): Promise<OrgSettings> {
-  try {
-    const row = await prisma.setting.findUnique({ where: { key: "org" } });
-    if (!row) return DEFAULT_SETTINGS;
-    const parsed = safeJsonParse<Partial<OrgSettings>>(row.value, {});
-    return {
-      ...DEFAULT_SETTINGS,
-      ...parsed,
-      branding: { ...DEFAULT_SETTINGS.branding, ...(parsed.branding ?? {}) },
-      bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank ?? {}) },
-      social: { ...DEFAULT_SETTINGS.social, ...(parsed.social ?? {}) },
-      legal: { ...DEFAULT_SETTINGS.legal, ...(parsed.legal ?? {}) },
-      privacy: { ...DEFAULT_SETTINGS.privacy, ...(parsed.privacy ?? {}) },
-      phones: Array.isArray(parsed.phones) ? parsed.phones : [],
-    };
-  } catch (err) {
-    console.error("[getSettings] database unavailable, using defaults:", err);
-    return DEFAULT_SETTINGS;
-  }
-}
+// Settings rarely change — 5 min server cache। Admin save करने पर revalidate होगा।
+export const getSettings = unstable_cache(
+  async (): Promise<OrgSettings> => {
+    try {
+      const row = await prisma.setting.findUnique({ where: { key: "org" } });
+      if (!row) return DEFAULT_SETTINGS;
+      const parsed = safeJsonParse<Partial<OrgSettings>>(row.value, {});
+      return {
+        ...DEFAULT_SETTINGS,
+        ...parsed,
+        branding: { ...DEFAULT_SETTINGS.branding, ...(parsed.branding ?? {}) },
+        bank: { ...DEFAULT_SETTINGS.bank, ...(parsed.bank ?? {}) },
+        social: { ...DEFAULT_SETTINGS.social, ...(parsed.social ?? {}) },
+        legal: { ...DEFAULT_SETTINGS.legal, ...(parsed.legal ?? {}) },
+        privacy: { ...DEFAULT_SETTINGS.privacy, ...(parsed.privacy ?? {}) },
+        phones: Array.isArray(parsed.phones) ? parsed.phones : [],
+      };
+    } catch (err) {
+      console.error("[getSettings] database unavailable, using defaults:", err);
+      return DEFAULT_SETTINGS;
+    }
+  },
+  ["settings-org"],
+  { revalidate: 300, tags: ["settings"] }, // 5 मिनट cache; admin save पर tag revalidate होगा
+);
 
 // ── Hero Slider Slides ────────────────────────────────────────────────────────
 export type HeroSlide = {
@@ -131,18 +137,19 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   { id: "default-5", imageUrl: "/slides/nys-bg-5.png", title: "व्यवसाय",       sortOrder: 5 },
 ];
 
-export async function getHeroSlides(): Promise<HeroSlide[]> {
-  try {
-    const row = await prisma.setting.findUnique({ where: { key: "hero_slides" } });
-    // पहली बार — कभी configure नहीं हुआ → defaults दिखाएँ
-    if (!row) return DEFAULT_HERO_SLIDES;
-    // Admin ने explicitly configure किया (भले ही [] हो) → वही return करो
-    // Admin ने delete किया → [] → HeroSlider gradient fallback दिखाएगा
-    return safeJsonParse<HeroSlide[]>(row.value, []);
-  } catch {
-    return DEFAULT_HERO_SLIDES;
-  }
-}
+export const getHeroSlides = unstable_cache(
+  async (): Promise<HeroSlide[]> => {
+    try {
+      const row = await prisma.setting.findUnique({ where: { key: "hero_slides" } });
+      if (!row) return DEFAULT_HERO_SLIDES;
+      return safeJsonParse<HeroSlide[]>(row.value, []);
+    } catch {
+      return DEFAULT_HERO_SLIDES;
+    }
+  },
+  ["settings-hero-slides"],
+  { revalidate: 300, tags: ["settings"] },
+);
 
 export async function saveHeroSlides(slides: HeroSlide[]): Promise<void> {
   await prisma.setting.upsert({

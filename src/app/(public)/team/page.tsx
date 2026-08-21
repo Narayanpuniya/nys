@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { Card, SectionHeading, EmptyState } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "हमारी टीम" };
-export const revalidate = 120;
+export const revalidate = 600; // 10 min — team rarely changes
 
 export default async function TeamPage() {
   const team = await prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } });
