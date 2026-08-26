@@ -1,32 +1,30 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { getI18n } from "@/lib/i18n";
 import { GalleryGrid } from "@/components/public/GalleryGrid";
 import { SectionHeading } from "@/components/ui/primitives";
 
-export const metadata: Metadata = { title: "गैलरी" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n();
+  return { title: dict.gallery_title };
+}
 export const revalidate = 600;
 
 export default async function GalleryPage() {
-  // 1. Regular gallery items (photos)
-  const galleryItems = await prisma.galleryItem.findMany({ orderBy: { date: "desc" } });
+  const [galleryItems, posts, videos, { dict }] = await Promise.all([
+    prisma.galleryItem.findMany({ orderBy: { date: "desc" } }),
+    prisma.post.findMany({
+      where: { status: "PUBLISHED", OR: [{ mainImage: { not: null } }, { images: { not: null } }] },
+      select: { id: true, title: true, mainImage: true, images: true, date: true, category: { select: { name: true } } },
+      orderBy: { date: "desc" },
+    }),
+    prisma.video.findMany({ orderBy: { date: "desc" } }),
+    getI18n(),
+  ]);
 
-  // 2. Posts with images
-  const posts = await prisma.post.findMany({
-    where: {
-      status: "PUBLISHED",
-      OR: [{ mainImage: { not: null } }, { images: { not: null } }],
-    },
-    select: { id: true, title: true, mainImage: true, images: true, date: true, category: { select: { name: true } } },
-    orderBy: { date: "desc" },
-  });
-
-  // 3. Videos (Instagram / YouTube)
-  const videos = await prisma.video.findMany({ orderBy: { date: "desc" } });
-
-  // 4. Flatten post images
   const postImages: { id: string; title: string | null; imageUrl: string; category: string; date: string }[] = [];
   for (const post of posts) {
-    const cat = post.category?.name ?? "गतिविधि";
+    const cat = post.category?.name ?? "Activity";
     if (post.mainImage) {
       postImages.push({ id: `post-main-${post.id}`, title: post.title, imageUrl: post.mainImage, category: cat, date: post.date.toISOString() });
     }
@@ -39,7 +37,6 @@ export default async function GalleryPage() {
     }
   }
 
-  // 5. Merge all, deduplicate photos by imageUrl, sort by date desc
   const seen = new Set<string>();
   const photoItems = [
     ...galleryItems.map((i) => ({ id: i.id, title: i.title ?? null, imageUrl: i.imageUrl, category: i.category, date: i.date.toISOString() })),
@@ -50,24 +47,16 @@ export default async function GalleryPage() {
     return true;
   });
 
-  // 6. Video items (marked with isVideo flag)
   const videoItems = videos.map((v) => ({
-    id: `video-${v.id}`,
-    title: v.title,
-    imageUrl: null,
-    category: v.category,
-    date: v.date.toISOString(),
-    isVideo: true,
-    videoUrl: v.videoUrl,
-    thumbnail: v.thumbnail,
+    id: `video-${v.id}`, title: v.title, imageUrl: null, category: v.category,
+    date: v.date.toISOString(), isVideo: true, videoUrl: v.videoUrl, thumbnail: v.thumbnail,
   }));
 
-  // 7. Combine: videos first within each date group, then photos
   const allItems = [...videoItems, ...photoItems].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <SectionHeading title="गैलरी" subtitle="हमारे कार्यक्रमों की झलकियाँ" />
+      <SectionHeading title={dict.gallery_title} subtitle={dict.gallery_sub} />
       <GalleryGrid items={allItems} />
     </div>
   );

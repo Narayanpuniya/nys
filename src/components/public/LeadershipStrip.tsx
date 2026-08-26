@@ -9,11 +9,14 @@ type Leader = {
   responsibility?: string | null;
 };
 
-export function LeadershipStrip({ leaders }: { leaders: Leader[] }) {
+export function LeadershipStrip({ leaders, dict }: { leaders: Leader[]; dict: Record<string, string> }) {
+  const callLabel  = dict.call  ?? "कॉल";
+  const soonLabel  = dict.leadership_soon ?? "नेतृत्व की जानकारी शीघ्र उपलब्ध होगी।";
+
   if (!leaders.length) {
     return (
       <p className="rounded-2xl border border-dashed border-saffron-200 p-6 text-center text-sm text-stone-500">
-        नेतृत्व की जानकारी शीघ्र उपलब्ध होगी।
+        {soonLabel}
       </p>
     );
   }
@@ -40,7 +43,7 @@ export function LeadershipStrip({ leaders }: { leaders: Leader[] }) {
                 href={`tel:${l.mobile}`}
                 className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-saffron-700"
               >
-                <Phone className="h-3.5 w-3.5" /> कॉल करें
+                <Phone className="h-3.5 w-3.5" /> {callLabel}
               </a>
             )}
           </div>

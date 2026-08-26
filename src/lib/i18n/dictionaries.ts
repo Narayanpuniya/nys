@@ -131,6 +131,85 @@ const hi = {
   donate_none: "अभी कोई दान नहीं।",
   join_title: "NYS से जुड़ें",
 
+  // Org tagline (used where settings.tagline would show)
+  org_tagline: "शिक्षा, खेल, पर्यावरण और विरासत के माध्यम से समाज एवं युवाओं के विकास की ओर एक कदम।",
+
+  // Impact counter labels
+  impact_members: "कुल सदस्य",
+  impact_programs: "कुल कार्यक्रम",
+  impact_schools: "स्कूल सहयोग",
+  impact_students: "लाभान्वित विद्यार्थी",
+  impact_trees: "पर्यावरण गतिविधियाँ",
+  impact_volunteers: "स्वयंसेवक",
+  impact_donations: "कुल दान",
+  impact_social: "सामाजिक प्रभाव",
+
+  // Pages — Activities
+  activities_title: "NYS गतिविधियाँ",
+  activities_sub: "शिक्षा, खेल, पर्यावरण, सामाजिक सेवा एवं Craft & Heritage — NYS की नवीनतम गतिविधियाँ",
+
+  // Pages — Events
+  events_title: "आगामी कार्यक्रम",
+  events_past: "पूर्व कार्यक्रम",
+  events_none: "फिलहाल कोई आगामी कार्यक्रम उपलब्ध नहीं है।",
+
+  // Pages — Gallery
+  gallery_title: "गैलरी",
+  gallery_sub: "हमारे कार्यक्रमों की झलकियाँ",
+
+  // Pages — Campaigns
+  campaigns_title: "NYS अभियान",
+  campaigns_sub: "पारदर्शी crowdfunding — हर रुपये का हिसाब।",
+  campaigns_none: "फिलहाल कोई सक्रिय अभियान नहीं है।",
+  campaigns_completed: "संपन्न अभियान",
+
+  // Pages — Contact
+  contact_title: "संपर्क करें",
+  contact_sub: "किसी भी जानकारी या सहयोग हेतु हमसे संपर्क करें।",
+  contact_address: "पता",
+  contact_phone: "फ़ोन",
+  contact_socials: "हमें सोशल मीडिया पर फॉलो करें",
+  contact_msg_title: "संदेश भेजें",
+  contact_suggest_title: "सुझाव / प्रतिक्रिया",
+  contact_map_title: "हमारा स्थान",
+
+  // Pages — Team
+  team_title: "हमारी टीम",
+  team_sub: "संस्था के पदाधिकारी एवं कार्यकारिणी सदस्य",
+  team_none: "टीम की जानकारी शीघ्र उपलब्ध होगी।",
+
+  // Pages — Mentors
+  mentors_title: "हमारे मार्गदर्शक",
+  mentors_sub: "संस्था के प्रेरणा स्रोत",
+  mentors_none: "मार्गदर्शकों की जानकारी शीघ्र उपलब्ध होगी।",
+  mentor_contribution: "योगदान:",
+
+  // Pages — Transparency
+  transparency_title: "पारदर्शिता",
+  transparency_sub: "NYS की आय, व्यय और प्रभाव का सार्वजनिक विवरण",
+
+  // Pages — Partners
+  partners_title: "सहयोगी संस्थान",
+  partners_sub: "जिनके सहयोग से हमारे कार्य संभव हैं",
+
+  // Pages — Downloads
+  downloads_title: "डाउनलोड",
+  downloads_sub: "सदस्य ID कार्ड, प्रमाणपत्र और रसीद डाउनलोड करें",
+  downloads_idcard: "सदस्य ID कार्ड",
+  downloads_cert: "सदस्यता प्रमाण पत्र",
+  downloads_receipt: "दान / सदस्यता रसीद",
+
+  // Footer
+  footer_reg_no: "पंजीकरण संख्या",
+
+  // Misc
+  read_more: "और पढ़ें",
+  share: "शेयर करें",
+  back: "वापस",
+  donate_now: "अभी दान करें",
+  join_now: "अभी जुड़ें",
+  view_all_activities: "सभी गतिविधियाँ देखें",
+
   // Admin nav
   admin_dashboard: "डैशबोर्ड",
   admin_members: "सदस्य",
@@ -151,6 +230,126 @@ const hi = {
   admin_settings: "सेटिंग्स",
   admin_logout: "लॉगआउट",
   admin_super: "सुपर एडमिन",
+
+  // Event status labels
+  event_upcoming: "आगामी",
+  event_ongoing: "जारी",
+  event_completed_status: "संपन्न",
+  event_cancelled: "रद्द",
+
+  // Transparency page
+  tr_total_members: "कुल सक्रिय सदस्य",
+  tr_total_programs: "कुल कार्यक्रम",
+  tr_total_donations: "कुल दान",
+  tr_total_expenses: "कुल व्यय",
+  tr_donors: "दानदाता",
+  tr_beneficiaries: "लाभान्वित",
+  tr_active_campaigns: "सक्रिय अभियान",
+  tr_completed_campaigns: "संपन्न अभियान",
+  tr_campaign_transparency: "अभियान पारदर्शिता",
+  tr_public_reports: "सार्वजनिक रिपोर्ट",
+  tr_reports_coming_soon: "रिपोर्ट शीघ्र प्रकाशित की जाएँगी।",
+  tr_view_pdf: "PDF देखें →",
+  tr_private_note: "निजी दानदाता जानकारी सार्वजनिक नहीं की जाती।",
+
+  // Partners
+  partners_none: "सहयोगी संस्थानों की जानकारी शीघ्र उपलब्ध होगी।",
+  partners_programs_suffix: "संयुक्त कार्यक्रम →",
+  partner_website: "वेबसाइट",
+  partner_contribution_label: "NYS के साथ योगदान:",
+  partner_collaboration: "NYS के साथ सहयोग",
+
+  // Contact page extras
+  contact_suggest_body: "कोई सुझाव हो, समस्या हो, या शिकायत — यहाँ भेजें। हम हर संदेश पढ़ते हैं।",
+
+  // ContactForm
+  contact_form_name: "नाम",
+  contact_form_mobile: "मोबाइल",
+  contact_form_email: "ईमेल",
+  contact_form_message: "संदेश",
+  contact_form_send: "संदेश भेजें",
+  contact_form_success: "धन्यवाद! आपका संदेश प्राप्त हुआ।",
+  contact_form_error: "कुछ समस्या हुई है।",
+
+  // SuggestionForm
+  suggest_cat_suggestion: "💡 सुझाव",
+  suggest_cat_problem: "🚨 समस्या",
+  suggest_cat_complaint: "📢 शिकायत",
+  suggest_cat_feedback: "🌟 प्रतिक्रिया",
+  suggest_cat_other: "📌 अन्य",
+  suggest_your_name: "आपका नाम",
+  suggest_member_id_label: "सदस्य ID (वैकल्पिक)",
+  suggest_subject_label: "विषय",
+  suggest_details_label: "विस्तार से बताएं",
+  suggest_submit_btn: "भेजें",
+  suggest_sending_btn: "भेजा जा रहा है...",
+  suggest_thanks_title: "धन्यवाद! 🙏",
+  suggest_thanks_body: "आपका सुझाव/समस्या प्राप्त हो गई है। हम जल्द समाधान करेंगे।",
+  suggest_send_more_btn: "और भेजें",
+  suggest_name_ph: "पूरा नाम",
+  suggest_member_ph: "NYS-XXXXXX (यदि सदस्य हैं)",
+  suggest_subject_ph: "संक्षेप में बताएं...",
+  suggest_details_ph: "अपनी बात यहाँ लिखें — जितना विस्तार से बताएंगे, उतना बेहतर समाधान मिलेगा...",
+  suggest_error_general: "कुछ समस्या हुई।",
+  suggest_error_net: "नेटवर्क error — पुनः प्रयास करें।",
+
+  // ActivitiesFeed / PostCard
+  feed_all: "सभी",
+  feed_latest_label: "नवीनतम",
+  feed_ticker_label: "ताज़ा",
+  feed_featured_label: "⭐ विशेष",
+  feed_read_full: "पूरा पढ़ें",
+  feed_empty_msg: "इस श्रेणी में कोई गतिविधि उपलब्ध नहीं है।",
+  feed_search_ph: "गतिविधि खोजें...",
+  feed_load_more_btn: "और देखें",
+  feed_remaining_label: "शेष",
+  feed_all_count_pre: "✅ सभी",
+  feed_all_count_post: "गतिविधियाँ दिखाई दीं",
+  feed_total_count_pre: "कुल",
+  feed_total_count_post: "गतिविधियाँ",
+  feed_view_all_link: "सभी गतिविधियाँ",
+  nys_team_name: "NYS टीम",
+
+  // LeadershipStrip
+  leadership_soon: "नेतृत्व की जानकारी शीघ्र उपलब्ध होगी।",
+
+  // CampaignCard
+  campaign_goal: "लक्ष्य",
+  campaign_donors: "दानदाता",
+
+  // Downloads
+  dl_center_title: "डाउनलोड केंद्र",
+  dl_center_sub: "सुरक्षित सत्यापन के बाद अपना दस्तावेज़ डाउनलोड करें।",
+  dl_secure_title: "🔒 सुरक्षित सत्यापन",
+  dl_secure_body: "आपका डेटा सुरक्षित है। दस्तावेज़ केवल पंजीकृत मोबाइल व जन्म तारीख मिलने पर ही डाउनलोड होगा। 5 गलत प्रयास के बाद 15 मिनट के लिए अवरुद्ध।",
+  dl_idcard_title: "सदस्य ID कार्ड",
+  dl_idcard_sub: "डिजिटल पहचान पत्र डाउनलोड / प्रिंट करें।",
+  dl_cert_title: "सदस्यता प्रमाण पत्र",
+  dl_cert_sub: "ऑफिशियल सदस्यता प्रमाण पत्र डाउनलोड करें।",
+  dl_receipt_title: "दान रसीद",
+  dl_receipt_sub: "अपनी दान पावती या रसीद डाउनलोड करें।",
+  dl_member_code: "सदस्य कोड",
+  dl_reg_mobile: "पंजीकृत मोबाइल",
+  dl_dob_label: "जन्म तारीख",
+  dl_receipt_no: "रसीद संख्या",
+  dl_number_hint_pre: "सिर्फ नंबर डालें —",
+  dl_number_hint_post: "अपने आप लगेगा।",
+  dl_mobile_ph: "10 अंकों का मोबाइल नंबर",
+  dl_mobile_optional_label: "(यदि दिया था)",
+  dl_view_idcard_btn: "ID कार्ड देखें / प्रिंट करें",
+  dl_view_cert_btn: "प्रमाण पत्र देखें / प्रिंट करें",
+  dl_view_receipt_btn: "रसीद देखें / प्रिंट करें",
+  dl_help_heading: "📌 सहायता",
+  dl_help_member_tip: "सदस्य कोड में सिर्फ अंत के नंबर डालें —",
+  dl_help_added_auto: "अपने आप जुड़ जाएगा।",
+  dl_help_receipt_tip: "रसीद में भी सिर्फ अंत के नंबर डालें —",
+  dl_help_mobile_tip: "मोबाइल नंबर वही डालें जो फॉर्म भरते समय दिया था।",
+  dl_help_contact: "संपर्क करें →",
+  dl_err_required: "सदस्य कोड, मोबाइल नंबर और जन्म तारीख — तीनों आवश्यक हैं।",
+  dl_err_receipt_req: "रसीद संख्या आवश्यक है।",
+  dl_err_server: "सर्वर उत्तर अमान्य है।",
+  dl_err_verify: "सत्यापन विफल।",
+  dl_success_prefix: "✅ सत्यापन सफल —",
 } as const;
 
 export type DictKey = keyof typeof hi;
@@ -277,6 +476,71 @@ const en: Record<DictKey, string> = {
   donate_none: "No donations yet.",
   join_title: "Join NYS",
 
+  org_tagline: "Education, sports, environment and heritage — one step towards community and youth development.",
+
+  impact_members: "Total Members",
+  impact_programs: "Total Programs",
+  impact_schools: "School Support",
+  impact_students: "Students Benefited",
+  impact_trees: "Environment Activities",
+  impact_volunteers: "Volunteers",
+  impact_donations: "Total Donations",
+  impact_social: "Social Impact",
+
+  activities_title: "NYS Activities",
+  activities_sub: "Education, sports, environment, social service & Craft / Heritage — latest NYS activities",
+
+  events_title: "Upcoming Events",
+  events_past: "Past Events",
+  events_none: "No upcoming events available right now.",
+
+  gallery_title: "Gallery",
+  gallery_sub: "Glimpses of our programs and activities",
+
+  campaigns_title: "NYS Campaigns",
+  campaigns_sub: "Transparent crowdfunding — every rupee accounted for.",
+  campaigns_none: "No active campaign right now.",
+  campaigns_completed: "Completed Campaigns",
+
+  contact_title: "Contact Us",
+  contact_sub: "Reach out to us for any information or support.",
+  contact_address: "Address",
+  contact_phone: "Phone",
+  contact_socials: "Follow us on social media",
+  contact_msg_title: "Send a message",
+  contact_suggest_title: "Suggestion / Feedback",
+  contact_map_title: "Our Location",
+
+  team_title: "Our Team",
+  team_sub: "Office bearers and executive committee members",
+  team_none: "Team information coming soon.",
+
+  mentors_title: "Our Mentors",
+  mentors_sub: "Inspiring pillars of our organization",
+  mentors_none: "Mentor information coming soon.",
+  mentor_contribution: "Contribution:",
+
+  transparency_title: "Transparency",
+  transparency_sub: "Public summary of NYS income, expense and impact",
+
+  partners_title: "Partner Organizations",
+  partners_sub: "Partners who make our work possible",
+
+  downloads_title: "Downloads",
+  downloads_sub: "Download member ID card, certificate and receipts",
+  downloads_idcard: "Member ID Card",
+  downloads_cert: "Membership Certificate",
+  downloads_receipt: "Donation / Membership Receipt",
+
+  footer_reg_no: "Registration No.",
+
+  read_more: "Read more",
+  share: "Share",
+  back: "Back",
+  donate_now: "Donate now",
+  join_now: "Join now",
+  view_all_activities: "View all activities",
+
   admin_dashboard: "Dashboard",
   admin_members: "Members",
   admin_donations: "Donations",
@@ -296,6 +560,116 @@ const en: Record<DictKey, string> = {
   admin_settings: "Settings",
   admin_logout: "Logout",
   admin_super: "Super Admin",
+
+  event_upcoming: "Upcoming",
+  event_ongoing: "Ongoing",
+  event_completed_status: "Completed",
+  event_cancelled: "Cancelled",
+
+  tr_total_members: "Total Active Members",
+  tr_total_programs: "Total Programs",
+  tr_total_donations: "Total Donations",
+  tr_total_expenses: "Total Expenses",
+  tr_donors: "Donors",
+  tr_beneficiaries: "Beneficiaries",
+  tr_active_campaigns: "Active Campaigns",
+  tr_completed_campaigns: "Completed Campaigns",
+  tr_campaign_transparency: "Campaign Transparency",
+  tr_public_reports: "Public Reports",
+  tr_reports_coming_soon: "Reports will be published soon.",
+  tr_view_pdf: "View PDF →",
+  tr_private_note: "Donor details are kept private.",
+
+  partners_none: "Partner information coming soon.",
+  partners_programs_suffix: "joint programs →",
+  partner_website: "Website",
+  partner_contribution_label: "Contribution with NYS:",
+  partner_collaboration: "Collaboration with NYS",
+
+  contact_suggest_body: "Have a suggestion, problem, or complaint — send it here. We read every message.",
+
+  contact_form_name: "Name",
+  contact_form_mobile: "Mobile",
+  contact_form_email: "Email",
+  contact_form_message: "Message",
+  contact_form_send: "Send Message",
+  contact_form_success: "Thank you! Your message was received.",
+  contact_form_error: "Something went wrong.",
+
+  suggest_cat_suggestion: "💡 Suggestion",
+  suggest_cat_problem: "🚨 Problem",
+  suggest_cat_complaint: "📢 Complaint",
+  suggest_cat_feedback: "🌟 Feedback",
+  suggest_cat_other: "📌 Other",
+  suggest_your_name: "Your name",
+  suggest_member_id_label: "Member ID (optional)",
+  suggest_subject_label: "Subject",
+  suggest_details_label: "Tell us more",
+  suggest_submit_btn: "Submit",
+  suggest_sending_btn: "Sending...",
+  suggest_thanks_title: "Thank you! 🙏",
+  suggest_thanks_body: "Your suggestion/problem has been received. We'll resolve it soon.",
+  suggest_send_more_btn: "Send another",
+  suggest_name_ph: "Full name",
+  suggest_member_ph: "NYS-XXXXXX (if member)",
+  suggest_subject_ph: "Briefly describe...",
+  suggest_details_ph: "Write your message here — the more detail, the better we can help...",
+  suggest_error_general: "Something went wrong.",
+  suggest_error_net: "Network error — please try again.",
+
+  feed_all: "All",
+  feed_latest_label: "Latest",
+  feed_ticker_label: "Latest",
+  feed_featured_label: "⭐ Featured",
+  feed_read_full: "Read more",
+  feed_empty_msg: "No activities in this category.",
+  feed_search_ph: "Search activities...",
+  feed_load_more_btn: "Load more",
+  feed_remaining_label: "remaining",
+  feed_all_count_pre: "✅ All",
+  feed_all_count_post: "activities shown",
+  feed_total_count_pre: "Total",
+  feed_total_count_post: "activities",
+  feed_view_all_link: "All activities",
+  nys_team_name: "NYS Team",
+
+  leadership_soon: "Leadership information coming soon.",
+
+  campaign_goal: "Goal",
+  campaign_donors: "donors",
+
+  dl_center_title: "Download Center",
+  dl_center_sub: "Securely verify to download your document.",
+  dl_secure_title: "🔒 Secure Verification",
+  dl_secure_body: "Your data is secure. Documents download only after verifying your registered mobile & date of birth. 5 wrong attempts = 15-min block.",
+  dl_idcard_title: "Member ID Card",
+  dl_idcard_sub: "Download / print your digital identity card.",
+  dl_cert_title: "Membership Certificate",
+  dl_cert_sub: "Download your official membership certificate.",
+  dl_receipt_title: "Donation Receipt",
+  dl_receipt_sub: "Download your donation receipt.",
+  dl_member_code: "Member Code",
+  dl_reg_mobile: "Registered Mobile",
+  dl_dob_label: "Date of Birth",
+  dl_receipt_no: "Receipt Number",
+  dl_number_hint_pre: "Enter numbers only —",
+  dl_number_hint_post: "will be added automatically.",
+  dl_mobile_ph: "10-digit mobile number",
+  dl_mobile_optional_label: "(if provided)",
+  dl_view_idcard_btn: "View / Print ID Card",
+  dl_view_cert_btn: "View / Print Certificate",
+  dl_view_receipt_btn: "View / Print Receipt",
+  dl_help_heading: "📌 Help",
+  dl_help_member_tip: "For member code, enter only the last numbers —",
+  dl_help_added_auto: "will be added automatically.",
+  dl_help_receipt_tip: "For receipt, enter only the last numbers —",
+  dl_help_mobile_tip: "Enter the mobile number you provided when filling the form.",
+  dl_help_contact: "Contact us →",
+  dl_err_required: "Member code, mobile number and date of birth — all three are required.",
+  dl_err_receipt_req: "Receipt number is required.",
+  dl_err_server: "Invalid server response.",
+  dl_err_verify: "Verification failed.",
+  dl_success_prefix: "✅ Verified —",
 };
 
 export type Dictionary = Record<DictKey, string>;

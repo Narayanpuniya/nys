@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { getI18n } from "@/lib/i18n";
 import { Card, SectionHeading, EmptyState } from "@/components/ui/primitives";
 
-export const metadata: Metadata = { title: "हमारे मार्गदर्शक" };
-export const revalidate = 600; // 10 min
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n();
+  return { title: dict.mentors_title };
+}
+export const revalidate = 600;
 
 export default async function MentorsPage() {
-  const mentors = await prisma.mentor.findMany({ orderBy: { sortOrder: "asc" } });
+  const [mentors, { dict }] = await Promise.all([
+    prisma.mentor.findMany({ orderBy: { sortOrder: "asc" } }),
+    getI18n(),
+  ]);
+
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <SectionHeading title="हमारे मार्गदर्शक / Mentors" subtitle="जिनके अनुभव व मार्गदर्शन से NYS आगे बढ़ता है" />
+      <SectionHeading title={dict.mentors_title} subtitle={dict.mentors_sub} />
       {mentors.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {mentors.map((m) => (
@@ -30,13 +38,15 @@ export default async function MentorsPage() {
               </div>
               {m.intro && <p className="mt-3 text-sm text-stone-600">{m.intro}</p>}
               {m.contribution && (
-                <p className="mt-2 text-sm text-stone-500"><span className="font-medium text-ink">योगदान: </span>{m.contribution}</p>
+                <p className="mt-2 text-sm text-stone-500">
+                  <span className="font-medium text-ink">{dict.mentor_contribution} </span>{m.contribution}
+                </p>
               )}
             </Card>
           ))}
         </div>
       ) : (
-        <EmptyState message="मार्गदर्शकों की जानकारी शीघ्र उपलब्ध होगी।" />
+        <EmptyState message={dict.mentors_none} />
       )}
     </div>
   );

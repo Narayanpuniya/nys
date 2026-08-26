@@ -106,9 +106,9 @@ export default async function HomePage() {
                 )}
                 {settings.name}
               </div>
-              {/* Big tagline */}
+              {/* Big tagline — locale-aware */}
               <h2 className="text-2xl font-black leading-snug text-maroon-900 sm:text-3xl lg:text-4xl" style={{ textWrap: "balance" }}>
-                {settings.tagline}
+                {dict.org_tagline}
               </h2>
               {/* Description */}
               <p className="mt-3 text-sm leading-relaxed text-stone-600 sm:text-base lg:max-w-xl">
@@ -176,7 +176,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-12">
         <SectionHeading title={dict.home_impact} subtitle={dict.home_impact_sub} viewAllLabel={dict.viewAll} />
-        <ImpactCounters data={counters} />
+        <ImpactCounters data={counters} dict={dict} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-6">
@@ -207,7 +207,7 @@ export default async function HomePage() {
         <div>
           <SectionHeading title={dict.home_campaign} viewAllHref="/campaigns" viewAllLabel={dict.viewAll} />
           {campaignCard ? (
-            <CampaignCard c={campaignCard} />
+            <CampaignCard c={campaignCard} dict={dict} />
           ) : (
             <EmptyState message={dict.home_no_campaign} />
           )}
@@ -223,6 +223,7 @@ export default async function HomePage() {
                     slug: e.slug, title: e.title, date: e.date.toISOString(), time: e.time,
                     venue: e.venue, posterImage: e.posterImage, status: e.status, category: e.category,
                   }}
+                  dict={dict}
                 />
               ))}
             </div>
@@ -239,7 +240,7 @@ export default async function HomePage() {
           viewAllHref="/activities"
           viewAllLabel={dict.viewAll}
         />
-        <ActivitiesFeed categories={categories.map((c) => ({ slug: c.slug, name: c.name }))} />
+        <ActivitiesFeed categories={categories.map((c) => ({ slug: c.slug, name: c.name }))} dict={dict} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12">
@@ -247,7 +248,7 @@ export default async function HomePage() {
         <LeadershipStrip leaders={leadership.map((l) => ({
           name: l.name, designation: l.designation, photoUrl: l.photoUrl,
           mobile: l.showMobile ? l.mobile : null, responsibility: l.responsibility,
-        }))} />
+        }))} dict={dict} />
       </section>
 
       {mentors.length > 0 && (

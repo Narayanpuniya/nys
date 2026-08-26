@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { getI18n } from "@/lib/i18n";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { formatNumber } from "@/lib/utils";
 
@@ -10,12 +11,16 @@ export const revalidate = 600;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const p = await prisma.partner.findUnique({ where: { slug } });
-  return { title: p?.name ?? "सहयोगी संस्थान" };
+  const { dict } = await getI18n();
+  return { title: p?.name ?? dict.partners_title };
 }
 
 export default async function PartnerDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const partner = await prisma.partner.findUnique({ where: { slug }, include: { programs: true } });
+  const [partner, { dict }] = await Promise.all([
+    prisma.partner.findUnique({ where: { slug }, include: { programs: true } }),
+    getI18n(),
+  ]);
   if (!partner) notFound();
 
   return (
@@ -32,7 +37,7 @@ export default async function PartnerDetail({ params }: { params: Promise<{ slug
             <h1 className="text-2xl font-extrabold text-ink">{partner.name}</h1>
             {partner.website && (
               <a href={partner.website} target="_blank" className="mt-1 inline-flex items-center gap-1 text-sm text-saffron-700">
-                <ExternalLink className="h-4 w-4" /> वेबसाइट
+                <ExternalLink className="h-4 w-4" /> {dict.partner_website}
               </a>
             )}
           </div>
@@ -40,14 +45,14 @@ export default async function PartnerDetail({ params }: { params: Promise<{ slug
         {partner.about && <p className="mt-6 text-stone-700">{partner.about}</p>}
         {partner.contribution && (
           <p className="mt-3 rounded-xl bg-saffron-50 p-3 text-sm text-saffron-900">
-            <span className="font-semibold">NYS के साथ योगदान: </span>{partner.contribution}
+            <span className="font-semibold">{dict.partner_contribution_label} </span>{partner.contribution}
           </p>
         )}
       </Card>
 
       {partner.programs.length > 0 && (
         <div className="mt-8">
-          <SectionHeading title="NYS के साथ सहयोग" />
+          <SectionHeading title={dict.partner_collaboration} />
           <div className="grid gap-4 sm:grid-cols-3">
             {partner.programs.map((pr) => (
               <Card key={pr.id} className="p-5 text-center">

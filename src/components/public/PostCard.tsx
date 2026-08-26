@@ -21,12 +21,12 @@ export type PostCardData = {
 
 /**
  * Compact horizontal card — thumbnail + category + title + metadata.
- * Category badge + title convey what the post is about (no news labels).
  */
-export function PostCard({ post }: { post: PostCardData }) {
+export function PostCard({ post, dict }: { post: PostCardData; dict: Record<string, string> }) {
   const displayHeadline = post.headline?.trim() || post.title;
-  const reporter = post.reporter?.trim() || "NYS टीम";
+  const reporter = post.reporter?.trim() || (dict.nys_team_name ?? "NYS Team");
   const catColor = post.categoryColor ?? "#ea6205";
+  const readMore = dict.feed_read_full ?? "Read more";
 
   return (
     <Link href={`/activities/${post.slug}`} className="group block">
@@ -91,7 +91,7 @@ export function PostCard({ post }: { post: PostCardData }) {
             <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-saffron-700 transition-all group-hover:gap-1 sm:text-[11px]">
               {reporter}
               <span className="mx-0.5 text-stone-300">·</span>
-              पूरा पढ़ें
+              {readMore}
               <ArrowRight className="h-2.5 w-2.5" />
             </span>
           </div>

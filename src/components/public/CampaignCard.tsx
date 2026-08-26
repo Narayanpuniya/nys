@@ -16,8 +16,10 @@ export type CampaignCardData = {
   status: string;
 };
 
-export function CampaignCard({ c }: { c: CampaignCardData }) {
+export function CampaignCard({ c, dict }: { c: CampaignCardData; dict: Record<string, string> }) {
   const achieved = c.percent >= 100;
+  const goalLabel    = dict.campaign_goal    ?? "लक्ष्य";
+  const donorsLabel  = dict.campaign_donors  ?? "दानदाता";
   return (
     <Link
       href={`/campaigns/${c.slug}`}
@@ -44,11 +46,11 @@ export function CampaignCard({ c }: { c: CampaignCardData }) {
           <ProgressBar percent={c.percent} />
           <div className="mt-2 flex items-center justify-between text-sm">
             <span className="font-bold text-saffron-800">{formatINR(c.collected)}</span>
-            <span className="text-stone-500">लक्ष्य {formatINR(c.goal)}</span>
+            <span className="text-stone-500">{goalLabel} {formatINR(c.goal)}</span>
           </div>
           <div className="mt-1 flex items-center justify-between text-xs text-stone-500">
             <span className="inline-flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" /> {c.donors} दानदाता
+              <Users className="h-3.5 w-3.5" /> {c.donors} {donorsLabel}
             </span>
             <Badge tone={achieved ? "green" : "saffron"}>{c.percent}%</Badge>
           </div>

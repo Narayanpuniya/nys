@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/primitives";
 import { formatINR, formatNumber } from "@/lib/utils";
+import type { DictKey } from "@/lib/i18n/dictionaries";
 
 type Props = {
   data: {
@@ -17,17 +18,18 @@ type Props = {
     volunteers: number;
     totalDonations: number;
   };
+  dict: Record<DictKey, string>;
 };
 
-const items = (d: Props["data"]) => [
-  { icon: Users, label: "कुल सदस्य", value: d.totalMembers, color: "#7c3aed" },
-  { icon: CalendarCheck, label: "कुल कार्यक्रम", value: d.totalPrograms, color: "#2563eb" },
-  { icon: School, label: "स्कूल सहयोग", value: d.schoolsSupported, color: "#0891b2" },
-  { icon: GraduationCap, label: "लाभान्वित विद्यार्थी", value: d.studentsBenefited, color: "#ea6205" },
-  { icon: TreePine, label: "पर्यावरण गतिविधियाँ", value: d.trees, color: "#16a34a" },
-  { icon: HandHeart, label: "स्वयंसेवक", value: d.volunteers, color: "#dc2626" },
-  { icon: HandCoins, label: "कुल दान", value: d.totalDonations, color: "#c24807", money: true },
-  { icon: Sparkles, label: "सामाजिक प्रभाव", value: d.totalPrograms + d.volunteers, color: "#a32a2a" },
+const items = (d: Props["data"], dict: Props["dict"]) => [
+  { icon: Users,       label: dict.impact_members,     value: d.totalMembers,                        color: "#7c3aed" },
+  { icon: CalendarCheck, label: dict.impact_programs,  value: d.totalPrograms,                       color: "#2563eb" },
+  { icon: School,      label: dict.impact_schools,      value: d.schoolsSupported,                    color: "#0891b2" },
+  { icon: GraduationCap, label: dict.impact_students,  value: d.studentsBenefited,                   color: "#ea6205" },
+  { icon: TreePine,    label: dict.impact_trees,        value: d.trees,                               color: "#16a34a" },
+  { icon: HandHeart,   label: dict.impact_volunteers,   value: d.volunteers,                          color: "#dc2626" },
+  { icon: HandCoins,   label: dict.impact_donations,    value: d.totalDonations, money: true,         color: "#c24807" },
+  { icon: Sparkles,    label: dict.impact_social,       value: d.totalPrograms + d.volunteers,        color: "#a32a2a" },
 ];
 
 function useCountUp(target: number, run: boolean) {
@@ -70,7 +72,7 @@ function Counter({ item, run }: { item: ReturnType<typeof items>[number]; run: b
   );
 }
 
-export function ImpactCounters({ data }: Props) {
+export function ImpactCounters({ data, dict }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [run, setRun] = useState(false);
   useEffect(() => {
@@ -91,7 +93,7 @@ export function ImpactCounters({ data }: Props) {
 
   return (
     <div ref={ref} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {items(data).map((it) => (
+      {items(data, dict).map((it) => (
         <Counter key={it.label} item={it} run={run} />
       ))}
     </div>

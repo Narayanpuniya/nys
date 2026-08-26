@@ -13,13 +13,15 @@ type Category = { slug: string; name: string; color?: string | null };
 // ─────────────────────────────────────────────────────────────────────────────
 // Activity Ticker
 // ─────────────────────────────────────────────────────────────────────────────
-function ActivityTicker({ titles }: { titles: string[] }) {
+function ActivityTicker({ titles, dict }: { titles: string[]; dict: Record<string, string> }) {
   if (titles.length < 3) return null;
   const text = titles.join("   •   ");
   return (
     <div className="mb-3 flex items-stretch overflow-hidden rounded-lg border border-stone-100 bg-stone-50">
       <div className="flex shrink-0 items-center rounded-l-lg bg-saffron-600 px-2.5 py-1.5">
-        <span className="text-[10px] font-black uppercase tracking-widest text-white">ताज़ा</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-white">
+          {dict.feed_ticker_label ?? "ताज़ा"}
+        </span>
       </div>
       <div className="relative min-w-0 flex-1 overflow-hidden py-1.5">
         <div className="nys-ticker-track text-[11px] font-medium text-stone-600">
@@ -33,16 +35,16 @@ function ActivityTicker({ titles }: { titles: string[] }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Featured Card
 // ─────────────────────────────────────────────────────────────────────────────
-function FeaturedCard({ post }: { post: PostCardData }) {
+function FeaturedCard({ post, dict }: { post: PostCardData; dict: Record<string, string> }) {
   const displayHeadline = post.headline?.trim() || post.title;
-  const reporter = post.reporter?.trim() || "NYS टीम";
+  const reporter = post.reporter?.trim() || (dict.nys_team_name ?? "NYS Team");
   const catColor = post.categoryColor ?? "#ea6205";
 
   return (
     <Link href={`/activities/${post.slug}`} className="group mb-3 block">
       <article className="overflow-hidden rounded-xl border-2 border-saffron-200 bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-saffron-100 bg-saffron-50 px-3 py-1.5">
-          <span className="text-[10px] font-bold text-saffron-700">⭐ विशेष</span>
+          <span className="text-[10px] font-bold text-saffron-700">{dict.feed_featured_label ?? "⭐ विशेष"}</span>
           {post.categoryName && (
             <span className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold"
               style={{ backgroundColor: `${catColor}20`, color: catColor }}>
@@ -79,7 +81,7 @@ function FeaturedCard({ post }: { post: PostCardData }) {
                 )}
               </div>
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-saffron-700 transition-all group-hover:gap-1.5">
-                {reporter} · पूरा पढ़ें <ArrowRight className="h-3 w-3" />
+                {reporter} · {dict.feed_read_full ?? "Read more"} <ArrowRight className="h-3 w-3" />
               </span>
             </div>
           </div>
@@ -92,17 +94,18 @@ function FeaturedCard({ post }: { post: PostCardData }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Category Pills
 // ─────────────────────────────────────────────────────────────────────────────
-function CategoryPills({ categories, active, onChange }: {
+function CategoryPills({ categories, active, onChange, dict }: {
   categories: Category[];
   active: string;
   onChange: (slug: string) => void;
+  dict: Record<string, string>;
 }) {
   return (
     <div className="scrollbar-none flex gap-1.5 overflow-x-auto pb-0.5">
       <button onClick={() => onChange("")}
         className={cn("shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition",
           active === "" ? "bg-saffron-600 text-white shadow-sm" : "border border-stone-200 bg-white text-stone-600 hover:border-saffron-300 hover:bg-saffron-50")}>
-        सभी
+        {dict.feed_all ?? "सभी"}
       </button>
       {categories.map((c) => (
         <button key={c.slug} onClick={() => onChange(active === c.slug ? "" : c.slug)}
@@ -117,16 +120,18 @@ function CategoryPills({ categories, active, onChange }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Feed — inner scroll box रहेगा, bottom पर page scroll हो जाएगा
+// Main Feed
 // ─────────────────────────────────────────────────────────────────────────────
 export function ActivitiesFeed({
   categories,
   pageSize = 8,
   height = "h-[700px]",
+  dict,
 }: {
   categories: Category[];
   pageSize?: number;
   height?: string;
+  dict: Record<string, string>;
 }) {
   const [posts, setPosts]   = useState<PostCardData[]>([]);
   const [q, setQ]           = useState("");
@@ -161,17 +166,14 @@ export function ActivitiesFeed({
     return () => clearTimeout(debounce.current);
   }, [q, cat, load]);
 
-  // ── Inner scroll: जब bottom पर पहुँचे → page को नीचे scroll करो ──
   const handleInnerScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 10;
     if (atBottom) {
-      // Load more अगर बाकी है
       if (!loading && posts.length < total) {
         load(false, page + 1);
       }
-      // Page को नीचे scroll करो ताकि footer दिखे
       window.scrollBy({ top: 300, behavior: "smooth" });
     }
   }, [loading, posts.length, total, page, load]);
@@ -183,9 +185,20 @@ export function ActivitiesFeed({
   const regularPosts = featuredPost ? posts.filter((p) => p.slug !== featuredPost.slug) : posts;
   const tickerTitles = posts.slice(0, 10).map((p) => p.headline?.trim() || p.title);
 
+  const loadMoreLabel  = dict.feed_load_more_btn     ?? "और देखें";
+  const remainingLabel = dict.feed_remaining_label    ?? "शेष";
+  const allCountPre    = dict.feed_all_count_pre      ?? "✅ सभी";
+  const allCountPost   = dict.feed_all_count_post     ?? "गतिविधियाँ दिखाई दीं";
+  const totalPre       = dict.feed_total_count_pre    ?? "कुल";
+  const totalPost      = dict.feed_total_count_post   ?? "गतिविधियाँ";
+  const viewAllLink    = dict.feed_view_all_link      ?? "सभी गतिविधियाँ";
+  const latestLabel    = dict.feed_latest_label       ?? "नवीनतम";
+  const searchPh       = dict.feed_search_ph          ?? "गतिविधि खोजें...";
+  const emptyMsg       = dict.feed_empty_msg          ?? "इस श्रेणी में कोई गतिविधि उपलब्ध नहीं है।";
+
   return (
     <div>
-      <ActivityTicker titles={tickerTitles} />
+      <ActivityTicker titles={tickerTitles} dict={dict} />
 
       <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm">
 
@@ -195,7 +208,7 @@ export function ActivitiesFeed({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)}
-                placeholder="गतिविधि खोजें..."
+                placeholder={searchPh}
                 className="w-full rounded-xl border border-stone-200 bg-white py-2 pl-8 pr-8 text-[13px] text-stone-800 outline-none placeholder:text-stone-400 focus:border-saffron-400 focus:ring-1 focus:ring-saffron-100" />
               {q && (
                 <button onClick={() => setQ("")}
@@ -203,10 +216,10 @@ export function ActivitiesFeed({
               )}
             </div>
           </div>
-          <CategoryPills categories={categories} active={cat} onChange={(s) => setCat(s)} />
+          <CategoryPills categories={categories} active={cat} onChange={(s) => setCat(s)} dict={dict} />
         </div>
 
-        {/* Feed — inner scroll box */}
+        {/* Feed */}
         <div
           ref={scrollRef}
           onScroll={handleInnerScroll}
@@ -217,16 +230,16 @@ export function ActivitiesFeed({
               {Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : posts.length === 0 ? (
-            <EmptyState message="इस श्रेणी में कोई गतिविधि उपलब्ध नहीं है।" />
+            <EmptyState message={emptyMsg} />
           ) : (
             <>
               {featuredPost && (
                 <>
-                  <FeaturedCard post={featuredPost} />
+                  <FeaturedCard post={featuredPost} dict={dict} />
                   {regularPosts.length > 0 && (
                     <div className="my-3 flex items-center gap-2">
                       <div className="h-px flex-1 bg-stone-100" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">नवीनतम</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">{latestLabel}</span>
                       <div className="h-px flex-1 bg-stone-100" />
                     </div>
                   )}
@@ -234,10 +247,9 @@ export function ActivitiesFeed({
               )}
 
               <div className="space-y-2.5">
-                {regularPosts.map((p) => <PostCard key={p.slug} post={p} />)}
+                {regularPosts.map((p) => <PostCard key={p.slug} post={p} dict={dict} />)}
               </div>
 
-              {/* Load more button inside scroll box */}
               {canLoadMore && (
                 <button
                   onClick={() => { load(false, page + 1); }}
@@ -245,14 +257,13 @@ export function ActivitiesFeed({
                   className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-saffron-200 bg-saffron-50 py-2.5 text-[13px] font-semibold text-saffron-800 transition hover:bg-saffron-100 disabled:opacity-60"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  और देखें ({total - posts.length} शेष)
+                  {loadMoreLabel} ({total - posts.length} {remainingLabel})
                 </button>
               )}
 
-              {/* All loaded — सब दिख गया */}
               {!canLoadMore && posts.length > 0 && (
                 <div className="mt-4 py-3 text-center text-[11px] text-stone-400">
-                  ✅ सभी {total} गतिविधियाँ दिखाई दीं
+                  {allCountPre} {total} {allCountPost}
                 </div>
               )}
             </>
@@ -261,10 +272,10 @@ export function ActivitiesFeed({
 
         {/* Footer bar */}
         <div className="flex items-center justify-between border-t border-stone-100 bg-stone-50/40 px-4 py-2">
-          <span className="text-[11px] text-stone-400">कुल {total} गतिविधियाँ</span>
+          <span className="text-[11px] text-stone-400">{totalPre} {total} {totalPost}</span>
           <Link href="/activities"
             className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-saffron-700 transition-all hover:gap-1">
-            सभी गतिविधियाँ <ArrowRight className="h-3 w-3" />
+            {viewAllLink} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>

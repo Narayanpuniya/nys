@@ -1,26 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Loader2, CheckCircle2, MessageSquarePlus } from "lucide-react";
+import { Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Field, inputClass } from "@/components/ui/primitives";
 
-const CATEGORIES = [
-  { value: "SUGGESTION", label: "💡 सुझाव" },
-  { value: "PROBLEM",    label: "🚨 समस्या" },
-  { value: "COMPLAINT",  label: "📢 शिकायत" },
-  { value: "FEEDBACK",   label: "🌟 प्रतिक्रिया" },
-  { value: "OTHER",      label: "📌 अन्य" },
-];
+const DEFAULT_DICT: Record<string, string> = {};
 
 export function SuggestionForm({
+  dict = DEFAULT_DICT,
   defaultName = "",
   defaultMemberCode = "",
   compact = false,
 }: {
+  dict?: Record<string, string>;
   defaultName?: string;
   defaultMemberCode?: string;
   compact?: boolean;
 }) {
+  const CATEGORIES = [
+    { value: "SUGGESTION", label: dict.suggest_cat_suggestion ?? "💡 सुझाव" },
+    { value: "PROBLEM",    label: dict.suggest_cat_problem    ?? "🚨 समस्या" },
+    { value: "COMPLAINT",  label: dict.suggest_cat_complaint  ?? "📢 शिकायत" },
+    { value: "FEEDBACK",   label: dict.suggest_cat_feedback   ?? "🌟 प्रतिक्रिया" },
+    { value: "OTHER",      label: dict.suggest_cat_other      ?? "📌 अन्य" },
+  ];
+
   const [form, setForm] = useState({
     name: defaultName,
     subject: "",
@@ -48,8 +52,8 @@ export function SuggestionForm({
       });
       const data = await res.json();
       if (res.ok) setDone(true);
-      else setError(data.error || "कुछ समस्या हुई।");
-    } catch { setError("नेटवर्क error — पुनः प्रयास करें।"); }
+      else setError(data.error || (dict.suggest_error_general ?? "कुछ समस्या हुई।"));
+    } catch { setError(dict.suggest_error_net ?? "नेटवर्क error — पुनः प्रयास करें।"); }
     finally { setLoading(false); }
   }
 
@@ -57,13 +61,13 @@ export function SuggestionForm({
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl bg-green-50 border border-green-200 py-10 text-center">
         <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" />
-        <p className="text-lg font-bold text-green-800">धन्यवाद! 🙏</p>
-        <p className="text-sm text-green-700 mt-1">आपका सुझाव/समस्या प्राप्त हो गई है।<br />हम जल्द समाधान करेंगे।</p>
+        <p className="text-lg font-bold text-green-800">{dict.suggest_thanks_title ?? "धन्यवाद! 🙏"}</p>
+        <p className="text-sm text-green-700 mt-1">{dict.suggest_thanks_body ?? "आपका सुझाव/समस्या प्राप्त हो गई है।"}</p>
         <button
           onClick={() => { setDone(false); setForm({ name: defaultName, subject: "", category: "SUGGESTION", body: "", memberCode: defaultMemberCode }); }}
           className="mt-4 rounded-xl border border-green-300 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
         >
-          और भेजें
+          {dict.suggest_send_more_btn ?? "और भेजें"}
         </button>
       </div>
     );
@@ -71,7 +75,7 @@ export function SuggestionForm({
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      {/* श्रेणी */}
+      {/* Category buttons */}
       <div className="grid grid-cols-5 gap-1.5">
         {CATEGORIES.map((c) => (
           <button
@@ -89,32 +93,30 @@ export function SuggestionForm({
         ))}
       </div>
 
-      {/* नाम — अगर defaultName है तो hidden */}
       {!defaultName && (
-        <Field label="आपका नाम" required>
-          <input value={form.name} onChange={set("name")} required className={inputClass} placeholder="पूरा नाम" />
+        <Field label={dict.suggest_your_name ?? "आपका नाम"} required>
+          <input value={form.name} onChange={set("name")} required className={inputClass} placeholder={dict.suggest_name_ph ?? "पूरा नाम"} />
         </Field>
       )}
 
-      {/* सदस्य ID — अगर defaultMemberCode है तो hidden */}
       {!defaultMemberCode && (
-        <Field label="सदस्य ID (वैकल्पिक)">
-          <input value={form.memberCode} onChange={set("memberCode")} className={inputClass} placeholder="NYS-XXXXXX (यदि सदस्य हैं)" />
+        <Field label={dict.suggest_member_id_label ?? "सदस्य ID (वैकल्पिक)"}>
+          <input value={form.memberCode} onChange={set("memberCode")} className={inputClass} placeholder={dict.suggest_member_ph ?? "NYS-XXXXXX"} />
         </Field>
       )}
 
-      <Field label="विषय" required>
-        <input value={form.subject} onChange={set("subject")} required className={inputClass} placeholder="संक्षेप में बताएं..." />
+      <Field label={dict.suggest_subject_label ?? "विषय"} required>
+        <input value={form.subject} onChange={set("subject")} required className={inputClass} placeholder={dict.suggest_subject_ph ?? "संक्षेप में बताएं..."} />
       </Field>
 
-      <Field label="विस्तार से बताएं" required>
+      <Field label={dict.suggest_details_label ?? "विस्तार से बताएं"} required>
         <textarea
           value={form.body}
           onChange={set("body")}
           required
           rows={compact ? 4 : 5}
           className={inputClass}
-          placeholder="अपनी बात यहाँ लिखें — जितना विस्तार से बताएंगे, उतना बेहतर समाधान मिलेगा..."
+          placeholder={dict.suggest_details_ph ?? "अपनी बात यहाँ लिखें..."}
         />
       </Field>
 
@@ -128,8 +130,8 @@ export function SuggestionForm({
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-saffron-600 py-3 font-semibold text-white hover:bg-saffron-700 disabled:opacity-60"
       >
         {loading
-          ? <><Loader2 className="h-4 w-4 animate-spin" /> भेजा जा रहा है...</>
-          : <><Send className="h-4 w-4" /> भेजें</>
+          ? <><Loader2 className="h-4 w-4 animate-spin" /> {dict.suggest_sending_btn ?? "भेजा जा रहा है..."}</>
+          : <><Send className="h-4 w-4" /> {dict.suggest_submit_btn ?? "भेजें"}</>
         }
       </button>
     </form>

@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { Phone, Mail, MapPin, MessageSquarePlus } from "lucide-react";
 import { getSettings } from "@/lib/settings";
+import { getI18n } from "@/lib/i18n";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { ContactForm } from "@/components/public/ContactForm";
 import { SuggestionForm } from "@/components/public/SuggestionForm";
 import { FacebookIcon, InstagramIcon, YoutubeIcon, WhatsappIcon } from "@/components/ui/BrandIcons";
 
-export const metadata: Metadata = { title: "संपर्क करें" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n();
+  return { title: dict.contact_title };
+}
 export const revalidate = 300;
 
 function waUrl(val?: string): string | undefined {
@@ -18,11 +22,11 @@ function waUrl(val?: string): string | undefined {
 }
 
 export default async function ContactPage() {
-  const s = await getSettings();
+  const [s, { dict }] = await Promise.all([getSettings(), getI18n()]);
   const whatsappLink = waUrl(s.social.whatsapp);
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <SectionHeading title="संपर्क करें" subtitle="किसी भी जानकारी या सहयोग हेतु हमसे संपर्क करें।" />
+      <SectionHeading title={dict.contact_title} subtitle={dict.contact_sub} />
 
       <div className="grid gap-6 lg:grid-cols-2">
 
@@ -33,7 +37,6 @@ export default async function ContactPage() {
             <ul className="space-y-2 text-sm text-stone-600">
               <li className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron-600" /> {s.address}</li>
 
-              {/* ── एकाधिक संपर्क नंबर ── */}
               {s.phones && s.phones.length > 0 ? (
                 s.phones.map((ph, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -63,8 +66,8 @@ export default async function ContactPage() {
 
           {/* General contact form */}
           <Card className="p-6">
-            <h3 className="mb-4 font-bold text-ink">📨 संदेश भेजें</h3>
-            <ContactForm />
+            <h3 className="mb-4 font-bold text-ink">📨 {dict.contact_msg_title}</h3>
+            <ContactForm dict={dict} />
           </Card>
         </div>
 
@@ -72,12 +75,12 @@ export default async function ContactPage() {
         <Card className="p-6">
           <div className="mb-4 flex items-center gap-2">
             <MessageSquarePlus className="h-5 w-5 text-saffron-600" />
-            <h3 className="font-bold text-ink">सुझाव / समस्या / शिकायत</h3>
+            <h3 className="font-bold text-ink">{dict.contact_suggest_title}</h3>
           </div>
           <p className="mb-4 text-sm text-stone-500">
-            कोई सुझाव हो, समस्या हो, या शिकायत — यहाँ भेजें। हम हर संदेश पढ़ते हैं।
+            {dict.contact_suggest_body}
           </p>
-          <SuggestionForm />
+          <SuggestionForm dict={dict} />
         </Card>
 
       </div>

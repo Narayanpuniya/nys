@@ -2,34 +2,39 @@ import type { Metadata } from "next";
 import { getTransparencyStats } from "@/lib/stats";
 import { listCampaignsWithProgress } from "@/lib/campaigns";
 import { prisma } from "@/lib/db";
+import { getI18n } from "@/lib/i18n";
 import { Card, SectionHeading } from "@/components/ui/primitives";
 import { CampaignCard } from "@/components/public/CampaignCard";
 import { formatINR, formatNumber } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "पारदर्शिता" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n();
+  return { title: dict.transparency_title };
+}
 export const revalidate = 60;
 
 export default async function TransparencyPage() {
-  const [stats, campaigns, reports] = await Promise.all([
+  const [stats, campaigns, reports, { dict }] = await Promise.all([
     getTransparencyStats(),
     listCampaignsWithProgress(),
     prisma.annualReport.findMany({ where: { published: true }, orderBy: { year: "desc" } }),
+    getI18n(),
   ]);
 
   const cards = [
-    { label: "कुल सक्रिय सदस्य", value: formatNumber(stats.totalMembers) },
-    { label: "कुल कार्यक्रम", value: formatNumber(stats.totalPrograms) },
-    { label: "कुल दान", value: formatINR(stats.totalDonations) },
-    { label: "कुल व्यय", value: formatINR(stats.totalExpenses) },
-    { label: "दानदाता", value: formatNumber(stats.donorCount) },
-    { label: "लाभान्वित", value: `${formatNumber(stats.beneficiaries)}+` },
-    { label: "सक्रिय अभियान", value: formatNumber(stats.activeCampaigns) },
-    { label: "संपन्न अभियान", value: formatNumber(stats.completedCampaigns) },
+    { label: dict.tr_total_members,       value: formatNumber(stats.totalMembers) },
+    { label: dict.tr_total_programs,      value: formatNumber(stats.totalPrograms) },
+    { label: dict.tr_total_donations,     value: formatINR(stats.totalDonations) },
+    { label: dict.tr_total_expenses,      value: formatINR(stats.totalExpenses) },
+    { label: dict.tr_donors,              value: formatNumber(stats.donorCount) },
+    { label: dict.tr_beneficiaries,       value: `${formatNumber(stats.beneficiaries)}+` },
+    { label: dict.tr_active_campaigns,    value: formatNumber(stats.activeCampaigns) },
+    { label: dict.tr_completed_campaigns, value: formatNumber(stats.completedCampaigns) },
   ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <SectionHeading title="NYS पारदर्शिता" subtitle="संस्था के कार्यों एवं वित्त का सार्वजनिक विवरण। निजी दानदाता जानकारी सार्वजनिक नहीं की जाती।" />
+      <SectionHeading title={`NYS ${dict.transparency_title}`} subtitle={`${dict.transparency_sub} ${dict.tr_private_note}`} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {cards.map((c) => (
@@ -42,15 +47,15 @@ export default async function TransparencyPage() {
 
       {campaigns.length > 0 && (
         <div className="mt-10">
-          <SectionHeading title="अभियान पारदर्शिता" />
+          <SectionHeading title={dict.tr_campaign_transparency} />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {campaigns.map((c) => <CampaignCard key={c.slug} c={c} />)}
+            {campaigns.map((c) => <CampaignCard key={c.slug} c={c} dict={dict} />)}
           </div>
         </div>
       )}
 
       <div className="mt-10">
-        <SectionHeading title="सार्वजनिक रिपोर्ट" />
+        <SectionHeading title={dict.tr_public_reports} />
         {reports.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {reports.map((r) => (
@@ -58,13 +63,13 @@ export default async function TransparencyPage() {
                 <div className="text-xs text-saffron-700">{r.type} · {r.year}</div>
                 <h3 className="mt-1 font-bold text-ink">{r.title}</h3>
                 {r.summary && <p className="mt-1 text-sm text-stone-500">{r.summary}</p>}
-                {r.pdfUrl && <a href={r.pdfUrl} target="_blank" className="mt-2 inline-block text-sm font-medium text-saffron-700">PDF देखें →</a>}
+                {r.pdfUrl && <a href={r.pdfUrl} target="_blank" className="mt-2 inline-block text-sm font-medium text-saffron-700">{dict.tr_view_pdf}</a>}
               </Card>
             ))}
           </div>
         ) : (
           <p className="rounded-2xl border border-dashed border-saffron-200 p-6 text-center text-sm text-stone-500">
-            रिपोर्ट शीघ्र प्रकाशित की जाएँगी।
+            {dict.tr_reports_coming_soon}
           </p>
         )}
       </div>

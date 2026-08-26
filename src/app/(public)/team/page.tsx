@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
 import { Phone } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { getI18n } from "@/lib/i18n";
 import { Card, SectionHeading, EmptyState } from "@/components/ui/primitives";
 
-export const metadata: Metadata = { title: "हमारी टीम" };
-export const revalidate = 600; // 10 min — team rarely changes
+export async function generateMetadata(): Promise<Metadata> {
+  const { dict } = await getI18n();
+  return { title: dict.team_title };
+}
+export const revalidate = 600;
 
 export default async function TeamPage() {
-  const team = await prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } });
+  const [team, { dict }] = await Promise.all([
+    prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } }),
+    getI18n(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <SectionHeading title="हमारी टीम" subtitle="संस्था के पदाधिकारी एवं कार्यकारिणी सदस्य" />
+      <SectionHeading title={dict.team_title} subtitle={dict.team_sub} />
       {team.length ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {team.map((m) => (
@@ -29,14 +36,14 @@ export default async function TeamPage() {
               {m.responsibility && <p className="mt-1 text-xs text-stone-500">{m.responsibility}</p>}
               {m.showMobile && m.mobile && (
                 <a href={`tel:${m.mobile}`} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-saffron-700">
-                  <Phone className="h-4 w-4" /> कॉल करें
+                  <Phone className="h-4 w-4" /> {dict.call}
                 </a>
               )}
             </Card>
           ))}
         </div>
       ) : (
-        <EmptyState message="टीम की जानकारी शीघ्र उपलब्ध होगी।" />
+        <EmptyState message={dict.team_none} />
       )}
     </div>
   );

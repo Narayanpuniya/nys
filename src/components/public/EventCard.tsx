@@ -20,20 +20,21 @@ const statusTone: Record<string, "amber" | "green" | "blue" | "red"> = {
   COMPLETED: "blue",
   CANCELLED: "red",
 };
-const statusLabel: Record<string, string> = {
-  UPCOMING: "आगामी",
-  ONGOING: "जारी",
-  COMPLETED: "संपन्न",
-  CANCELLED: "रद्द",
-};
 
-export function EventCard({ e }: { e: EventCardData }) {
+export function EventCard({ e, dict }: { e: EventCardData; dict: Record<string, string> }) {
+  const statusLabel: Record<string, string> = {
+    UPCOMING:  dict.event_upcoming          ?? "Upcoming",
+    ONGOING:   dict.event_ongoing           ?? "Ongoing",
+    COMPLETED: dict.event_completed_status  ?? "Completed",
+    CANCELLED: dict.event_cancelled         ?? "Cancelled",
+  };
+
   return (
     <Link
       href={`/events/${e.slug}`}
       className="group flex gap-4 overflow-hidden rounded-2xl border border-saffron-100 bg-white p-4 transition hover:border-saffron-300 hover:shadow-md"
     >
-      {/* पोस्टर या date box */}
+      {/* Date box or poster */}
       {e.posterImage ? (
         <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl border border-stone-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -45,7 +46,7 @@ export function EventCard({ e }: { e: EventCardData }) {
             {new Date(e.date).getDate()}
           </span>
           <span className="text-[11px]">
-            {new Intl.DateTimeFormat("hi-IN", { month: "short" }).format(new Date(e.date))}
+            {new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(e.date))}
           </span>
         </div>
       )}

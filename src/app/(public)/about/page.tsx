@@ -19,7 +19,7 @@ export default async function AboutPage() {
       <div className="mb-8 flex flex-col items-center text-center">
         <LogoMark className="h-16 w-16" imageUrl={s.logoUrl} />
         <h1 className="mt-3 text-3xl font-extrabold text-ink">{s.name}</h1>
-        <p className="mt-2 max-w-2xl text-stone-600">{s.tagline}</p>
+        <p className="mt-2 max-w-2xl text-stone-600">{dict.org_tagline}</p>
       </div>
 
       <Card className="p-6">

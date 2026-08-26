@@ -39,10 +39,10 @@ export async function Footer() {
                 <p className="text-[10px] tracking-widest text-amber-400/70 uppercase">www.nys.org.in</p>
               </div>
             </div>
-            <p className="text-sm leading-relaxed text-slate-300">{s.tagline}</p>
+            <p className="text-sm leading-relaxed text-slate-300">{dict.org_tagline}</p>
             {s.legal?.registrationNo && (
               <div className="mt-3 inline-block rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1.5">
-                <p className="text-[9px] uppercase tracking-widest text-amber-400/70">पंजीकरण संख्या</p>
+                <p className="text-[9px] uppercase tracking-widest text-amber-400/70">{dict.footer_reg_no}</p>
                 <p className="text-xs font-semibold text-amber-300">{s.legal.registrationNo}</p>
               </div>
             )}
@@ -118,7 +118,7 @@ export async function Footer() {
                 <li>
                   <a href={whatsappLink} target="_blank" rel="noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-lg bg-green-500/20 px-3 py-1.5 text-xs font-medium text-green-300 hover:bg-green-500/30 transition-colors">
-                    <WhatsappIcon className="h-3.5 w-3.5" /> व्हाट्सएप पर संपर्क करें
+                    <WhatsappIcon className="h-3.5 w-3.5" /> WhatsApp
                   </a>
                 </li>
               )}
@@ -133,7 +133,7 @@ export async function Footer() {
         <div className="mx-auto max-w-7xl px-4 py-4">
           <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="text-xs text-slate-500">
-              © {year} {s.name}. सर्वाधिकार सुरक्षित।
+              © {year} {s.name}. {dict.footer_rights}.
             </p>
             <div className="flex gap-4 text-xs text-slate-500">
               <Link href="/privacy" className="hover:text-amber-400 transition-colors">{dict.footer_privacy}</Link>
