@@ -222,6 +222,7 @@ const hi = {
   admin_people: "टीम व मार्गदर्शक",
   admin_partners: "सहयोगी संस्थान",
   admin_suggestions: "सुझाव",
+  admin_testimonials: "Testimonials",
   admin_volunteers: "स्वयंसेवक",
   admin_reports: "रिपोर्ट",
   admin_audit: "ऑडिट लॉग",
@@ -253,6 +254,8 @@ const hi = {
   tr_private_note: "निजी दानदाता जानकारी सार्वजनिक नहीं की जाती।",
 
   // Partners
+  testimonials_title: "Testimonials",
+  testimonials_sub: "नारायणपुरी युथ सोसाइटी के बारे में लोगों की राय",
   partners_none: "सहयोगी संस्थानों की जानकारी शीघ्र उपलब्ध होगी।",
   partners_programs_suffix: "संयुक्त कार्यक्रम →",
   partner_website: "वेबसाइट",
@@ -553,6 +556,7 @@ const en: Record<DictKey, string> = {
   admin_partners: "Partners",
   admin_suggestions: "Suggestions",
   admin_volunteers: "Volunteers",
+  admin_testimonials: "Testimonials",
   admin_reports: "Reports",
   admin_audit: "Audit log",
   admin_users: "Admin users",
@@ -580,6 +584,8 @@ const en: Record<DictKey, string> = {
   tr_view_pdf: "View PDF →",
   tr_private_note: "Donor details are kept private.",
 
+  testimonials_title: "Testimonials",
+  testimonials_sub: "What people say about Narayanpuri Youth Society",
   partners_none: "Partner information coming soon.",
   partners_programs_suffix: "joint programs →",
   partner_website: "Website",

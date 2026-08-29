@@ -520,3 +520,15 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  designation String?
+  message     String
+  photoUrl    String?
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

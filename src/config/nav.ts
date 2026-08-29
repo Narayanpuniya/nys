@@ -40,6 +40,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/people", labelKey: "admin_people", icon: "Contact", perm: PERMISSIONS.PEOPLE_MANAGE },
   { href: "/admin/partners", labelKey: "admin_partners", icon: "Building2", perm: PERMISSIONS.PEOPLE_MANAGE },
   { href: "/admin/suggestions", labelKey: "admin_suggestions", icon: "MessageSquare", perm: PERMISSIONS.MEMBERS_MANAGE },
+  { href: "/admin/testimonials", labelKey: "admin_testimonials", icon: "Quote", perm: PERMISSIONS.PEOPLE_MANAGE },
   { href: "/admin/volunteers", labelKey: "admin_volunteers", icon: "HeartHandshake", perm: PERMISSIONS.MEMBERS_MANAGE },
   { href: "/admin/reports", labelKey: "admin_reports", icon: "FileBarChart", perm: PERMISSIONS.REPORTS_VIEW },
   { href: "/admin/audit", labelKey: "admin_audit", icon: "ScrollText", perm: PERMISSIONS.AUDIT_VIEW },
