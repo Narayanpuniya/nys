@@ -13,6 +13,7 @@ import { EventCard } from "@/components/public/EventCard";
 import { LeadershipStrip } from "@/components/public/LeadershipStrip";
 import { SectionHeading, EmptyState, Card } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
+import { TestimonialCard } from "@/components/public/TestimonialCard";
 
 export const revalidate = 300; // 5 min — home page content rarely changes
 
@@ -305,27 +306,14 @@ export default async function HomePage() {
             />
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {testimonials.map((t) => (
-                <div key={t.id} className="rounded-2xl border border-amber-100 bg-white p-6 shadow-sm flex flex-col gap-4">
-                  {/* Quote mark */}
-                  <div className="text-4xl leading-none text-saffron-300 font-serif select-none">&ldquo;</div>
-                  {/* Message */}
-                  <p className="text-sm leading-relaxed text-stone-600 flex-1 line-clamp-5">{t.message}</p>
-                  {/* Person */}
-                  <div className="flex items-center gap-3 border-t border-amber-50 pt-4">
-                    {t.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={t.photoUrl} alt={t.name} className="h-11 w-11 rounded-full object-cover border-2 border-saffron-200 shrink-0" />
-                    ) : (
-                      <div className="h-11 w-11 rounded-full bg-saffron-100 flex items-center justify-center shrink-0 text-saffron-700 font-bold text-lg">
-                        {t.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="font-semibold text-maroon-900 text-sm truncate">{t.name}</div>
-                      {t.designation && <div className="text-xs text-stone-400 truncate">{t.designation}</div>}
-                    </div>
-                  </div>
-                </div>
+                <TestimonialCard
+                  key={t.id}
+                  id={t.id}
+                  name={t.name}
+                  designation={t.designation}
+                  message={t.message}
+                  photoUrl={t.photoUrl}
+                />
               ))}
             </div>
           </div>
