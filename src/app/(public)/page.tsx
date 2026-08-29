@@ -54,10 +54,11 @@ export default async function HomePage() {
   let leadership: Awaited<ReturnType<typeof prisma.teamMember.findMany>> = [];
   let mentors: Awaited<ReturnType<typeof prisma.mentor.findMany>> = [];
   let partners: Awaited<ReturnType<typeof prisma.partner.findMany>> = [];
+  let testimonials: Awaited<ReturnType<typeof prisma.testimonial.findMany>> = [];
   let heroSlides: { imageUrl: string; title?: string | null; category?: string | null }[] = [];
 
   try {
-    const [cats, feat, evts, leads, mnts, parts, rawSlides] = await Promise.all([
+    const [cats, feat, evts, leads, mnts, parts, rawSlides, testi] = await Promise.all([
       prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
       getFeaturedCampaign(),
       prisma.event.findMany({ where: { status: "UPCOMING" }, orderBy: { date: "asc" }, take: 3 }),
@@ -65,9 +66,10 @@ export default async function HomePage() {
       prisma.mentor.findMany({ where: { featured: true }, orderBy: { sortOrder: "asc" }, take: 4 }),
       prisma.partner.findMany({ where: { featured: true }, orderBy: { createdAt: "desc" }, take: 6 }),
       getHeroSlides(),
+      prisma.testimonial.findMany({ where: { isPublished: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }], take: 6 }),
     ]);
     categories = cats; featured = feat; events = evts;
-    leadership = leads; mentors = mnts; partners = parts;
+    leadership = leads; mentors = mnts; partners = parts; testimonials = testi;
     // Admin द्वारा जोड़ी गई slides, sortOrder के अनुसार
     heroSlides = rawSlides
       .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -288,6 +290,44 @@ export default async function HomePage() {
                 </Card>
               </Link>
             ))}
+          </div>
+        </section>
+      )}
+
+      {testimonials.length > 0 && (
+        <section className="bg-amber-50/50 border-y border-amber-100 py-14">
+          <div className="mx-auto max-w-7xl px-4">
+            <SectionHeading
+              title={dict.testimonials_title}
+              subtitle={dict.testimonials_sub}
+              viewAllHref="/testimonials"
+              viewAllLabel={dict.viewAll}
+            />
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((t) => (
+                <div key={t.id} className="rounded-2xl border border-amber-100 bg-white p-6 shadow-sm flex flex-col gap-4">
+                  {/* Quote mark */}
+                  <div className="text-4xl leading-none text-saffron-300 font-serif select-none">&ldquo;</div>
+                  {/* Message */}
+                  <p className="text-sm leading-relaxed text-stone-600 flex-1 line-clamp-5">{t.message}</p>
+                  {/* Person */}
+                  <div className="flex items-center gap-3 border-t border-amber-50 pt-4">
+                    {t.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={t.photoUrl} alt={t.name} className="h-11 w-11 rounded-full object-cover border-2 border-saffron-200 shrink-0" />
+                    ) : (
+                      <div className="h-11 w-11 rounded-full bg-saffron-100 flex items-center justify-center shrink-0 text-saffron-700 font-bold text-lg">
+                        {t.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-semibold text-maroon-900 text-sm truncate">{t.name}</div>
+                      {t.designation && <div className="text-xs text-stone-400 truncate">{t.designation}</div>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
