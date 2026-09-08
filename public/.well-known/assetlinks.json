@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.shreenarayanpuriyouthsociety.nysjodhpur",
+      "sha256_cert_fingerprints": [
+        "76:04:A4:22:EB:64:67:E6:65:D1:ED:2B:4F:3F:C1:7E:78:66:18:55:FF:25:31:26:9B:73:94:A4:7C:C6:DF:7E",
+        "24:F1:9E:9A:C2:4D:D5:C3:D2:41:E8:77:83:E1:8A:33:22:38:D8:64:1E:CD:02:93:7E:FA:BE:22:FE:FE:77:9C"
+      ]
+    }
+  }
+]

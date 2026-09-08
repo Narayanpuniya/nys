@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Hind } from "next/font/google";
 import { cookies } from "next/headers";
 import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE } from "@/lib/i18n/config";
@@ -40,6 +40,15 @@ export const metadata: Metadata = {
     images: [{ url: "/nys-logo.png", width: 512, height: 512, alt: "NYS Logo" }],
   },
   robots: { index: true, follow: true },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "NYS" },
+};
+
+// Android app (TWA) का status bar इसी रंग का होगा — TopBar के maroon से match
+export const viewport: Viewport = {
+  themeColor: "#7f1d1d",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
