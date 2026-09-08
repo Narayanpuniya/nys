@@ -36,7 +36,7 @@ export async function Footer() {
               </div>
               <div>
                 <p className="text-sm font-extrabold leading-tight text-white">{s.shortName}</p>
-                <p className="text-[10px] tracking-widest text-amber-400/70 uppercase">www.nys.org.in</p>
+                <p className="web-only text-[10px] tracking-widest text-amber-400/70 uppercase">www.nys.org.in</p>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-slate-300">{dict.org_tagline}</p>
