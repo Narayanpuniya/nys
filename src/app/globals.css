@@ -121,3 +121,12 @@ body {
   /* app में text selection/long-press highlight browser जैसा न लगे */
   body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
 }
+
+/* App-style side drawer (mobile menu) */
+@keyframes nys-slide-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes nys-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+.nys-slide-in { animation: nys-slide-in .26s cubic-bezier(.2,.8,.2,1) both; }
+.nys-fade-in  { animation: nys-fade-in .2s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .nys-slide-in, .nys-fade-in { animation: none; }
+}

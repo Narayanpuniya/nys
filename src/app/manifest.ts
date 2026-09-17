@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { ANDROID_PACKAGE_ID, PLAY_STORE_URL } from "@/lib/constants";
 
 // PWA / TWA manifest — Android app (Play Store) इसी को पढ़ता है
 export default function manifest(): MetadataRoute.Manifest {
@@ -17,6 +18,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#7f1d1d",
     background_color: "#ffffff",
     categories: ["education", "social", "lifestyle"],
+    // Chrome को बताता है कि Play Store पर native app है (install prompt वहीं ले जाएगा)
+    prefer_related_applications: true,
+    related_applications: [{ platform: "play", url: PLAY_STORE_URL, id: ANDROID_PACKAGE_ID }],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

@@ -3,8 +3,21 @@
 import { useState, useTransition, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, Download, CreditCard, Award, Receipt, ChevronDown } from "lucide-react";
+import {
+  Menu, X, Download, CreditCard, Award, Receipt, ChevronDown, ChevronRight, LogIn,
+  Home, Info, Users, GraduationCap, Activity, CalendarDays, Megaphone, Building2, Image as ImageIcon, BarChart3, Phone,
+  type LucideIcon,
+} from "lucide-react";
 import { LogoMark } from "@/components/ui/Logo";
+import { GooglePlayIcon } from "@/components/ui/BrandIcons";
+import { PLAY_STORE_URL } from "@/lib/constants";
+
+// Side-drawer में हर nav item का icon (href के हिसाब से)
+const NAV_ICONS: Record<string, LucideIcon> = {
+  "/": Home, "/about": Info, "/team": Users, "/mentors": GraduationCap,
+  "/activities": Activity, "/events": CalendarDays, "/campaigns": Megaphone,
+  "/partners": Building2, "/gallery": ImageIcon, "/transparency": BarChart3, "/contact": Phone,
+};
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { setLocale } from "@/app/actions/locale";
 import { PUBLIC_NAV, PUBLIC_CTA } from "@/config/nav";
@@ -62,6 +75,15 @@ export function Header({
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Drawer खुला हो तो page scroll lock; Escape से बंद
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [open]);
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md" style={{ isolation: "isolate" }}>
@@ -190,76 +212,154 @@ export function Header({
         </div>
       </div>
 
-      {/* ── Mobile menu panel ── */}
+      {/* ── Mobile: app-style side drawer ── */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 border-t border-stone-100 bg-white shadow-xl xl:hidden">
-          {/* Nav links */}
-          <nav className="mx-auto grid max-w-7xl grid-cols-2 gap-1 px-4 pt-3 pb-2">
-            {PUBLIC_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium text-stone-700 hover:bg-saffron-50 active:bg-saffron-100",
-                  pathname === item.href && "bg-saffron-50 font-bold text-maroon-800",
-                )}
-              >
-                {dict[item.labelKey]}
-              </Link>
-            ))}
-          </nav>
+        <div className="fixed inset-0 z-[70] xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          {/* Overlay */}
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+            className="nys-fade-in absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+          />
 
-          {/* Downloads section mobile */}
-          <div className="mx-4 mb-2 rounded-xl border border-stone-100 bg-stone-50 p-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-stone-400">📥 दस्तावेज़ डाउनलोड</p>
-            <div className="grid grid-cols-3 gap-1.5">
-              <Link href="/downloads#idcard" onClick={() => setOpen(false)}
-                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-blue-700 shadow-sm">
-                <CreditCard className="h-4 w-4" /> ID कार्ड
-              </Link>
-              <Link href="/downloads#cert" onClick={() => setOpen(false)}
-                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-green-700 shadow-sm">
-                <Award className="h-4 w-4" /> प्रमाण पत्र
-              </Link>
-              <Link href="/downloads#receipt" onClick={() => setOpen(false)}
-                className="flex flex-col items-center gap-1 rounded-lg bg-white px-2 py-2 text-center text-[11px] font-semibold text-amber-700 shadow-sm">
-                <Receipt className="h-4 w-4" /> दान रसीद
+          {/* Drawer */}
+          <aside className="nys-slide-in absolute left-0 top-0 flex h-full w-[82%] max-w-[340px] flex-col bg-white shadow-2xl">
+            {/* Drawer header — logo + org */}
+            <div
+              className="relative px-5 pb-5 pt-[max(20px,env(safe-area-inset-top))] text-white"
+              style={{ background: "linear-gradient(135deg, #7f1d1d 0%, #991b1b 60%, #b45309 100%)" }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="absolute right-3 top-3 rounded-full bg-white/15 p-1.5 transition hover:bg-white/25"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-3 pr-8">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-md">
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoUrl} alt="" className="h-full w-full object-contain" />
+                  ) : (
+                    <LogoMark className="h-10 w-10" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[15px] font-extrabold leading-tight">{orgName ?? dict.orgName}</div>
+                  <div className="mt-0.5 text-[11px] text-white/80">{orgPlace ?? dict.orgPlace}</div>
+                  {registrationNo && (
+                    <div className="mt-1 inline-block rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide">
+                      Reg. {registrationNo}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              <nav className="px-2 py-2">
+                {PUBLIC_NAV.map((item) => {
+                  const Icon = NAV_ICONS[item.href] ?? ChevronRight;
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium text-stone-700 transition active:bg-saffron-100",
+                        active && "bg-saffron-50 font-bold text-maroon-800",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-500",
+                          active && "bg-maroon-800 text-white",
+                        )}
+                      >
+                        <Icon className="h-[18px] w-[18px]" />
+                      </span>
+                      <span className="flex-1">{dict[item.labelKey]}</span>
+                      <ChevronRight className="h-4 w-4 text-stone-300" />
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Downloads */}
+              <div className="mx-4 my-2 rounded-2xl border border-stone-100 bg-stone-50 p-3">
+                <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-stone-400">{dict.nav_downloads}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Link href="/downloads#idcard" onClick={() => setOpen(false)}
+                    className="flex flex-col items-center gap-1 rounded-xl bg-white px-2 py-2.5 text-center text-[11px] font-semibold text-blue-700 shadow-sm active:bg-blue-50">
+                    <CreditCard className="h-5 w-5" /> {dict.nav_dl_idcard}
+                  </Link>
+                  <Link href="/downloads#cert" onClick={() => setOpen(false)}
+                    className="flex flex-col items-center gap-1 rounded-xl bg-white px-2 py-2.5 text-center text-[11px] font-semibold text-green-700 shadow-sm active:bg-green-50">
+                    <Award className="h-5 w-5" /> {dict.nav_dl_cert}
+                  </Link>
+                  <Link href="/downloads#receipt" onClick={() => setOpen(false)}
+                    className="flex flex-col items-center gap-1 rounded-xl bg-white px-2 py-2.5 text-center text-[11px] font-semibold text-amber-700 shadow-sm active:bg-amber-50">
+                    <Receipt className="h-5 w-5" /> {dict.nav_dl_receipt}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Play Store app link — app के अंदर छिपा रहता है */}
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="web-only mx-4 my-2 flex items-center gap-3 rounded-2xl bg-stone-900 px-4 py-3 text-white shadow-sm active:bg-black"
+              >
+                <GooglePlayIcon className="h-7 w-7 shrink-0" />
+                <span className="flex-1 leading-tight">
+                  <span className="block text-[10px] uppercase tracking-wider text-white/60">{dict.app_get_it_on}</span>
+                  <span className="block text-sm font-bold">Google Play</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-white/50" />
+              </a>
+
+              {/* Language */}
+              <div className="flex items-center justify-between px-5 py-3">
+                <span className="text-xs font-semibold text-stone-500">भाषा / Language</span>
+                <LanguageSwitcher locale={locale} />
+              </div>
+            </div>
+
+            {/* Sticky CTA footer */}
+            <div className="border-t border-stone-100 bg-white px-3 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/donate"
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl py-2.5 text-center text-sm font-bold text-white shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
+                >
+                  {dict.nav_donate}
+                </Link>
+                <Link
+                  href="/join"
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl py-2.5 text-center text-sm font-bold text-white shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #991b1b, #7f1d1d)" }}
+                >
+                  {dict.nav_join}
+                </Link>
+              </div>
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="mt-2 flex items-center justify-center gap-2 rounded-xl border border-maroon-200 py-2.5 text-sm font-semibold text-maroon-800 active:bg-maroon-50"
+              >
+                <LogIn className="h-4 w-4" /> {dict.nav_login}
               </Link>
             </div>
-          </div>
-
-          {/* CTA buttons */}
-          <div className="flex gap-2 px-4 pb-3">
-            <Link
-              href="/donate"
-              onClick={() => setOpen(false)}
-              className="flex-1 rounded-xl py-2.5 text-center text-sm font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
-            >
-              {dict.nav_donate}
-            </Link>
-            <Link
-              href="/join"
-              onClick={() => setOpen(false)}
-              className="flex-1 rounded-xl py-2.5 text-center text-sm font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #991b1b, #7f1d1d)" }}
-            >
-              {dict.nav_join}
-            </Link>
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-xl border border-maroon-300 px-4 py-2.5 text-sm font-medium text-maroon-800"
-            >
-              {dict.nav_login}
-            </Link>
-          </div>
-
-          {/* Language switcher */}
-          <div className="border-t border-stone-100 px-4 py-3">
-            <LanguageSwitcher locale={locale} />
-          </div>
+          </aside>
         </div>
       )}
     </header>

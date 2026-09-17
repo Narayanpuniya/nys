@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { FacebookIcon, InstagramIcon, YoutubeIcon, WhatsappIcon } from "@/components/ui/BrandIcons";
 import { LogoMark } from "@/components/ui/Logo";
+import { PlayStoreBadge } from "@/components/public/PlayStoreBadge";
 import { getSettings } from "@/lib/settings";
 import { getI18n } from "@/lib/i18n";
 
@@ -53,6 +54,8 @@ export async function Footer() {
               {s.social.youtube   && <a href={s.social.youtube}   target="_blank" rel="noreferrer" aria-label="YouTube"   className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><YoutubeIcon   className="h-4 w-4" /></a>}
               {whatsappLink        && <a href={whatsappLink}       target="_blank" rel="noreferrer" aria-label="WhatsApp"  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-slate-300 hover:bg-amber-500/20 hover:text-amber-300 transition-colors"><WhatsappIcon  className="h-4 w-4" /></a>}
             </div>
+            {/* Android app — app के अंदर छिपा रहता है */}
+            <PlayStoreBadge top={dict.app_get_it_on} className="mt-4" />
           </div>
 
           {/* ── Col 2: Quick Links ── */}

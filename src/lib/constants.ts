@@ -114,3 +114,7 @@ export const VOLUNTEER_AREAS = [
   "शिक्षा", "खेल", "पर्यावरण", "Events", "समाज सेवा",
   "Technology", "Photography", "Design", "Fundraising",
 ] as const;
+
+// Google Play पर NYS Android app
+export const ANDROID_PACKAGE_ID = "com.shreenarayanpuriyouthsociety.nysjodhpur";
+export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_ID}`;

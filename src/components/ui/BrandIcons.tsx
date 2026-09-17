@@ -44,3 +44,14 @@ export function XIcon(props: P) {
     </svg>
   );
 }
+
+export function GooglePlayIcon(props: P) {
+  return (
+    <svg viewBox="0 0 24 24" width="1em" height="1em" {...props}>
+      <path fill="#00d2ff" d="M3.6 2.3c-.4.3-.6.8-.6 1.4v16.6c0 .6.2 1.1.6 1.4L13 12 3.6 2.3Z" />
+      <path fill="#00f076" d="M16.3 8.7 5.2 2.3c-.6-.3-1.2-.3-1.6 0L13 12l3.3-3.3Z" />
+      <path fill="#ffd500" d="m16.3 15.3 3.8-2.2c1-.6 1-1.6 0-2.2l-3.8-2.2L13 12l3.3 3.3Z" />
+      <path fill="#ff3a44" d="M3.6 21.7c.4.3 1 .3 1.6 0l11.1-6.4L13 12l-9.4 9.7Z" />
+    </svg>
+  );
+}

@@ -201,6 +201,9 @@ const hi = {
 
   // Footer
   footer_reg_no: "पंजीकरण संख्या",
+  app_get_it_on: "डाउनलोड करें",
+  app_promo_title: "NYS ऐप अब Google Play पर",
+  app_promo_body: "दान, सदस्यता, गतिविधियाँ और कार्यक्रम — सब कुछ अपने फ़ोन पर, एक टैप में।",
 
   // Misc
   read_more: "और पढ़ें",
@@ -536,6 +539,9 @@ const en: Record<DictKey, string> = {
   downloads_receipt: "Donation / Membership Receipt",
 
   footer_reg_no: "Registration No.",
+  app_get_it_on: "Get it on",
+  app_promo_title: "The NYS app is now on Google Play",
+  app_promo_body: "Donations, membership, activities and events — all on your phone, one tap away.",
 
   read_more: "Read more",
   share: "Share",

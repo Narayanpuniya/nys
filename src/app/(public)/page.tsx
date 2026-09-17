@@ -14,6 +14,7 @@ import { LeadershipStrip } from "@/components/public/LeadershipStrip";
 import { SectionHeading, EmptyState, Card } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
 import { TestimonialCard } from "@/components/public/TestimonialCard";
+import { PlayStoreBadge } from "@/components/public/PlayStoreBadge";
 
 export const revalidate = 300; // 5 min — home page content rarely changes
 
@@ -319,6 +320,21 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* ── Android app promo — app के अंदर छिपा रहता है ── */}
+      <section className="web-only mx-auto max-w-7xl px-4 pt-12">
+        <div className="flex flex-col items-start gap-5 rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between lg:p-8">
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-192.png" alt="" className="h-16 w-16 shrink-0 rounded-2xl shadow-md" />
+            <div>
+              <h3 className="text-xl font-bold text-ink">{dict.app_promo_title}</h3>
+              <p className="mt-1 text-sm text-stone-600">{dict.app_promo_body}</p>
+            </div>
+          </div>
+          <PlayStoreBadge top={dict.app_get_it_on} className="shrink-0" />
+        </div>
+      </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-4 lg:grid-cols-2">
