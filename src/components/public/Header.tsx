@@ -176,6 +176,17 @@ export function Header({
             )}
           </div>
 
+          {/* Google Play app — app के अंदर छिपा रहता है */}
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="web-only flex items-center gap-1.5 whitespace-nowrap rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-black"
+          >
+            <GooglePlayIcon className="h-3.5 w-3.5" />
+            <span className="hidden 2xl:inline">Google Play</span>
+            <span className="2xl:hidden">App</span>
+          </a>
           <Link
             href="/login"
             className="whitespace-nowrap rounded-full border border-maroon-600 px-3 py-1 text-[11px] font-bold text-maroon-800 transition hover:bg-maroon-50"
@@ -200,6 +211,15 @@ export function Header({
 
         {/* ── Mobile: lang switcher (compact) + hamburger ── */}
         <div className="ml-auto flex shrink-0 items-center gap-1 xl:hidden">
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Google Play"
+            className="web-only flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white active:bg-black"
+          >
+            <GooglePlayIcon className="h-4 w-4" />
+          </a>
           <LanguageSwitcherCompact locale={locale} />
           <button
             className="rounded-lg p-2 text-maroon-800 transition hover:bg-saffron-50 active:bg-saffron-100"
