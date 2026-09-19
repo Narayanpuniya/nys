@@ -13,6 +13,7 @@ export const PUBLIC_NAV: { href: string; labelKey: DictKey }[] = [
   { href: "/partners", labelKey: "nav_partners" },
   { href: "/gallery", labelKey: "nav_gallery" },
   { href: "/transparency", labelKey: "nav_transparency" },
+  { href: "/hisab", labelKey: "nav_hisab" },
   { href: "/contact", labelKey: "nav_contact" },
 ];
 
@@ -41,6 +42,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/partners", labelKey: "admin_partners", icon: "Building2", perm: PERMISSIONS.PEOPLE_MANAGE },
   { href: "/admin/suggestions", labelKey: "admin_suggestions", icon: "MessageSquare", perm: PERMISSIONS.MEMBERS_MANAGE },
   { href: "/admin/testimonials", labelKey: "admin_testimonials", icon: "Quote", perm: PERMISSIONS.PEOPLE_MANAGE },
+  { href: "/admin/cashbook", labelKey: "admin_cashbook", icon: "BookOpen", perm: PERMISSIONS.FINANCE_MANAGE },
   { href: "/admin/volunteers", labelKey: "admin_volunteers", icon: "HeartHandshake", perm: PERMISSIONS.MEMBERS_MANAGE },
   { href: "/admin/reports", labelKey: "admin_reports", icon: "FileBarChart", perm: PERMISSIONS.REPORTS_VIEW },
   { href: "/admin/audit", labelKey: "admin_audit", icon: "ScrollText", perm: PERMISSIONS.AUDIT_VIEW },

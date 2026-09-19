@@ -24,7 +24,8 @@ export type UploadCategory =
   | "receipts"
   | "finance"
   | "events"
-  | "testimonials";
+  | "testimonials"
+  | "cashbook";
 
 function assertUploadable(
   file: File,

@@ -13,37 +13,37 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  mobile        String?
-  passwordHash  String
-  role          String   @default("CONTENT_MANAGER")
-  isActive      Boolean  @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  mobile       String?
+  passwordHash String
+  role         String    @default("CONTENT_MANAGER")
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  auditLogs     AuditLog[]
-  createdPosts  Post[]        @relation("PostAuthor")
-  incomes       Income[]
-  expenses      Expense[]
+  auditLogs    AuditLog[]
+  createdPosts Post[]     @relation("PostAuthor")
+  incomes      Income[]
+  expenses     Expense[]
 
   @@index([role])
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  userName   String
-  action     String
-  entity     String
-  entityId   String?
-  summary    String
-  meta       String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  userName  String
+  action    String
+  entity    String
+  entityId  String?
+  summary   String
+  meta      String?
+  createdAt DateTime @default(now())
 
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([entity])
   @@index([createdAt])
@@ -60,50 +60,50 @@ model MembershipPlan {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
 
-  members     Member[]
-  payments    MembershipPayment[]
+  members  Member[]
+  payments MembershipPayment[]
 }
 
 model Member {
-  id              String   @id @default(cuid())
-  memberCode      String   @unique
-  fullName        String
-  guardianName    String?
-  dob             DateTime?
-  gender          String?
-  mobile          String
-  whatsapp        String?
-  email           String?
-  address         String?
-  village         String?
-  tehsil          String?
-  district        String?
-  state           String?  @default("Rajasthan")
-  occupation      String?
-  bloodGroup      String?
-  photoUrl        String?
+  id               String    @id @default(cuid())
+  memberCode       String    @unique
+  fullName         String
+  guardianName     String?
+  dob              DateTime?
+  gender           String?
+  mobile           String
+  whatsapp         String?
+  email            String?
+  address          String?
+  village          String?
+  tehsil           String?
+  district         String?
+  state            String?   @default("Rajasthan")
+  occupation       String?
+  bloodGroup       String?
+  photoUrl         String?
   emergencyContact String?
-  joiningDate     DateTime @default(now())
-  validUntil      DateTime?
-  status          String   @default("PENDING")
-  passwordHash    String?
-  showMobile      Boolean  @default(false)
-  consent         Boolean  @default(false)
+  joiningDate      DateTime  @default(now())
+  validUntil       DateTime?
+  status           String    @default("PENDING")
+  passwordHash     String?
+  showMobile       Boolean   @default(false)
+  consent          Boolean   @default(false)
 
-  planId          String?
-  plan            MembershipPlan? @relation(fields: [planId], references: [id])
+  planId String?
+  plan   MembershipPlan? @relation(fields: [planId], references: [id])
 
-  deletedAt       DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  payments        MembershipPayment[]
-  certificates    Certificate[]
-  suggestions     Suggestion[]
-  volunteers      Volunteer[]
-  eventRegs       EventRegistration[]
-  teamMembers     TeamMember[]
-  mentors         Mentor[]
+  payments     MembershipPayment[]
+  certificates Certificate[]
+  suggestions  Suggestion[]
+  volunteers   Volunteer[]
+  eventRegs    EventRegistration[]
+  teamMembers  TeamMember[]
+  mentors      Mentor[]
 
   @@index([status])
   @@index([mobile])
@@ -128,63 +128,63 @@ model MembershipPayment {
   createdBy     String?
   createdAt     DateTime @default(now())
 
-  member        Member          @relation(fields: [memberId], references: [id])
-  plan          MembershipPlan? @relation(fields: [planId], references: [id])
+  member Member          @relation(fields: [memberId], references: [id])
+  plan   MembershipPlan? @relation(fields: [planId], references: [id])
 
   @@index([status])
   @@index([paidAt])
 }
 
 model Certificate {
-  id           String   @id @default(cuid())
-  certNumber   String   @unique
-  memberId     String
-  type         String   @default("MEMBERSHIP")
-  issuedAt     DateTime @default(now())
-  pdfUrl       String?
+  id         String   @id @default(cuid())
+  certNumber String   @unique
+  memberId   String
+  type       String   @default("MEMBERSHIP")
+  issuedAt   DateTime @default(now())
+  pdfUrl     String?
 
-  member       Member   @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
 }
 
 model Donor {
-  id         String   @id @default(cuid())
-  name       String
-  mobile     String?
-  email      String?
-  pan        String?
-  isAnonymous Boolean @default(false)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  mobile      String?
+  email       String?
+  pan         String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  donations  Donation[]
+  donations Donation[]
 
   @@index([mobile])
 }
 
 model Donation {
-  id            String   @id @default(cuid())
-  receiptNumber String   @unique
-  donorId       String?
-  donorName     String
-  amount        Int
-  purpose       String   @default("GENERAL")
-  campaignId    String?
-  mode          String   @default("ONLINE")
-  gatewayTxnId  String?
+  id             String    @id @default(cuid())
+  receiptNumber  String    @unique
+  donorId        String?
+  donorName      String
+  amount         Int
+  purpose        String    @default("GENERAL")
+  campaignId     String?
+  mode           String    @default("ONLINE")
+  gatewayTxnId   String?
   gatewayOrderId String?
   // PENDING → payment not yet done
   // PAID    → payment captured, awaiting admin verification
   // SUCCESS → admin verified & approved
   // FAILED  → payment failed or admin rejected
   // VOID    → cancelled
-  status        String   @default("PENDING")
-  message       String?
+  status         String    @default("PENDING")
+  message        String?
   /// UPI/बैंक ट्रांसफर का भुगतान स्क्रीनशॉट / प्रमाण
-  proofUrl      String?
-  createdAt     DateTime @default(now())
-  paidAt        DateTime?
+  proofUrl       String?
+  createdAt      DateTime  @default(now())
+  paidAt         DateTime?
 
-  donor         Donor?    @relation(fields: [donorId], references: [id])
-  campaign      Campaign? @relation(fields: [campaignId], references: [id])
+  donor    Donor?    @relation(fields: [donorId], references: [id])
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
 
   @@index([status])
   @@index([createdAt])
@@ -192,27 +192,27 @@ model Donation {
 }
 
 model Campaign {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  title        String
-  goalAmount   Int
-  category     String   @default("GENERAL")
-  beneficiary  String?
-  location     String?
-  description  String
-  coverImage   String?
-  videoUrl     String?
-  contact      String?
-  startDate    DateTime @default(now())
-  endDate      DateTime?
-  status       String   @default("ACTIVE")
-  acceptAfterGoal Boolean @default(true)
-  featured     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  goalAmount      Int
+  category        String    @default("GENERAL")
+  beneficiary     String?
+  location        String?
+  description     String
+  coverImage      String?
+  videoUrl        String?
+  contact         String?
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  status          String    @default("ACTIVE")
+  acceptAfterGoal Boolean   @default(true)
+  featured        Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  donations    Donation[]
-  updates      CampaignUpdate[]
+  donations Donation[]
+  updates   CampaignUpdate[]
 
   @@index([status])
 }
@@ -225,7 +225,7 @@ model CampaignUpdate {
   imageUrl   String?
   createdAt  DateTime @default(now())
 
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 }
 
 model Income {
@@ -244,7 +244,7 @@ model Income {
   createdById String?
   createdAt   DateTime @default(now())
 
-  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdBy User? @relation(fields: [createdById], references: [id])
 
   @@index([date])
   @@index([source])
@@ -264,33 +264,33 @@ model Expense {
   createdById String?
   createdAt   DateTime @default(now())
 
-  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdBy User? @relation(fields: [createdById], references: [id])
 
   @@index([date])
   @@index([category])
 }
 
 model Event {
-  id            String   @id @default(cuid())
-  slug          String   @unique
-  title         String
-  category      String   @default("GENERAL")
-  description   String
-  date          DateTime
-  time          String?
-  venue         String?
-  mapUrl        String?
-  posterImage   String?
-  images        String?
-  registrationRequired Boolean @default(false)
-  maxParticipants Int?
-  contactPerson String?
-  contactNumber String?
-  registrationLink String?
-  status        String   @default("UPCOMING")
-  featured      Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  slug                 String   @unique
+  title                String
+  category             String   @default("GENERAL")
+  description          String
+  date                 DateTime
+  time                 String?
+  venue                String?
+  mapUrl               String?
+  posterImage          String?
+  images               String?
+  registrationRequired Boolean  @default(false)
+  maxParticipants      Int?
+  contactPerson        String?
+  contactNumber        String?
+  registrationLink     String?
+  status               String   @default("UPCOMING")
+  featured             Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   registrations EventRegistration[]
 
@@ -299,43 +299,43 @@ model Event {
 }
 
 model EventRegistration {
-  id            String   @id @default(cuid())
-  regNumber     String   @unique
-  eventId       String
-  name          String
-  mobile        String
-  email         String?
-  memberId      String?
-  participants  Int      @default(1)
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  regNumber    String   @unique
+  eventId      String
+  name         String
+  mobile       String
+  email        String?
+  memberId     String?
+  participants Int      @default(1)
+  createdAt    DateTime @default(now())
 
-  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  member        Member?  @relation(fields: [memberId], references: [id])
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id])
 
   @@index([eventId])
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  slug      String   @unique
+  id        String  @id @default(cuid())
+  slug      String  @unique
   name      String
   icon      String?
   color     String?
   summary   String?
-  sortOrder Int      @default(0)
+  sortOrder Int     @default(0)
 
-  posts     Post[]
+  posts Post[]
 }
 
 model Post {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  title        String                        // Internal/admin title
-  headline     String?                       // Public news headline (falls back to title)
-  reporter     String?                       // Byline / reporter name
-  priority     String   @default("NORMAL")  // NORMAL | IMPORTANT | BREAKING
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String // Internal/admin title
+  headline     String? // Public news headline (falls back to title)
+  reporter     String? // Byline / reporter name
+  priority     String    @default("NORMAL") // NORMAL | IMPORTANT | BREAKING
   categoryId   String?
-  date         DateTime @default(now())
+  date         DateTime  @default(now())
   location     String?
   excerpt      String?
   content      String
@@ -347,15 +347,15 @@ model Post {
   impactNumber Int?
   impactLabel  String?
   tags         String?
-  status       String   @default("DRAFT")
-  featured     Boolean  @default(false)
+  status       String    @default("DRAFT")
+  featured     Boolean   @default(false)
   publishAt    DateTime?
   authorId     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  category     Category? @relation(fields: [categoryId], references: [id])
-  author       User?     @relation("PostAuthor", fields: [authorId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+  author   User?     @relation("PostAuthor", fields: [authorId], references: [id])
 
   @@index([status])
   @@index([date])
@@ -402,7 +402,7 @@ model TeamMember {
 }
 
 model Mentor {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
   designation  String?
   profession   String?
@@ -410,36 +410,36 @@ model Mentor {
   intro        String?
   contribution String?
   contact      String?
-  showContact  Boolean  @default(false)
-  featured     Boolean  @default(false)
-  sortOrder    Int      @default(0)
+  showContact  Boolean @default(false)
+  featured     Boolean @default(false)
+  sortOrder    Int     @default(0)
   memberId     String?
-  member       Member?  @relation(fields: [memberId], references: [id])
+  member       Member? @relation(fields: [memberId], references: [id])
 }
 
 model Partner {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  logoUrl     String?
-  about       String?
-  website     String?
-  socialLinks String?
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  logoUrl      String?
+  about        String?
+  website      String?
+  socialLinks  String?
   contribution String?
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  featured     Boolean  @default(false)
+  createdAt    DateTime @default(now())
 
-  programs    PartnerProgram[]
+  programs PartnerProgram[]
 }
 
 model PartnerProgram {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   partnerId   String
   title       String
   impactLabel String?
   impactValue Int?
 
-  partner     Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 }
 
 model Suggestion {
@@ -454,22 +454,22 @@ model Suggestion {
   adminReply String?
   createdAt  DateTime @default(now())
 
-  member     Member?  @relation(fields: [memberId], references: [id])
+  member Member? @relation(fields: [memberId], references: [id])
 
   @@index([status])
 }
 
 model Volunteer {
-  id         String   @id @default(cuid())
-  memberId   String?
-  name       String
-  mobile     String?
-  areas      String
-  note       String?
-  status     String   @default("NEW")
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  memberId  String?
+  name      String
+  mobile    String?
+  areas     String
+  note      String?
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
 
-  member     Member?  @relation(fields: [memberId], references: [id])
+  member Member? @relation(fields: [memberId], references: [id])
 }
 
 model ContactMessage {
@@ -531,4 +531,48 @@ model Testimonial {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ── रोकड़ बही (Cash Book) — जन सूचना / RTI-style public disclosure ──────────
+// बही की हर पंक्ति यहाँ आती है। हर पंक्ति के साथ काम/चेक/मीटिंग की फोटो जोड़ी
+// जा सकती है, और मूल बही पृष्ठ की स्कैन भी दिखती है ताकि कोई भी मिला सके।
+model CashBookEntry {
+  id          String   @id @default(cuid())
+  date        DateTime
+  side        String // "RECEIPT" (आय) | "PAYMENT" (खर्च)
+  particulars String // बही में लिखा विवरण (दानदाता का नाम / काम)
+  voucher     String?
+  cash        Float    @default(0)
+  bank        Float    @default(0)
+  amount      Float // cash + bank
+  balance     Float // इस पंक्ति के बाद का चलता शेष
+  bookPage    Int? // बही का पृष्ठ नंबर
+  sourcePhoto String? // बही पृष्ठ की स्कैन (public URL)
+  category    String? // शिक्षा / खेल / पर्यावरण / निर्माण / प्रशासन ...
+  note        String? // admin की जोड़ी टिप्पणी (public)
+  confidence  String   @default("high") // high | medium | low
+  seq         Int      @default(0) // बही का असली क्रम
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  photos CashBookPhoto[]
+
+  @@index([date])
+  @@index([side])
+  @@index([bookPage])
+  @@index([seq])
+}
+
+model CashBookPhoto {
+  id        String   @id @default(cuid())
+  entryId   String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  entry CashBookEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
 }
