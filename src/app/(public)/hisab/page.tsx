@@ -87,19 +87,10 @@ export default async function HisabPage() {
 
       <HisabClient entries={entries} />
 
-      <section className="mt-10 rounded-2xl border border-stone-200 bg-white p-5 text-sm leading-relaxed text-stone-600">
-        <h2 className="mb-2 text-base font-bold text-ink">यह जानकारी कहाँ से है?</h2>
-        <p>
-          यह ब्यौरा संस्था की हाथ से लिखी रोकड़ बही से लिया गया है। हर प्रविष्टि के आगे बही का
-          पृष्ठ नंबर भी दिया है। बही के हर दिन का जोड़ और शेष मिलान करके जाँचा गया है, और अंतिम शेष
-          बही में लिखे शेष से पूरी तरह मेल खाता है। मूल बही कार्यालय में देखी जा सकती है।
-        </p>
-        <p className="mt-2">
-          कोई प्रश्न या आपत्ति हो तो{" "}
-          <a href="/contact" className="font-semibold text-saffron-700 underline">संपर्क करें</a>{" "}
-          — हम रिकॉर्ड दिखाने को तैयार हैं।
-        </p>
-      </section>
+      <p className="mt-10 text-center text-sm text-stone-500">
+        कोई प्रश्न या आपत्ति हो तो{" "}
+        <a href="/contact" className="font-semibold text-saffron-700 underline">संपर्क करें</a>।
+      </p>
     </div>
   );
 }

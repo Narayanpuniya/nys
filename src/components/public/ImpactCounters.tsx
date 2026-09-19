@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Users, CalendarCheck, School, GraduationCap, TreePine, HandHeart, HandCoins, Sparkles,
+  Users, CalendarCheck, School, GraduationCap, TreePine, HandHeart, HandCoins,
+  TrendingUp, TrendingDown,
 } from "lucide-react";
 import { Card } from "@/components/ui/primitives";
 import { formatINR, formatNumber } from "@/lib/utils";
@@ -17,6 +18,8 @@ type Props = {
     trees: number;
     volunteers: number;
     totalDonations: number;
+    totalIncome: number;
+    totalExpense: number;
   };
   dict: Record<DictKey, string>;
 };
@@ -29,7 +32,8 @@ const items = (d: Props["data"], dict: Props["dict"]) => [
   { icon: TreePine,    label: dict.impact_trees,        value: d.trees,                               color: "#16a34a" },
   { icon: HandHeart,   label: dict.impact_volunteers,   value: d.volunteers,                          color: "#dc2626" },
   { icon: HandCoins,   label: dict.impact_donations,    value: d.totalDonations, money: true,         color: "#c24807" },
-  { icon: Sparkles,    label: dict.impact_social,       value: d.totalPrograms + d.volunteers,        color: "#a32a2a" },
+  { icon: TrendingUp,  label: dict.impact_income,       value: d.totalIncome,  money: true,           color: "#166534" },
+  { icon: TrendingDown, label: dict.impact_expense,     value: d.totalExpense, money: true,           color: "#991b1b" },
 ];
 
 function useCountUp(target: number, run: boolean) {

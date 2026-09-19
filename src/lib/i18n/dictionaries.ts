@@ -202,6 +202,8 @@ const hi = {
   // Footer
   footer_reg_no: "पंजीकरण संख्या",
   nav_hisab: "खुला हिसाब",
+  impact_income: "कुल आय",
+  impact_expense: "कुल खर्च (समाज पर)",
   admin_cashbook: "रोकड़ बही",
   app_get_it_on: "डाउनलोड करें",
   app_promo_title: "NYS ऐप अब Google Play पर",
@@ -542,6 +544,8 @@ const en: Record<DictKey, string> = {
 
   footer_reg_no: "Registration No.",
   nav_hisab: "Open Accounts",
+  impact_income: "Total income",
+  impact_expense: "Spent on the community",
   admin_cashbook: "Cash Book",
   app_get_it_on: "Get it on",
   app_promo_title: "The NYS app is now on Google Play",

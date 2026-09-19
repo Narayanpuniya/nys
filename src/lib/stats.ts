@@ -29,9 +29,10 @@ export const getImpactCounters = unstable_cache(
     const empty = {
       totalMembers: 0, totalPrograms: 0, schoolsSupported: 0,
       studentsBenefited: 0, trees: 0, volunteers: 0, totalDonations: 0,
+      totalIncome: 0, totalExpense: 0,
     };
     try {
-      const [totalMembers, totalPrograms, schoolsSupported, volunteers, donationAgg, treesPosts] =
+      const [totalMembers, totalPrograms, schoolsSupported, volunteers, donationAgg, treesPosts, cashBook] =
         await Promise.all([
           prisma.member.count({ where: { status: "ACTIVE", deletedAt: null } }),
           prisma.post.count({ where: { status: "PUBLISHED" } }),
@@ -39,7 +40,13 @@ export const getImpactCounters = unstable_cache(
           prisma.volunteer.count(),
           prisma.donation.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
           prisma.post.aggregate({ where: { status: "PUBLISHED", category: { slug: "paryavaran" } }, _sum: { impactNumber: true } }),
+          // रोकड़ बही — असली आय-व्यय (खुला हिसाब पेज वाला)
+          prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true } }),
         ]);
+      const cashOf = (side: string) =>
+        Math.round(cashBook.find((c) => c.side === side)?._sum.amount ?? 0);
+      const totalIncome = cashOf("RECEIPT");
+      const totalExpense = cashOf("PAYMENT");
       const studentsBenefited = await prisma.post.aggregate({
         where: { status: "PUBLISHED", category: { slug: { in: ["shiksha", "school-sahyog"] } } },
         _sum: { impactNumber: true },
@@ -49,7 +56,10 @@ export const getImpactCounters = unstable_cache(
         studentsBenefited: studentsBenefited._sum.impactNumber ?? 0,
         trees: treesPosts._sum.impactNumber ?? 0,
         volunteers,
-        totalDonations: donationAgg._sum.amount ?? 0,
+        // ऑनलाइन दान + बही में दर्ज कुल आय
+        totalDonations: (donationAgg._sum.amount ?? 0) + totalIncome,
+        totalIncome,
+        totalExpense,
       };
     } catch (err) {
       console.error("[getImpactCounters] database unavailable:", err);
