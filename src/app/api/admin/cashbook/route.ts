@@ -1,8 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 /** रोकड़ बही की entries — admin CRUD. हर खाना बदला जा सकता है (दिनांक सहित)। */
+
+
+/**
+ * बही-क्रम में चलता शेष दोबारा जोड़ता है।
+ * रकम, दिनांक या प्रकार बदलने पर उस entry के बाद वाली सारी शेष राशि बदल जाती है,
+ * इसलिए हर बदलाव के बाद पूरी सूची का शेष नए सिरे से निकाला जाता है।
+ */
+async function recomputeBalances() {
+  const rows = await prisma.cashBookEntry.findMany({
+    orderBy: [{ date: "asc" }, { seq: "asc" }],
+    select: { id: true, side: true, amount: true, balance: true },
+  });
+  let bal = 0;
+  const fixes: { id: string; balance: number }[] = [];
+  for (const r of rows) {
+    bal += r.side === "RECEIPT" ? r.amount : -r.amount;
+    const rounded = Math.round(bal * 100) / 100;
+    if (Math.abs((r.balance ?? 0) - rounded) > 0.005) {
+      fixes.push({ id: r.id, balance: rounded });
+    }
+  }
+  if (fixes.length) {
+    await prisma.$transaction(
+      fixes.map((f) => prisma.cashBookEntry.update({ where: { id: f.id }, data: { balance: f.balance } })),
+    );
+  }
+  return fixes.length;
+}
+
+/** बदलाव के बाद admin सूची और public खुला-हिसाब पेज दोनों ताज़ा करो। */
+function refreshPages() {
+  revalidatePath("/admin/cashbook");
+  revalidatePath("/hisab");
+  revalidatePath("/transparency");
+  revalidatePath("/");
+}
 
 async function guard() {
   return (await getSessionUser()) ? null : NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -45,7 +82,7 @@ export async function POST(req: NextRequest) {
   const cash = num(fd.get("cash"));
   const bank = num(fd.get("bank"));
   const last = await prisma.cashBookEntry.findFirst({ orderBy: { seq: "desc" } });
-  const item = await prisma.cashBookEntry.create({
+  const created = await prisma.cashBookEntry.create({
     data: {
       date: new Date(dateStr + "T00:00:00Z"),
       side: String(fd.get("side") ?? "PAYMENT") === "RECEIPT" ? "RECEIPT" : "PAYMENT",
@@ -63,6 +100,9 @@ export async function POST(req: NextRequest) {
       seq: (last?.seq ?? 0) + 1,
     },
   });
+  await recomputeBalances();
+  refreshPages();
+  const item = await prisma.cashBookEntry.findUnique({ where: { id: created.id } });
   return NextResponse.json(item);
 }
 
@@ -106,7 +146,10 @@ export async function PUT(req: NextRequest) {
     data.amount = cash + bank;
   }
 
-  const item = await prisma.cashBookEntry.update({ where: { id }, data });
+  await prisma.cashBookEntry.update({ where: { id }, data });
+  await recomputeBalances();
+  refreshPages();
+  const item = await prisma.cashBookEntry.findUnique({ where: { id } });
   return NextResponse.json(item);
 }
 
@@ -116,5 +159,7 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "id चाहिए" }, { status: 400 });
   await prisma.cashBookEntry.delete({ where: { id } });
+  await recomputeBalances();
+  refreshPages();
   return NextResponse.json({ ok: true });
 }

@@ -34,6 +34,12 @@ const hDate = (s: string) => {
 export function CashBookManager({ initial }: { initial: Entry[] }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
+  // सेव के बाद router.refresh() नया data लाता है — तब सूची उसी से ताज़ा कर दो
+  const [seen, setSeen] = useState(initial);
+  if (seen !== initial) {
+    setSeen(initial);
+    setItems(initial);
+  }
   const [q, setQ] = useState("");
   const [side, setSide] = useState<"ALL" | "RECEIPT" | "PAYMENT">("ALL");
   const [edit, setEdit] = useState<Entry | null>(null);
@@ -91,6 +97,17 @@ export function CashBookManager({ initial }: { initial: Entry[] }) {
       setErr((await res.json().catch(() => ({}))).error ?? "सेव नहीं हो सका");
       return;
     }
+    // server से लौटी entry तुरंत सूची में लगाओ, फिर पूरी सूची ताज़ा करो
+    const saved = await res.json().catch(() => null);
+    if (saved?.id) {
+      const row: Entry = {
+        ...edit, id: saved.id,
+        date: String(saved.date).slice(0, 10),
+        amount: saved.amount, balance: saved.balance,
+        photos: edit.photos,
+      };
+      setItems((p) => (isNew ? [...p, row] : p.map((x) => (x.id === row.id ? row : x))));
+    }
     setEdit(null); setIsNew(false);
     router.refresh();
   }
@@ -111,6 +128,7 @@ export function CashBookManager({ initial }: { initial: Entry[] }) {
     const res = await fetch("/api/admin/cashbook", { method: "PUT", body: fd });
     if (res.ok) {
       setItems((p) => p.map((x) => (x.id === e.id ? { ...x, isPublished: !x.isPublished } : x)));
+      router.refresh();
     }
   }
 
