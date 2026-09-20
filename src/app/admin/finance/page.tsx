@@ -6,6 +6,7 @@ import { formatINR, formatDateHi } from "@/lib/utils";
 import { addExpense, addIncome } from "./actions";
 import { ImportFinanceModal } from "./ImportFinanceModal";
 import { FinanceDeleteButton } from "./FinanceDeleteButton";
+import { FinanceEditRow } from "./FinanceEditRow";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,13 @@ export default async function FinancePage({
 }) {
   const { month } = await searchParams;
   const now = new Date();
-  const [y, m] = month ? month.split("-").map(Number) : [now.getFullYear(), now.getMonth() + 1];
-  const start = new Date(y, m - 1, 1);
-  const end = new Date(y, m, 1);
+  const showAll = month === "all";
+  const [y, m] = month && !showAll
+    ? month.split("-").map(Number)
+    : [now.getFullYear(), now.getMonth() + 1];
+  // "सभी" चुनने पर पूरी अवधि; वरना उसी महीने की
+  const start = showAll ? new Date(2000, 0, 1) : new Date(y, m - 1, 1);
+  const end = showAll ? new Date(2100, 0, 1) : new Date(y, m, 1);
 
   const [incomeAll, expenseAll, incomeMonth, expenseMonth, incomes, expenses, prevIncome, prevExpense, cashBook] = await Promise.all([
     prisma.income.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
@@ -30,8 +35,8 @@ export default async function FinancePage({
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { gte: start, lt: end } }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE", date: { gte: start, lt: end } }, _sum: { amount: true } }),
     // सभी entries दिखाएं (ACTIVE + VOID) ताकि restore/delete option मिले
-    prisma.income.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 50 }),
-    prisma.expense.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 50 }),
+    prisma.income.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 300 }),
+    prisma.expense.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 300 }),
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { lt: start } }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE", date: { lt: start } }, _sum: { amount: true } }),
     // रोकड़ बही का हिसाब — कुल आँकड़ों में यही असली रकम है
@@ -81,10 +86,20 @@ export default async function FinancePage({
       <Card className="mb-6 p-5">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-bold text-ink">मासिक रिपोर्ट</h3>
-          <form className="flex items-center gap-2">
-            <input type="month" name="month" defaultValue={`${y}-${String(m).padStart(2, "0")}`} className={inputClass} />
-            <button className="rounded-xl bg-saffron-600 px-4 py-2 text-sm font-medium text-white">दिखाएँ</button>
-          </form>
+          <div className="flex flex-wrap items-center gap-2">
+            <form className="flex items-center gap-2">
+              <input type="month" name="month" defaultValue={`${y}-${String(m).padStart(2, "0")}`} className={inputClass} />
+              <button className="rounded-xl bg-saffron-600 px-4 py-2 text-sm font-medium text-white">दिखाएँ</button>
+            </form>
+            <Link
+              href={showAll ? "/admin/finance" : "/admin/finance?month=all"}
+              className={`rounded-xl px-4 py-2 text-sm font-bold ${showAll
+                ? "bg-stone-800 text-white"
+                : "border border-stone-300 text-stone-700 hover:border-saffron-400"}`}
+            >
+              {showAll ? "इस माह पर लौटें" : "सभी महीने दिखाएँ"}
+            </Link>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
           <div className="rounded-xl bg-stone-50 p-3"><div className="text-xs text-stone-500">प्रारंभिक शेष</div><div className="font-bold text-ink">{formatINR(opening)}</div></div>
@@ -99,7 +114,7 @@ export default async function FinancePage({
         {/* ── आय ── */}
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-bold text-ink">आय (इस माह)</h3>
+            <h3 className="font-bold text-ink">आय {showAll ? `(सभी — ${incomes.length})` : "(इस माह)"}</h3>
             <a href="/api/admin/export/income" className="text-xs text-green-700">Excel ↓</a>
           </div>
 
@@ -130,7 +145,7 @@ export default async function FinancePage({
           </form>
 
           {/* आय list */}
-          <div className="max-h-64 overflow-y-auto nys-scroll">
+          <div className={`overflow-y-auto nys-scroll ${showAll ? "max-h-[32rem]" : "max-h-64"}`}>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {incomes.map((i) => (
@@ -145,6 +160,7 @@ export default async function FinancePage({
                     </td>
                     <td className="py-2 text-right align-top">
                       <span className={`font-semibold ${i.status === "VOID" ? "text-stone-400 line-through" : "text-green-700"}`}>{formatINR(i.amount)}</span>
+                      <FinanceEditRow row={{ id: i.id, type: "income", amount: i.amount, category: i.category, description: i.description, source: i.source, mode: i.mode, date: i.date.toISOString().slice(0, 10), txnCode: i.txnCode }} />
                       <FinanceDeleteButton id={i.id} type="income" status={i.status} label={`₹${i.amount} — ${i.category}`} />
                     </td>
                   </tr>
@@ -158,7 +174,7 @@ export default async function FinancePage({
         {/* ── व्यय ── */}
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-bold text-ink">व्यय (इस माह)</h3>
+            <h3 className="font-bold text-ink">व्यय {showAll ? `(सभी — ${expenses.length})` : "(इस माह)"}</h3>
             <a href="/api/admin/export/expenses" className="text-xs text-red-700">Excel ↓</a>
           </div>
 
@@ -180,7 +196,7 @@ export default async function FinancePage({
           </form>
 
           {/* व्यय list */}
-          <div className="max-h-64 overflow-y-auto nys-scroll">
+          <div className={`overflow-y-auto nys-scroll ${showAll ? "max-h-[32rem]" : "max-h-64"}`}>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-stone-100">
                 {expenses.map((e) => (
@@ -195,6 +211,7 @@ export default async function FinancePage({
                     </td>
                     <td className="py-2 text-right align-top">
                       <span className={`font-semibold ${e.status === "VOID" ? "text-stone-400 line-through" : "text-red-700"}`}>{formatINR(e.amount)}</span>
+                      <FinanceEditRow row={{ id: e.id, type: "expense", amount: e.amount, category: e.category, description: e.description, source: null, mode: e.mode, date: e.date.toISOString().slice(0, 10), txnCode: e.txnCode }} />
                       <FinanceDeleteButton id={e.id} type="expense" status={e.status} label={`₹${e.amount} — ${e.category}`} />
                     </td>
                   </tr>

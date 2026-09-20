@@ -115,3 +115,74 @@ export async function permanentDeleteIncome(id: string) {
   await logAudit({ user, action: "DELETE", entity: "Income", entityId: id, summary: `⚠️ आय स्थायी हटाई: ${rec?.category} ₹${rec?.amount}` });
   REVALIDATE();
 }
+
+/** आय की entry बदलें — रकम, श्रेणी, विवरण, तरीका और तारीख़ सब। */
+export async function updateIncome(formData: FormData) {
+  const user = await requirePermission(PERMISSIONS.FINANCE_MANAGE);
+  const id = String(formData.get("id") ?? "").trim();
+  const amount = parseInt(String(formData.get("amount") ?? "0"), 10);
+  const dateStr = String(formData.get("date") ?? "").trim();
+  if (!id || !amount || amount <= 0 || !dateStr) return;
+
+  const before = await prisma.income.findUnique({ where: { id } });
+  if (!before) return;
+
+  const billFile = formData.get("bill");
+  let attachment = before.attachment;
+  if (billFile instanceof File && billFile.size > 0) {
+    try { attachment = (await saveUploadedImage(billFile, "finance")) ?? attachment; } catch { /* रखें जो है */ }
+  }
+
+  await prisma.income.update({
+    where: { id },
+    data: {
+      amount,
+      category: String(formData.get("category") ?? before.category),
+      description: String(formData.get("description") ?? ""),
+      source: String(formData.get("source") ?? before.source),
+      mode: String(formData.get("mode") ?? before.mode),
+      date: new Date(dateStr),
+      attachment,
+    },
+  });
+  await logAudit({
+    user, action: "UPDATE", entity: "Income", entityId: before.txnCode,
+    summary: `आय बदली: ₹${before.amount} → ₹${amount} (${before.category})`,
+  });
+  REVALIDATE();
+}
+
+/** व्यय की entry बदलें — रकम, श्रेणी, विवरण, तरीका और तारीख़ सब। */
+export async function updateExpense(formData: FormData) {
+  const user = await requirePermission(PERMISSIONS.FINANCE_MANAGE);
+  const id = String(formData.get("id") ?? "").trim();
+  const amount = parseInt(String(formData.get("amount") ?? "0"), 10);
+  const dateStr = String(formData.get("date") ?? "").trim();
+  if (!id || !amount || amount <= 0 || !dateStr) return;
+
+  const before = await prisma.expense.findUnique({ where: { id } });
+  if (!before) return;
+
+  const billFile = formData.get("bill");
+  let attachment = before.attachment;
+  if (billFile instanceof File && billFile.size > 0) {
+    try { attachment = (await saveUploadedImage(billFile, "finance")) ?? attachment; } catch { /* रखें जो है */ }
+  }
+
+  await prisma.expense.update({
+    where: { id },
+    data: {
+      amount,
+      category: String(formData.get("category") ?? before.category),
+      description: String(formData.get("description") ?? ""),
+      mode: String(formData.get("mode") ?? before.mode),
+      date: new Date(dateStr),
+      attachment,
+    },
+  });
+  await logAudit({
+    user, action: "UPDATE", entity: "Expense", entityId: before.txnCode,
+    summary: `व्यय बदला: ₹${before.amount} → ₹${amount} (${before.category})`,
+  });
+  REVALIDATE();
+}
