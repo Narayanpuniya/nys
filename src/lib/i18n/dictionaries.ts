@@ -137,7 +137,7 @@ const hi = {
   // Impact counter labels
   impact_members: "कुल सदस्य",
   impact_programs: "कुल कार्यक्रम",
-  impact_schools: "स्कूल सहयोग",
+  impact_schools: "विद्यालय में किए काम",
   impact_students: "लाभान्वित विद्यार्थी",
   impact_trees: "पर्यावरण गतिविधियाँ",
   impact_volunteers: "स्वयंसेवक",
@@ -490,7 +490,7 @@ const en: Record<DictKey, string> = {
 
   impact_members: "Total Members",
   impact_programs: "Total Programs",
-  impact_schools: "School Support",
+  impact_schools: "School works done",
   impact_students: "Students Benefited",
   impact_trees: "Environment Activities",
   impact_volunteers: "Volunteers",

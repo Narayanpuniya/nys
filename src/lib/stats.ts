@@ -32,17 +32,26 @@ export const getImpactCounters = unstable_cache(
       totalIncome: 0, totalExpense: 0,
     };
     try {
-      const [totalMembers, totalPrograms, schoolsSupported, volunteers, donationAgg, treesPosts, cashBook] =
+      const [totalMembers, totalPrograms, schoolPosts, schoolWorkRows, volunteers, donationAgg, treesPosts, cashBook] =
         await Promise.all([
           prisma.member.count({ where: { status: "ACTIVE", deletedAt: null } }),
           prisma.post.count({ where: { status: "PUBLISHED" } }),
           prisma.post.count({ where: { status: "PUBLISHED", category: { slug: "school-sahyog" } } }),
+          // विद्यालय से जुड़े काम — बही में दर्ज खर्च से (गतिविधि-पोस्ट वैकल्पिक हैं)
+          prisma.cashBookEntry.findMany({
+            where: { side: "PAYMENT" },
+            select: { particulars: true },
+          }),
           prisma.volunteer.count(),
           prisma.donation.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
           prisma.post.aggregate({ where: { status: "PUBLISHED", category: { slug: "paryavaran" } }, _sum: { impactNumber: true } }),
           // रोकड़ बही — असली आय-व्यय (खुला हिसाब पेज वाला)
           prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true } }),
         ]);
+      // विद्यालय/शिक्षा से जुड़े खर्च की पंक्तियाँ गिनो
+      const SCHOOL = /विद्यालय|स्कूल|कक्षा|खिड़क|खिडक|दरवाज|छात्रवृत|छात्र|विद्यार्थ|पुस्तक|कंप्यूटर|प्रोत्साहन/i;
+      const schoolsSupported =
+        schoolPosts + schoolWorkRows.filter((r) => SCHOOL.test(r.particulars)).length;
       const cashOf = (side: string) =>
         Math.round(cashBook.find((c) => c.side === side)?._sum.amount ?? 0);
       const totalIncome = cashOf("RECEIPT");

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Users, CalendarCheck, School, GraduationCap, TreePine, HandHeart, HandCoins,
+  Users, CalendarCheck, School, GraduationCap, TreePine, HandHeart,
   TrendingUp, TrendingDown,
 } from "lucide-react";
 import { Card } from "@/components/ui/primitives";
@@ -31,7 +31,6 @@ const items = (d: Props["data"], dict: Props["dict"]) => [
   { icon: GraduationCap, label: dict.impact_students,  value: d.studentsBenefited,                   color: "#ea6205" },
   { icon: TreePine,    label: dict.impact_trees,        value: d.trees,                               color: "#16a34a" },
   { icon: HandHeart,   label: dict.impact_volunteers,   value: d.volunteers,                          color: "#dc2626" },
-  { icon: HandCoins,   label: dict.impact_donations,    value: d.totalDonations, money: true,         color: "#c24807" },
   { icon: TrendingUp,  label: dict.impact_income,       value: d.totalIncome,  money: true,           color: "#166534" },
   { icon: TrendingDown, label: dict.impact_expense,     value: d.totalExpense, money: true,           color: "#991b1b" },
 ];
