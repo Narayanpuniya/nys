@@ -45,6 +45,20 @@ export default async function TransparencyPage() {
         ))}
       </div>
 
+      {/* पूरा ब्यौरा — खुला हिसाब */}
+      <a
+        href="/hisab"
+        className="mt-6 flex items-center justify-between gap-4 rounded-2xl border-2 border-maroon-200 bg-white p-5 transition hover:border-saffron-400 hover:shadow-md"
+      >
+        <span>
+          <span className="block text-lg font-bold text-maroon-900">खुला हिसाब — एक-एक रुपये का ब्यौरा</span>
+          <span className="mt-1 block text-sm text-stone-600">
+            कब, किससे कितना दान मिला और कहाँ, किस काम पर कितना खर्च हुआ — पूरी सूची, काम की तस्वीरों सहित।
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full bg-maroon-800 px-4 py-2 text-sm font-bold text-white">देखें →</span>
+      </a>
+
       {campaigns.length > 0 && (
         <div className="mt-10">
           <SectionHeading title={dict.tr_campaign_transparency} />

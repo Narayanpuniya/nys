@@ -23,7 +23,7 @@ export default async function FinancePage({
   const start = new Date(y, m - 1, 1);
   const end = new Date(y, m, 1);
 
-  const [incomeAll, expenseAll, incomeMonth, expenseMonth, incomes, expenses, prevIncome, prevExpense] = await Promise.all([
+  const [incomeAll, expenseAll, incomeMonth, expenseMonth, incomes, expenses, prevIncome, prevExpense, cashBook] = await Promise.all([
     prisma.income.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { gte: start, lt: end } }, _sum: { amount: true } }),
@@ -33,7 +33,19 @@ export default async function FinancePage({
     prisma.expense.findMany({ where: { date: { gte: start, lt: end } }, orderBy: { date: "desc" }, take: 50 }),
     prisma.income.aggregate({ where: { status: "ACTIVE", date: { lt: start } }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE", date: { lt: start } }, _sum: { amount: true } }),
+    // रोकड़ बही का हिसाब — कुल आँकड़ों में यही असली रकम है
+    prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true }, _count: true }),
   ]);
+
+  // रोकड़ बही + यहाँ दर्ज entries = संस्था का पूरा हिसाब
+  const bookOf = (side: string) => {
+    const r = cashBook.find((c) => c.side === side);
+    return { amount: Math.round(r?._sum.amount ?? 0), count: r?._count ?? 0 };
+  };
+  const bookIn = bookOf("RECEIPT");
+  const bookOut = bookOf("PAYMENT");
+  const grandIncome = (incomeAll._sum.amount ?? 0) + bookIn.amount;
+  const grandExpense = (expenseAll._sum.amount ?? 0) + bookOut.amount;
 
   const opening = (prevIncome._sum.amount ?? 0) - (prevExpense._sum.amount ?? 0);
   const incM = incomeMonth._sum.amount ?? 0;
@@ -51,11 +63,18 @@ export default async function FinancePage({
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="कुल आय" value={formatINR(incomeAll._sum.amount ?? 0)} icon="TrendingUp" tone="green" />
-        <StatCard label="कुल व्यय" value={formatINR(expenseAll._sum.amount ?? 0)} icon="TrendingDown" tone="red" />
-        <StatCard label="कुल शेष" value={formatINR((incomeAll._sum.amount ?? 0) - (expenseAll._sum.amount ?? 0))} icon="Wallet" tone="purple" />
+        <StatCard label="कुल आय" value={formatINR(grandIncome)} icon="TrendingUp" tone="green" />
+        <StatCard label="कुल व्यय" value={formatINR(grandExpense)} icon="TrendingDown" tone="red" />
+        <StatCard label="कुल शेष" value={formatINR(grandIncome - grandExpense)} icon="Wallet" tone="purple" />
         <StatCard label="इस माह शेष" value={formatINR(incM - expM)} icon="Calendar" tone="saffron" />
       </div>
+
+      <p className="mb-6 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+        ऊपर के आँकड़ों में <strong className="text-ink">रोकड़ बही</strong> का पूरा हिसाब भी जुड़ा है —
+        आय {formatINR(bookIn.amount)} ({bookIn.count} प्रविष्टियाँ) और व्यय {formatINR(bookOut.amount)} ({bookOut.count} प्रविष्टियाँ).
+        {" "}नीचे के फ़ॉर्म व मासिक रिपोर्ट सिर्फ़ यहाँ जोड़ी गई entries की हैं।
+        {" "}<a href="/admin/cashbook" className="font-semibold text-saffron-700 underline">रोकड़ बही खोलें →</a>
+      </p>
 
       {/* Monthly report */}
       <Card className="mb-6 p-5">

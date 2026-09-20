@@ -157,6 +157,8 @@ export async function getTransparencyStats() {
     expenseAgg,
     activeCampaigns,
     completedCampaigns,
+    cashBook,
+    bookDonations,
   ] = await Promise.all([
     prisma.member.count({ where: { status: "ACTIVE", deletedAt: null } }),
     prisma.post.count({ where: { status: "PUBLISHED" } }),
@@ -164,6 +166,10 @@ export async function getTransparencyStats() {
     prisma.expense.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.campaign.count({ where: { status: "ACTIVE" } }),
     prisma.campaign.count({ where: { status: "COMPLETED" } }),
+    // रोकड़ बही — असली आय-व्यय
+    prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true }, _count: true }),
+    // दान/सहयोग वाली प्राप्तियाँ (ब्याज व बैंक-निकासी इसमें नहीं)
+    prisma.cashBookEntry.count({ where: { side: "RECEIPT", category: "दान/सहयोग" } }),
   ]);
 
   const beneficiaries = await prisma.post.aggregate({
@@ -171,12 +177,20 @@ export async function getTransparencyStats() {
     _sum: { impactNumber: true },
   });
 
+  const cashOf = (side: string) => {
+    const row = cashBook.find((c) => c.side === side);
+    return { amount: Math.round(row?._sum.amount ?? 0), count: row?._count ?? 0 };
+  };
+  const bookIn = cashOf("RECEIPT");
+  const bookOut = cashOf("PAYMENT");
+
   return {
     totalMembers,
     totalPrograms,
-    totalDonations: donationAgg._sum.amount ?? 0,
-    donorCount: donationAgg._count,
-    totalExpenses: expenseAgg._sum.amount ?? 0,
+    // website से हुए online दान + बही में दर्ज सारी आय
+    totalDonations: (donationAgg._sum.amount ?? 0) + bookIn.amount,
+    donorCount: donationAgg._count + bookDonations,
+    totalExpenses: (expenseAgg._sum.amount ?? 0) + bookOut.amount,
     activeCampaigns,
     completedCampaigns,
     beneficiaries: beneficiaries._sum.impactNumber ?? 0,
