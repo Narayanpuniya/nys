@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { Card, inputClass } from "@/components/ui/primitives";
 import { StatCard } from "@/components/admin/StatCard";
@@ -73,7 +74,7 @@ export default async function FinancePage({
         ऊपर के आँकड़ों में <strong className="text-ink">रोकड़ बही</strong> का पूरा हिसाब भी जुड़ा है —
         आय {formatINR(bookIn.amount)} ({bookIn.count} प्रविष्टियाँ) और व्यय {formatINR(bookOut.amount)} ({bookOut.count} प्रविष्टियाँ).
         {" "}नीचे के फ़ॉर्म व मासिक रिपोर्ट सिर्फ़ यहाँ जोड़ी गई entries की हैं।
-        {" "}<a href="/admin/cashbook" className="font-semibold text-saffron-700 underline">रोकड़ बही खोलें →</a>
+        {" "}<Link href="/admin/cashbook" className="font-semibold text-saffron-700 underline">रोकड़ बही खोलें →</Link>
       </p>
 
       {/* Monthly report */}
