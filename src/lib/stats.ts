@@ -121,14 +121,25 @@ export async function getDashboardStats() {
   ]);
 
   // lifetime balance
-  const [incomeAll, expenseAll, raisedAll] = await Promise.all([
+  const [incomeAll, expenseAll, raisedAll, cashBook, cashBookMonth] = await Promise.all([
     prisma.income.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.expense.aggregate({ where: { status: "ACTIVE" }, _sum: { amount: true } }),
     prisma.donation.aggregate({ where: { status: "SUCCESS", campaignId: { not: null } }, _sum: { amount: true } }),
+    // रोकड़ बही — संस्था का असली हिसाब
+    prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true } }),
+    prisma.cashBookEntry.groupBy({
+      by: ["side"], where: { date: { gte: monthStart } }, _sum: { amount: true },
+    }),
   ]);
 
-  const incomeMonthVal = incomeMonth._sum.amount ?? 0;
-  const expenseMonthVal = expenseMonth._sum.amount ?? 0;
+  const bookOf = (rows: { side: string; _sum: { amount: number | null } }[], side: string) =>
+    Math.round(rows.find((r) => r.side === side)?._sum.amount ?? 0);
+  const totalIncome = (incomeAll._sum.amount ?? 0) + bookOf(cashBook, "RECEIPT");
+  const totalExpense = (expenseAll._sum.amount ?? 0) + bookOf(cashBook, "PAYMENT");
+
+  // इस माह में बही की entries भी गिनो
+  const incomeMonthVal = (incomeMonth._sum.amount ?? 0) + bookOf(cashBookMonth, "RECEIPT");
+  const expenseMonthVal = (expenseMonth._sum.amount ?? 0) + bookOf(cashBookMonth, "PAYMENT");
 
   return {
     newMembersToday,
@@ -137,7 +148,9 @@ export async function getDashboardStats() {
     incomeMonth: incomeMonthVal,
     expenseMonth: expenseMonthVal,
     balanceMonth: incomeMonthVal - expenseMonthVal,
-    balanceAll: (incomeAll._sum.amount ?? 0) - (expenseAll._sum.amount ?? 0),
+    balanceAll: totalIncome - totalExpense,
+    totalIncome,
+    totalExpense,
     activeMembers,
     pendingMembers,
     expiredMembers,

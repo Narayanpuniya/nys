@@ -34,6 +34,9 @@ export default async function AdminDashboard() {
         <StatCard label="इस माह व्यय" value={formatINR(stats.expenseMonth)} icon="TrendingDown" tone="red" />
         <StatCard label="इस माह शेष" value={formatINR(stats.balanceMonth)} icon="Wallet" tone="purple" />
         <StatCard label="नए सुझाव" value={stats.newSuggestions} icon="MessageSquare" />
+        <StatCard label="कुल आय (अब तक)" value={formatINR(stats.totalIncome)} icon="TrendingUp" tone="green" />
+        <StatCard label="कुल व्यय (अब तक)" value={formatINR(stats.totalExpense)} icon="TrendingDown" tone="red" />
+        <StatCard label="कुल शेष" value={formatINR(stats.balanceAll)} icon="Wallet" tone="purple" hint="रोकड़ बही सहित" />
       </div>
 
       {/* Membership + Campaigns */}
