@@ -201,7 +201,7 @@ const hi = {
 
   // Footer
   footer_reg_no: "पंजीकरण संख्या",
-  nav_hisab: "खुला हिसाब",
+  nav_hisab: "आय-व्यय",
   impact_income: "कुल आय",
   impact_expense: "कुल खर्च (समाज पर)",
   admin_cashbook: "रोकड़ बही",
@@ -543,7 +543,7 @@ const en: Record<DictKey, string> = {
   downloads_receipt: "Donation / Membership Receipt",
 
   footer_reg_no: "Registration No.",
-  nav_hisab: "Open Accounts",
+  nav_hisab: "Income & Expenses",
   impact_income: "Total income",
   impact_expense: "Spent on the community",
   admin_cashbook: "Cash Book",

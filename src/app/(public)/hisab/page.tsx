@@ -6,7 +6,7 @@ import { HisabClient, type CashEntry } from "./HisabClient";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "खुला हिसाब — NYS का पूरा आय-व्यय",
+  title: "आय-व्यय — NYS का पूरा हिसाब",
   description:
     "श्री नारायणपुरी यूथ सोसायटी का पूरा सार्वजनिक हिसाब — कब, किससे, कितना दान मिला और "
     + "कहाँ, किस काम पर कितना खर्च हुआ, काम की तस्वीरों सहित।",
@@ -51,7 +51,7 @@ export default async function HisabPage() {
         <div className="px-5 py-6 text-white sm:px-7"
           style={{ background: "linear-gradient(135deg,#7f1d1d 0%,#991b1b 55%,#b45309 100%)" }}>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200">जन सूचना</p>
-          <h1 className="mt-1 text-2xl font-black leading-tight sm:text-3xl">खुला हिसाब</h1>
+          <h1 className="mt-1 text-2xl font-black leading-tight sm:text-3xl">आय-व्यय का पूरा ब्यौरा</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/85">
             संस्था को मिला हर रुपया और किया गया हर खर्च यहाँ दर्ज है — दानदाता का नाम, काम का विवरण,
             और किए गए काम की तस्वीरों सहित। हर प्रविष्टि संस्था की रोकड़ बही से ली गई है और

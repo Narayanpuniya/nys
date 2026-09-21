@@ -181,7 +181,7 @@ export function CashBookManager({ initial }: { initial: Entry[] }) {
           <p className="text-sm text-stone-500">
             {items.length} प्रविष्टियाँ · आय {inr(inc)} · खर्च {inr(exp)} ·{" "}
             <a href="/hisab" target="_blank" className="font-medium text-saffron-700 underline">
-              खुला हिसाब पेज देखें
+              आय-व्यय पेज देखें
             </a>
           </p>
         </div>
@@ -336,7 +336,7 @@ export function CashBookManager({ initial }: { initial: Entry[] }) {
                   <input type="checkbox" checked={edit.isPublished}
                     onChange={(ev) => setEdit({ ...edit, isPublished: ev.target.checked })}
                     className="h-4 w-4" />
-                  <span className="text-sm text-stone-700">खुला हिसाब पेज पर दिखाएँ</span>
+                  <span className="text-sm text-stone-700">आय-व्यय पेज पर दिखाएँ (public)</span>
                 </label>
               </div>
 

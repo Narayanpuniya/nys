@@ -45,7 +45,7 @@ export const getImpactCounters = unstable_cache(
           prisma.volunteer.count(),
           prisma.donation.aggregate({ where: { status: "SUCCESS" }, _sum: { amount: true } }),
           prisma.post.aggregate({ where: { status: "PUBLISHED", category: { slug: "paryavaran" } }, _sum: { impactNumber: true } }),
-          // रोकड़ बही — असली आय-व्यय (खुला हिसाब पेज वाला)
+          // रोकड़ बही — असली आय-व्यय (/hisab पेज वाला)
           prisma.cashBookEntry.groupBy({ by: ["side"], _sum: { amount: true } }),
         ]);
       // विद्यालय/शिक्षा से जुड़े खर्च की पंक्तियाँ गिनो
