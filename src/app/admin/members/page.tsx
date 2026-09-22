@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
-import { IdCard, Award, Receipt } from "lucide-react";
+import { IdCard, Award, Receipt, FileImage } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Card, Badge } from "@/components/ui/primitives";
 import { Toolbar } from "@/components/admin/Toolbar";
@@ -34,7 +34,7 @@ export default async function MembersPage({
   };
 
   const [members, total] = await Promise.all([
-    prisma.member.findMany({ where, include: { plan: true, payments: { orderBy: { paidAt: "desc" }, take: 1, select: { receiptNumber: true } } }, orderBy: { createdAt: "desc" }, skip: (p - 1) * PAGE, take: PAGE }),
+    prisma.member.findMany({ where, include: { plan: true, payments: { orderBy: { paidAt: "desc" }, take: 1, select: { receiptNumber: true, proofUrl: true, amount: true } } }, orderBy: { createdAt: "desc" }, skip: (p - 1) * PAGE, take: PAGE }),
     prisma.member.count({ where }),
   ]);
   const pages = Math.ceil(total / PAGE);
@@ -91,9 +91,24 @@ export default async function MembersPage({
                   <td className="px-4 py-3 text-stone-500">{formatDateHi(m.joiningDate)}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-1.5">
+                      {/* सदस्य द्वारा अपलोड की गई भुगतान रसीद — देखकर ही स्वीकृत करें */}
+                      {m.payments[0]?.proofUrl && (
+                        <a href={m.payments[0].proofUrl} target="_blank" rel="noreferrer"
+                          title={`सदस्य की भेजी भुगतान रसीद — ₹${m.payments[0].amount}`}
+                          className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold ${m.status === "PENDING"
+                            ? "border-2 border-blue-400 bg-blue-50 text-blue-800 hover:bg-blue-100"
+                            : "border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"}`}>
+                          <FileImage className="h-3.5 w-3.5" /> भुगतान प्रमाण
+                        </a>
+                      )}
+                      {m.status === "PENDING" && !m.payments[0]?.proofUrl && (
+                        <span className="rounded-lg bg-red-50 px-2 py-1 text-xs font-medium text-red-700">
+                          रसीद नहीं भेजी
+                        </span>
+                      )}
                       {m.status === "PENDING" && (
                         <Link href={`/admin/members/${m.id}`} className="rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800 hover:bg-amber-200">
-                          ✅ स्वीकृत करें
+                          ✅ जाँचें व स्वीकृत करें
                         </Link>
                       )}
                       {/* ID कार्ड */}
@@ -115,9 +130,9 @@ export default async function MembersPage({
                       {/* सदस्यता रसीद */}
                       {m.payments[0]?.receiptNumber && (
                         <Link href={`/membership-receipt/${m.payments[0].receiptNumber}`} target="_blank"
-                          title="सदस्यता रसीद प्रिन्ट"
+                          title="NYS की ओर से जारी सदस्यता रसीद (प्रिंट)"
                           className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100">
-                          <Receipt className="h-3.5 w-3.5" /> रसीद
+                          <Receipt className="h-3.5 w-3.5" /> NYS रसीद
                         </Link>
                       )}
                       <Link href={`/admin/members/${m.id}/edit`} className="text-xs font-medium text-saffron-700 hover:underline">
